@@ -52,9 +52,8 @@ public:
     {
         const double r     = V[1];
         const double z     = V[2];
-        const double speed = Hypotenuse(V[3],V[4]);
-        const double drds  = V[3]/speed;
-        const double dzds  = V[4]/speed;
+        const double drds  = V[3];
+        const double dzds  = V[4];
         dVds[1] = drds;
         dVds[2] = dzds;
 
@@ -64,11 +63,22 @@ public:
 
     }
 
-    void Legalize( array_t &V, double)
+    void Legalize( array_t &v, double)
     {
-        const double speed = Hypotenuse(V[3],V[4]);
-        V[3] /= speed;
-        V[4] /= speed;
+        const double c   = V[3]; //!< old cos
+        const double s   = V[4]; //!< old sin
+        const double ddr = v[3] - c; //!< increase of cos
+        const double ddz = v[4] - s; //!< increase of sin
+        const double A   = ddr*ddr + ddz*ddz + 2 * (ddz*s+ddr*c);
+        const double Ap1 = A+1;
+        const double mu  = v[3]*A/Ap1;
+        const double nu  = v[4]*A/Ap1;
+        v[3] -= mu;
+        v[4] -= nu;
+        const double speed = Hypotenuse(v[3], v[4]);
+        v[3] /= speed;
+        v[4] /= speed;
+
     }
 
     inline void OutputBridge() const

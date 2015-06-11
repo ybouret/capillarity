@@ -8,6 +8,7 @@
 #include "yocto/math/fcn/zfind.hpp"
 #include "yocto/math/ode/explicit/driver-ck.hpp"
 #include "yocto/math/trigconv.hpp"
+#include "yocto/math/types.hpp"
 
 using namespace yocto;
 using namespace math;
@@ -34,7 +35,7 @@ public:
     double kappa;
     vector<double> V;
 
-    Bridge() : odeint(1e-6),
+    Bridge() : odeint(1e-7),
     R(100),
     kappa(1.0/R),
     V(NVAR,0)
@@ -49,25 +50,23 @@ public:
 
     void Equation( array_t &dVds, const double s, const array_t &V)
     {
-        const double r    = V[1];
-        const double z    = V[2];
-        const double drds = V[3];
-        const double dzds = V[4];
-
+        const double r     = V[1];
+        const double z     = V[2];
+        const double speed = Hypotenuse(V[3],V[4]);
+        const double drds  = V[3]/speed;
+        const double dzds  = V[4]/speed;
         dVds[1] = drds;
         dVds[2] = dzds;
 
-        const double f = kappa*kappa * z + dzds/r;
-        dVds[3] =  dzds * f;
-        dVds[4] = -drds * f;
+        const double phi = kappa*kappa * z + dzds/r;
+        dVds[3] =  dzds * phi;
+        dVds[4] = -drds * phi;
 
     }
 
     void Legalize( array_t &V, double)
     {
-        const double drds = V[3];
-        const double dzds = V[4];
-        const double speed = Hypotenuse(drds,dzds);
+        const double speed = Hypotenuse(V[3],V[4]);
         V[3] /= speed;
         V[4] /= speed;
     }
@@ -114,7 +113,7 @@ public:
             const double s1 = (i+1)*ds;
             odeint(eq,V,s0,s1,h,&cb);
             fp("%g %g\n",V[1],V[2]);
-            if(s1>=R*2)
+            if(s1>=R*3)
                 break;
         }
 
@@ -132,6 +131,7 @@ private:
 
 YOCTO_PROGRAM_START()
 {
+#if 1
     if(argc<=2)
     {
         throw exception("need theta alpha");
@@ -141,5 +141,24 @@ YOCTO_PROGRAM_START()
     Bridge B;
     B.Build(theta,alpha);
     B.OutputBridge();
+#endif
+
+#if 0
+    if(argc<=1)
+    {
+        throw exception("need theta");
+    }
+    const double theta = strconv::to<double>(argv[1],"theta");
+    Bridge B;
+    const string fn = vformat("phase%g.dat",theta);
+    ios::ocstream::overwrite(fn);
+    for(int alpha=1;alpha<=179;++alpha)
+    {
+        B.Build(theta,alpha);
+        ios::ocstream fp(fn,true);
+        fp("%d %g %g\n",alpha,B.V[1],B.V[2]);
+    }
+#endif
+
 }
 YOCTO_PROGRAM_END()

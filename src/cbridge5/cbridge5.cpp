@@ -8,6 +8,7 @@
 #include "yocto/ios/ocstream.hpp"
 #include "yocto/string/conv.hpp"
 #include "yocto/fs/local-fs.hpp"
+#include "yocto/ptr/auto.hpp"
 
 using namespace yocto;
 using namespace math;
@@ -29,16 +30,18 @@ public:
     array_t &k3;
     array_t &k4;
     array_t &V;
+    array_t &U0;
 
     Bridge() :
     K(1),
-    arrays(6),
+    arrays(7),
     U(  arrays.next_array() ),
     k1( arrays.next_array() ),
     k2( arrays.next_array() ),
     k3( arrays.next_array() ),
     k4( arrays.next_array() ),
-    V(  arrays.next_array() )
+    V(  arrays.next_array() ),
+    U0( arrays.next_array() )
     {
         arrays.allocate(NVAR);
     }
@@ -102,7 +105,7 @@ public:
 
     bool FinalRadius(const double beta,
                      const double theta,
-                     const double alpha)
+                     const double alpha, bool save=false)
     {
 
         //std::cerr << "beta  = " << beta  << std::endl;
@@ -128,8 +131,12 @@ public:
 
 
         bool success = true;
-        //ios::ocstream fp("profile.dat",false);
-        //fp("%g %g\n", r_c, y_c);
+        auto_ptr<ios::ocstream> fp;
+        if(save)
+        {
+            fp.reset( new ios::ocstream("profile.dat", false) );
+            (*fp)("%g %g\n", r_c, y_c);
+        }
         for(size_t i=ny;i>0;--i)
         {
             // forward
@@ -153,6 +160,10 @@ public:
                 success = false;
                 break;
             }
+            if(save&&u<4)
+            {
+                (*fp)("%g %g\n",u,y);
+            }
 
         }
         return success;
@@ -160,42 +171,6 @@ public:
     }
 
 
-    void SaveProfile(const string &filename,
-                     const double  beta,
-                     const double  theta,
-                     const double  alpha)
-    {
-        const double aa  = Deg2Rad(alpha);
-        const double r_c = Sin(aa);
-        const double y_c = beta + (1.0-Cos(aa));
-        const double rot = Deg2Rad(alpha+theta);
-        const double v_c = Cos(rot)/Sin(rot);
-        const size_t ny  = ComputeNumSteps(y_c);
-
-        U[1] = r_c; // initial radius
-        U[2] = v_c; // initial slope drdy
-
-        ios::ocstream fp(filename,false);
-        fp("%g %g\n", r_c, y_c);
-        for(size_t i=ny;i>0;--i)
-        {
-            // forward
-            const double y_ini = (y_c*i)/ny;
-            const double y_end = (y_c*(i-1))/ny;
-            RK4(y_ini,y_end);
-
-            // test
-            const double u = U[1];
-            const double y = y_end;
-            if(u<4)
-            {
-                fp("%g %g\n",u,y);
-            }
-
-        }
-
-
-    }
 
     void ScanAlpha(double beta,double theta)
     {
@@ -250,8 +225,7 @@ public:
         }
         // last good
         const double alpha = lo;
-        FinalRadius(beta,theta,alpha);
-        SaveProfile("profile.dat", beta, theta, alpha);
+        FinalRadius(beta,theta,alpha,true);
         return alpha;
     }
 

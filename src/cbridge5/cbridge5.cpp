@@ -324,7 +324,7 @@ public:
     explicit DataFile(const string &filename, const double R) :
     Height(),
     Surface(),
-    Length(0),
+    Count(0),
     beta(),
     alpha()
     {
@@ -333,13 +333,14 @@ public:
         ds.use(2, Surface);
         ios::icstream fp(filename);
         ds.load(fp);
-        (size_t &)Length = Height.size();
-        beta.make(Length,0);
-        alpha.make(Length,0);
-        std::cerr << "Length=" << Length << std::endl;
+        (size_t &)Count = Height.size();
+        beta.make(Count,0);
+        alpha.make(Count,0);
+        std::cerr << "Count=" << Count << std::endl;
 
         const double area = numeric<double>::pi*R*R;
-        for(size_t j=Length;j>0;--j)
+        std::cerr << "Normalizing Area=" << area << " mm^2" << std::endl;
+        for(size_t j=Count;j>0;--j)
         {
             beta[j] = Height[j]/R;
             const double sa = Sqrt(clamp<double>(0,Surface[j]/area,1.0));
@@ -376,7 +377,7 @@ public:
 
     vector<double> Height;
     vector<double> Surface;
-    const size_t   Length;
+    const size_t   Count;
     vector<double> beta;
     vector<double> alpha;
 
@@ -446,7 +447,7 @@ YOCTO_PROGRAM_START()
         bname += ".dat";
         {
             ios::ocstream fp(bname,false);
-            for(size_t j=1;j<=datafile.Length;++j)
+            for(size_t j=1;j<=datafile.Count;++j)
             {
                 fp("%g %g %g %g\n",datafile.Height[j], datafile.Surface[j], datafile.beta[j], datafile.alpha[j]);
             }

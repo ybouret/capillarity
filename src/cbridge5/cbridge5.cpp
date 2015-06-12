@@ -327,12 +327,14 @@ public:
     double            beta;
     double            alpha;
     zfunction<double> zfn;
+    zfind<double>     zsolve;
 
     explicit Solver(const double R, const double kappa) :
     bridge(),
     beta(0),
     alpha(0),
-    zfn(this,& Solver::AlphaOf,0)
+    zfn(this,& Solver::AlphaOf,0),
+    zsolve(ATOL)
     {
         bridge.K = R*kappa;
     }
@@ -348,14 +350,75 @@ public:
         alpha = usr_alpha;
         std::cerr << "beta="  << beta << std::endl;
         std::cerr << "alpha=" << alpha << std::endl;
-        const double theta_max = 180.0 - alpha;
+        double theta_max = 180.0 - alpha;
         std::cerr << "theta_max=" << theta_max << std::endl;
         zfn.target = 0;
-        std::cerr << "zfn(" << theta_max/2 << ")=" << zfn.call(theta_max/2) << std::endl;
-        std::cerr << "zfn(" << theta_max/4 << ")=" << zfn.call(theta_max/4) << std::endl;
-        std::cerr << "zfn(" << 0.75*theta_max << ")=" << zfn.call(0.75*theta_max) << std::endl;
 
-        return 0;
+        //______________________________________________________________________
+        //
+        // find a lower value for theta => upper value for alpha
+        //______________________________________________________________________
+        double theta_lo = theta_max;
+        while(true)
+        {
+            theta_lo /= 2;
+            const double alpha_lo = AlphaOf(theta_lo);
+            if(alpha_lo<0)
+            {
+                //invalid
+                continue;
+            }
+            if(alpha_lo<=alpha)
+            {
+                continue;
+            }
+            std::cerr << "theta_lo=" << theta_lo << ", ->alpha=" << alpha_lo << std::endl;
+            break;
+        }
+
+        //______________________________________________________________________
+        //
+        // probe an upper value for theta
+        // theta_up: valid
+        // theta_max: invalid
+        //______________________________________________________________________
+        double theta_up = theta_lo;
+        bool   found_up = false;
+        while(theta_max-theta_up>ATOL)
+        {
+            const double theta_mid = 0.5*(theta_up+theta_max);
+            const double alpha_up  = AlphaOf(theta_mid);
+            if(alpha_up<0)
+            {
+                // theta_mid is invalid
+                theta_max = theta_mid;
+            }
+            else
+            {
+                theta_up = theta_mid;
+                std::cerr << "theta_up=" << theta_up<< ", ->alpha=" << alpha_up << std::endl;
+                if(alpha_up<alpha)
+                {
+                    found_up = true;
+                    break;
+                }
+            }
+        }
+        if(!found_up)
+            return theta_max;
+
+        zfn.target = alpha;
+        const double z_lo = zfn.call(theta_lo);
+        const double z_up = zfn.call(theta_up);
+
+        std::cerr << "zfn(" << theta_lo << ")=" << z_lo << std::endl;
+        std::cerr << "zfn(" << theta_up << ")=" << z_up << std::endl;
+
+        triplet<double> Theta = { theta_lo, theta_lo, theta_up };
+        triplet<double> ZFunc = { z_lo,     z_lo,     z_up     };
+        const double theta = zsolve.run(zfn.call,Theta,ZFunc);
+        std::cerr << "theta=" << theta << std::endl;
+        return theta;
     }
 
     double AlphaOf( const double theta )
@@ -376,7 +439,8 @@ public:
     Surface(),
     Count(0),
     beta(),
-    alpha()
+    alpha(),
+    theta()
     {
         data_set<double> ds;
         ds.use(1, Height);
@@ -386,6 +450,7 @@ public:
         (size_t &)Count = Height.size();
         beta.make(Count,0);
         alpha.make(Count,0);
+        theta.make(Count,0);
         std::cerr << "Count=" << Count << std::endl;
 
         const double area = numeric<double>::pi*R*R;
@@ -403,8 +468,7 @@ public:
     {
         for(size_t i=Count;i>0;--i)
         {
-            solver.FindTheta(beta[i],alpha[i]);
-            break;
+            theta[i] = solver.FindTheta(beta[i],alpha[i]);
         }
 
     }
@@ -419,6 +483,7 @@ public:
     const size_t   Count;
     vector<double> beta;
     vector<double> alpha;
+    vector<double> theta;
 
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(DataFile);
@@ -490,14 +555,18 @@ YOCTO_PROGRAM_START()
         DataFile     datafile(filename,R);
         string bname = vfs::get_base_name(filename);
         bname += ".dat";
+        ios::ocstream::overwrite(bname);
         {
-            ios::ocstream fp(bname,false);
             for(size_t j=1;j<=datafile.Count;++j)
             {
-                fp("%g %g %g %g\n",datafile.Height[j], datafile.Surface[j], datafile.beta[j], datafile.alpha[j]);
+                const double alpha = datafile.alpha[j];
+                const double beta  = datafile.beta[j];
+                datafile.theta[j]  = solver.FindTheta(beta, alpha);
+                ios::ocstream fp(bname,true);
+                fp("%g %g %g %g %g\n",datafile.Height[j], datafile.Surface[j], datafile.beta[j], datafile.alpha[j], datafile.theta[j]);
             }
+
         }
-        datafile.InverseWith(solver);
     }
 #endif
     

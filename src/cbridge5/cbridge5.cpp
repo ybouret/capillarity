@@ -15,8 +15,9 @@ using namespace math;
 
 typedef array<double> array_t;
 static const size_t NVAR      = 2;
-static double       ATOL      = 1e-4;
-static size_t       NUM_STEPS = 10000;
+static double       ATOL      = 1e-5;  // tolerance on alpha
+static double       BTOL      = 1e-5;  // tolerance on beta
+static size_t       NUM_STEPS = 10000; // used #steps
 
 class Bridge
 {
@@ -31,6 +32,7 @@ public:
     array_t &k4;
     array_t &V;
     array_t &U0;
+    mutable double last_umin;
 
     Bridge() :
     K(1),
@@ -41,7 +43,8 @@ public:
     k3( arrays.next_array() ),
     k4( arrays.next_array() ),
     V(  arrays.next_array() ),
-    U0( arrays.next_array() )
+    U0( arrays.next_array() ),
+    last_umin(0)
     {
         arrays.allocate(NVAR);
     }
@@ -100,7 +103,8 @@ public:
 
     bool FinalRadius(const double beta,
                      const double theta,
-                     const double alpha, bool save=false)
+                     const double alpha,
+                     const bool   save=false)
     {
 
         //std::cerr << "beta  = " << beta  << std::endl;
@@ -124,7 +128,7 @@ public:
         U[1] = r_c; // initial radius
         U[2] = u_c; // initial slope drdy
 
-
+        last_umin    = U[1];
         bool success = true;
         auto_ptr<ios::ocstream> fp;
         if(save)
@@ -133,14 +137,23 @@ public:
             (*fp)("%g %g\n", r_c, y_c);
         }
 
+
+        double reg[3] = { U[1],0,0 }; // curvature detector
+        size_t num    = 1;
         for(size_t i=ny;i>0;--i)
         {
+            //__________________________________________________________________
+            //
             // forward
+            //__________________________________________________________________
             const double y_ini = (y_c*i)/ny;
-            const double y_end = (y_c*(i-1))/ny;
-            RK4(y_ini,y_end);
+            const double y     = (y_c*(i-1))/ny;
+            RK4(y_ini,y);
 
-            // test
+            //__________________________________________________________________
+            //
+            // test valid radius
+            //__________________________________________________________________
             const double u = U[1];
             if( isnan(u) || isinf(u) || u <= 0)
             {
@@ -148,7 +161,11 @@ public:
                 success = false;
                 break;
             }
-            const double y       = y_end;
+
+            //__________________________________________________________________
+            //
+            // test valid position
+            //__________________________________________________________________
             const double dist_sq = Square(y-y_b) + Square(u);
             if(dist_sq<1)
             {
@@ -156,11 +173,40 @@ public:
                 success = false;
                 break;
             }
+
+            //__________________________________________________________________
+            //
+            // test valid curvature
+            //__________________________________________________________________
+            if(num<3)
+            {
+                reg[num++] = U[1];
+            }
+            else
+            {
+                reg[0] = reg[1];
+                reg[1] = reg[2];
+                reg[2] = U[1];
+                if((reg[1]+reg[1])>= (reg[0]+reg[2]) )
+                {
+                    success = false;
+                    break;
+                }
+            }
+
+            //__________________________________________________________________
+            //
+            // may save
+            //__________________________________________________________________
             if(save&&u<4)
             {
                 (*fp)("%g %g\n",u,y);
             }
 
+            if(u<last_umin)
+            {
+                last_umin = u;
+            }
         }
         return success;
 
@@ -184,7 +230,7 @@ public:
 
     inline double FindAlpha(double beta,double theta)
     {
-        std::cerr << "FindAlpha(beta=" << beta << ",theta=" << theta << ")" << std::endl;
+        //std::cerr << "FindAlpha(beta=" << beta << ",theta=" << theta << ")" << std::endl;
 
         if(theta<=0||theta>=180)
         {
@@ -200,7 +246,7 @@ public:
             lo /= 2;
             if(lo<ATOL)
             {
-                std::cerr << "Impossible..." << std::endl;
+                //std::cerr << "Impossible..." << std::endl;
                 return -1;
             }
         }
@@ -227,6 +273,44 @@ public:
         return alpha;
     }
 
+    inline double FindBetaMax(const double theta)
+    {
+        std::cerr << "FindBetaMax(theta=" << theta << ")" << std::endl;
+        // check that a zero height is valid
+        double beta_lo = 0;
+        if(FindAlpha(beta_lo,theta)<0)
+        {
+            return -1;
+        }
+
+        // find an invalid beta
+        double d_beta  = 1.0/K;
+        double beta_up = d_beta;
+        while(FindAlpha(beta_up,theta)>=0)
+        {
+            beta_lo = beta_up;
+            beta_up += d_beta;
+        }
+
+        // beta_lo: valid, beta_up: invalid
+        while(beta_up-beta_lo>BTOL)
+        {
+            const double beta_mid = 0.5 * (beta_lo+beta_up);
+            if(FindAlpha(beta_mid,theta)<0)
+            {
+                beta_up = beta_mid;
+            }
+            else
+            {
+                beta_lo = beta_mid;
+            }
+        }
+        const double beta  = beta_lo;
+        const double alpha = FindAlpha(beta,theta);
+        (void) FinalRadius(beta,theta,alpha,theta<=5);
+        return beta;
+    }
+
 
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Bridge);
@@ -238,24 +322,43 @@ YOCTO_PROGRAM_START()
 {
     vfs &fs = local_fs::instance();
     fs.try_remove_file("profile.dat");
-    
+
+#if 0
     if(argc<=2)
     {
         throw exception("need beta theta");
     }
     const double beta  = strconv::to<double>(argv[1],"beta");
     const double theta = strconv::to<double>(argv[2],"theta");
-    
+
     Bridge B;
     B.OutputBridge(beta);
     B.ScanAlpha(beta, theta);
     const double alpha = B.FindAlpha(beta,theta);
     if(alpha>=0)
     {
-    (void)B.FinalRadius(beta,theta,alpha,true);
+        (void)B.FinalRadius(beta,theta,alpha,true);
     }
+#endif
 
+#if 1
+    if(argc<=1)
+    {
+        throw exception("need K");
+    }
+    Bridge B;
+    B.K = strconv::to<double>(argv[1],"K");
+    const string fn = vformat("beta_max%g.dat",B.K);
+    ios::ocstream::overwrite(fn);
+    for(int theta=178;theta>=2;theta-=2)
+    {
+        const double  beta_max = B.FindBetaMax(theta);
 
+        ios::ocstream fp(fn,true);
+        fp("%d %g %g\n",theta,beta_max,B.last_umin);
+    }
+#endif
 
+    
 }
 YOCTO_PROGRAM_END()

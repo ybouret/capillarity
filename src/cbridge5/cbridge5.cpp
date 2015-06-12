@@ -11,6 +11,7 @@
 #include "yocto/ptr/auto.hpp"
 #include "yocto/math/io/data-set.hpp"
 #include "yocto/ios/icstream.hpp"
+#include "yocto/math/fcn/zfind.hpp"
 
 using namespace yocto;
 using namespace math;
@@ -322,14 +323,16 @@ private:
 class Solver
 {
 public:
-    Bridge bridge;
-    double beta;
-    double alpha;
+    Bridge            bridge;
+    double            beta;
+    double            alpha;
+    zfunction<double> zfn;
 
     explicit Solver(const double R, const double kappa) :
     bridge(),
     beta(0),
-    alpha(0)
+    alpha(0),
+    zfn(this,& Solver::AlphaOf,0)
     {
         bridge.K = R*kappa;
     }
@@ -338,18 +341,30 @@ public:
     {
     }
 
-    void FindTheta(const double usr_beta, const double usr_alpha)
+    double FindTheta(const double usr_beta,
+                     const double usr_alpha)
     {
         beta  = usr_beta;
         alpha = usr_alpha;
-
+        std::cerr << "beta="  << beta << std::endl;
+        std::cerr << "alpha=" << alpha << std::endl;
         const double theta_max = 180.0 - alpha;
-        
+        std::cerr << "theta_max=" << theta_max << std::endl;
+        zfn.target = 0;
+        std::cerr << "zfn(" << theta_max/2 << ")=" << zfn.call(theta_max/2) << std::endl;
+        std::cerr << "zfn(" << theta_max/4 << ")=" << zfn.call(theta_max/4) << std::endl;
+        std::cerr << "zfn(" << 0.75*theta_max << ")=" << zfn.call(0.75*theta_max) << std::endl;
+
+        return 0;
     }
 
+    double AlphaOf( const double theta )
+    {
+        return bridge.FindAlpha(beta,theta);
+    }
 
 private:
-
+    YOCTO_DISABLE_COPY_AND_ASSIGN(Solver);
 };
 
 class DataFile
@@ -384,27 +399,16 @@ public:
 
     }
 
-
-
-    void Inverse(Bridge &B)
+    void InverseWith(Solver &solver)
     {
-#if 0
-        zfunction<double> zfn(&B, &Bridge::AlphaOf, 0);
-        for(size_t i=Length;i<=Length;++i)
+        for(size_t i=Count;i>0;--i)
         {
-            B.beta = beta[i];
-            zfn.target = 0;
-            std::cerr << "alpha[" << i << "]=" << alpha[i] << std::endl;
-            const double theta_max = 180.0 - alpha[i];
-            ios::ocstream fp("alpha-theta.dat",false);
-            for(double theta=0;theta<theta_max;theta+=0.1)
-            {
-                fp("%g %g\n", theta, zfn.call(theta) );
-            }
+            solver.FindTheta(beta[i],alpha[i]);
             break;
         }
-#endif
+
     }
+
 
     virtual ~DataFile() throw()
     {
@@ -435,12 +439,19 @@ YOCTO_PROGRAM_START()
     const double theta = strconv::to<double>(argv[2],"theta");
 
     Bridge B;
-    B.OutputBridge(beta);
-    B.ScanAlpha(beta, theta);
-    const double alpha = B.FindAlpha(beta,theta);
-    if(alpha>=0)
+    //B.OutputBridge(beta);
+    //B.ScanAlpha(beta, theta);
+    static const double Kreg[] = { 0.1, 1, 10 };
+    for(size_t i=0;i<sizeof(Kreg)/sizeof(Kreg[0]);++i)
     {
-        (void)B.FinalRadius(beta,theta,alpha,true);
+        B.K = Kreg[i];
+        const double alpha = B.FindAlpha(beta,theta);
+        std::cerr << "K=" << B.K << std::endl;
+        std::cerr << "alpha(theta=" << theta << ")=" << alpha << std::endl;
+        if(alpha>=0)
+        {
+            //(void)B.FinalRadius(beta,theta,alpha,true);
+        }
     }
 #endif
 
@@ -471,6 +482,8 @@ YOCTO_PROGRAM_START()
     const double R     = strconv::to<double>(argv[1],"R");
     const double kappa = 1.0/strconv::to<double>(argv[2],"1/kappa");
 
+    Solver solver(R,kappa);
+
     for(int i=3;i<argc;++i)
     {
         const string filename = argv[i];
@@ -484,10 +497,10 @@ YOCTO_PROGRAM_START()
                 fp("%g %g %g %g\n",datafile.Height[j], datafile.Surface[j], datafile.beta[j], datafile.alpha[j]);
             }
         }
-        //datafile.Inverse(B);
+        datafile.InverseWith(solver);
     }
 #endif
-
+    
     
 }
 YOCTO_PROGRAM_END()

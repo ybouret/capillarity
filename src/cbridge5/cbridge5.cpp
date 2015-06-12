@@ -51,7 +51,7 @@ public:
         arrays.allocate(NVAR);
     }
 
-    ~Bridge() throw()
+    virtual ~Bridge() throw()
     {
     }
 
@@ -318,10 +318,45 @@ private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Bridge);
 };
 
+
+class Solver
+{
+public:
+    Bridge bridge;
+    double beta;
+    double alpha;
+
+    explicit Solver(const double R, const double kappa) :
+    bridge(),
+    beta(0),
+    alpha(0)
+    {
+        bridge.K = R*kappa;
+    }
+
+    virtual ~Solver() throw()
+    {
+    }
+
+    void FindTheta(const double usr_beta, const double usr_alpha)
+    {
+        beta  = usr_beta;
+        alpha = usr_alpha;
+
+        const double theta_max = 180.0 - alpha;
+        
+    }
+
+
+private:
+
+};
+
 class DataFile
 {
 public:
-    explicit DataFile(const string &filename, const double R) :
+    explicit DataFile(const string &filename,
+                      const double R) :
     Height(),
     Surface(),
     Count(0),
@@ -435,9 +470,6 @@ YOCTO_PROGRAM_START()
     }
     const double R     = strconv::to<double>(argv[1],"R");
     const double kappa = 1.0/strconv::to<double>(argv[2],"1/kappa");
-    Bridge       B;
-    B.K = R*kappa;
-
 
     for(int i=3;i<argc;++i)
     {

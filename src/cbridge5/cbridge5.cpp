@@ -9,6 +9,8 @@
 #include "yocto/string/conv.hpp"
 #include "yocto/fs/local-fs.hpp"
 #include "yocto/ptr/auto.hpp"
+#include "yocto/math/io/data-set.hpp"
+#include "yocto/ios/icstream.hpp"
 
 using namespace yocto;
 using namespace math;
@@ -316,6 +318,71 @@ private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Bridge);
 };
 
+class DataFile
+{
+public:
+    explicit DataFile(const string &filename, const double R) :
+    Height(),
+    Surface(),
+    Length(0),
+    beta(),
+    alpha()
+    {
+        data_set<double> ds;
+        ds.use(1, Height);
+        ds.use(2, Surface);
+        ios::icstream fp(filename);
+        ds.load(fp);
+        (size_t &)Length = Height.size();
+        beta.make(Length,0);
+        alpha.make(Length,0);
+        std::cerr << "Length=" << Length << std::endl;
+
+        const double area = numeric<double>::pi*R*R;
+        for(size_t j=Length;j>0;--j)
+        {
+            beta[j] = Height[j]/R;
+            const double sa = Sqrt(clamp<double>(0,Surface[j]/area,1.0));
+            alpha[j] = Rad2Deg(Asin(sa));
+        }
+
+    }
+
+
+
+    void Inverse(Bridge &B)
+    {
+#if 0
+        zfunction<double> zfn(&B, &Bridge::AlphaOf, 0);
+        for(size_t i=Length;i<=Length;++i)
+        {
+            B.beta = beta[i];
+            zfn.target = 0;
+            std::cerr << "alpha[" << i << "]=" << alpha[i] << std::endl;
+            const double theta_max = 180.0 - alpha[i];
+            ios::ocstream fp("alpha-theta.dat",false);
+            for(double theta=0;theta<theta_max;theta+=0.1)
+            {
+                fp("%g %g\n", theta, zfn.call(theta) );
+            }
+            break;
+        }
+#endif
+    }
+
+    virtual ~DataFile() throw()
+    {
+    }
+
+    vector<double> Height;
+    vector<double> Surface;
+    const size_t   Length;
+    vector<double> beta;
+    vector<double> alpha;
+
+private:
+    YOCTO_DISABLE_COPY_AND_ASSIGN(DataFile);
+};
 
 
 YOCTO_PROGRAM_START()
@@ -341,7 +408,7 @@ YOCTO_PROGRAM_START()
     }
 #endif
 
-#if 1
+#if 0
     if(argc<=1)
     {
         throw exception("need K");
@@ -356,6 +423,35 @@ YOCTO_PROGRAM_START()
 
         ios::ocstream fp(fn,true);
         fp("%d %g %g\n",theta,beta_max,B.last_umin);
+    }
+#endif
+
+
+#if 1
+    if(argc<=2)
+    {
+        throw exception("need R[mm], 1/kappa [mm]");
+    }
+    const double R     = strconv::to<double>(argv[1],"R");
+    const double kappa = 1.0/strconv::to<double>(argv[2],"1/kappa");
+    Bridge       B;
+    B.K = R*kappa;
+
+
+    for(int i=3;i<argc;++i)
+    {
+        const string filename = argv[i];
+        DataFile     datafile(filename,R);
+        string bname = vfs::get_base_name(filename);
+        bname += ".dat";
+        {
+            ios::ocstream fp(bname,false);
+            for(size_t j=1;j<=datafile.Length;++j)
+            {
+                fp("%g %g %g %g\n",datafile.Height[j], datafile.Surface[j], datafile.beta[j], datafile.alpha[j]);
+            }
+        }
+        //datafile.Inverse(B);
     }
 #endif
 

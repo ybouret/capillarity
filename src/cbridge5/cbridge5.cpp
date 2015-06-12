@@ -14,9 +14,9 @@ using namespace yocto;
 using namespace math;
 
 typedef array<double> array_t;
-static const size_t NVAR = 2;
-static double       DY   = 1e-5;
-static double       ATOL = 1e-4;
+static const size_t NVAR      = 2;
+static double       ATOL      = 1e-4;
+static size_t       NUM_STEPS = 10000;
 
 class Bridge
 {
@@ -97,11 +97,6 @@ public:
         }
     }
 
-    size_t ComputeNumSteps(const double y_c) const
-    {
-        return max_of<size_t>(ceil(y_c/DY),100);
-    }
-
 
     bool FinalRadius(const double beta,
                      const double theta,
@@ -123,7 +118,7 @@ public:
         const double y_c = beta + (1.0-Cos(aa));
         const double rot = Deg2Rad(alpha+theta);
         const double u_c = Cos(rot)/Sin(rot);
-        const size_t ny  = ComputeNumSteps(y_c);
+        const size_t ny  = NUM_STEPS;
         const double y_b = beta+1.0;
 
         U[1] = r_c; // initial radius
@@ -137,6 +132,7 @@ public:
             fp.reset( new ios::ocstream("profile.dat", false) );
             (*fp)("%g %g\n", r_c, y_c);
         }
+
         for(size_t i=ny;i>0;--i)
         {
             // forward
@@ -186,9 +182,10 @@ public:
         }
     }
 
-    double FindAlpha(double beta,double theta)
+    inline double FindAlpha(double beta,double theta)
     {
         std::cerr << "FindAlpha(beta=" << beta << ",theta=" << theta << ")" << std::endl;
+
         if(theta<=0||theta>=180)
         {
             return -1;
@@ -203,11 +200,12 @@ public:
             lo /= 2;
             if(lo<ATOL)
             {
+                std::cerr << "Impossible..." << std::endl;
                 return -1;
             }
         }
 
-        std::cerr << "BracketAlpha: " << lo << "->" << hi << std::endl;
+        //std::cerr << "BracketAlpha: " << lo << "->" << hi << std::endl;
         while(hi-lo>ATOL)
         {
             const double mid = (lo+hi)*0.5;
@@ -225,7 +223,7 @@ public:
         }
         // last good
         const double alpha = lo;
-        FinalRadius(beta,theta,alpha,true);
+        //FinalRadius(beta,theta,alpha);
         return alpha;
     }
 
@@ -238,6 +236,9 @@ private:
 
 YOCTO_PROGRAM_START()
 {
+    vfs &fs = local_fs::instance();
+    fs.try_remove_file("profile.dat");
+    
     if(argc<=2)
     {
         throw exception("need beta theta");
@@ -248,7 +249,13 @@ YOCTO_PROGRAM_START()
     Bridge B;
     B.OutputBridge(beta);
     B.ScanAlpha(beta, theta);
-    B.FindAlpha(beta,theta);
-    
+    const double alpha = B.FindAlpha(beta,theta);
+    if(alpha>=0)
+    {
+    (void)B.FinalRadius(beta,theta,alpha,true);
+    }
+
+
+
 }
 YOCTO_PROGRAM_END()

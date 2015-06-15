@@ -234,7 +234,7 @@ public:
     void ScanTheta(double beta, double alpha)
     {
         ios::ocstream fp( vformat("theta_ofK%g_beta%g_alpha%g.dat",K,beta,alpha),false);
-        for(int theta=1;theta<=179;++theta)
+        for(int theta=0;theta<=179;++theta)
         {
             double value = 0;
             if(FinalRadius(beta,theta,alpha))
@@ -291,10 +291,35 @@ public:
         return alpha;
     }
 
-    inline double FindTheta(double beta,double alpha)
+    inline double FindTheta(const double beta, const double alpha)
     {
+        // assuming a good value
+        double theta_lo  = 0;
+        if( !FinalRadius(beta, theta_lo, alpha))
+        {
+            return -1;
+        }
 
-        return -1;
+        // assuming bad value
+        double theta_up = 180.0 - alpha; // assume bad
+
+        // bracket
+        while(theta_up-theta_lo>ATOL)
+        {
+            const double theta_mid = 0.5 * ( theta_up + theta_lo );
+            if( FinalRadius(beta,theta_mid,alpha) )
+            {
+                theta_lo = theta_mid;
+            }
+            else
+            {
+                theta_up = theta_mid;
+            }
+
+        }
+        const double theta = theta_lo;
+        (void) FinalRadius(beta,theta,alpha);
+        return theta;
     }
 
 

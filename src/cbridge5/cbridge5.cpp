@@ -219,7 +219,7 @@ public:
 
     void ScanAlpha(double beta,double theta)
     {
-        ios::ocstream fp("inv.dat",false);
+        ios::ocstream fp(vformat("alpha_of%g.dat",theta),false);
         for(int alpha=1;alpha<=179;++alpha)
         {
             double value = 0;
@@ -231,11 +231,26 @@ public:
         }
     }
 
+    void ScanTheta(double beta, double alpha)
+    {
+        ios::ocstream fp( vformat("theta_ofK%g_beta%g_alpha%g.dat",K,beta,alpha),false);
+        for(int theta=1;theta<=179;++theta)
+        {
+            double value = 0;
+            if(FinalRadius(beta,theta,alpha))
+            {
+                value = 1.0/U[1];
+            }
+            fp("%g %g\n", double(theta), value);
+        }
+
+    }
+
     inline double FindAlpha(double beta,double theta)
     {
         //std::cerr << "FindAlpha(beta=" << beta << ",theta=" << theta << ")" << std::endl;
 
-        if(theta<=0||theta>=180)
+        if(theta<0||theta>=180)
         {
             return -1;
         }
@@ -275,6 +290,14 @@ public:
         //FinalRadius(beta,theta,alpha);
         return alpha;
     }
+
+    inline double FindTheta(double beta,double alpha)
+    {
+
+        return -1;
+    }
+
+
 
     inline double FindBetaMax(const double theta)
     {
@@ -520,6 +543,21 @@ YOCTO_PROGRAM_START()
     }
 #endif
 
+#if 1
+    if(argc<=3)
+    {
+        throw exception("need K beta alpha");
+    }
+    const double K     = strconv::to<double>(argv[1],"K");
+    const double beta  = strconv::to<double>(argv[2],"beta");
+    const double alpha = strconv::to<double>(argv[3],"alpha");
+    Bridge B;
+    B.K = K;
+    B.ScanTheta(beta, alpha);
+
+#endif
+
+
 #if 0
     if(argc<=1)
     {
@@ -539,7 +577,7 @@ YOCTO_PROGRAM_START()
 #endif
 
 
-#if 1
+#if 0
     if(argc<=2)
     {
         throw exception("need R[mm], 1/kappa [mm]");

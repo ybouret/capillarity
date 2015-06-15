@@ -110,10 +110,11 @@ public:
                      const bool   save=false)
     {
 
-        //std::cerr << "beta  = " << beta  << std::endl;
-        //std::cerr << "theta = " << theta << std::endl;
-        //std::cerr << "alpha = " << alpha << std::endl;
+        //______________________________________________________________________
+        //
         // initial conditions
+        //______________________________________________________________________
+
         if(theta+alpha>=180)
         {
             return false;
@@ -221,6 +222,6 @@ private:
 
 YOCTO_PROGRAM_START()
 {
-    
+
 }
 YOCTO_PROGRAM_END()

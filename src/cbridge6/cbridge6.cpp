@@ -69,7 +69,8 @@ public:
         const double r     = u[1];
         const double drdy  = u[2];
         const double speed = Hypotenuse(1.0,drdy);
-        const double accel = ((K*K*y)+1.0/r/speed)*speed*speed*speed;
+        const double Ksq   = K*K;
+        const double accel = ((Ksq)*y+1.0/r/speed)*speed*speed*speed;
         dudy[1] = drdy;
         dudy[2] = accel;
     }
@@ -594,11 +595,13 @@ YOCTO_PROGRAM_START()
         bname += ".dat";
         ios::ocstream::overwrite(bname);
         {
+            std::cerr << "Processing " << vfs::get_base_name(filename);
             for(size_t j=1;j<=datafile.Count;++j)
             {
                 const double alpha = datafile.alpha[j];
                 const double beta  = datafile.beta[j];
                 datafile.theta[j]  = B.FindTheta(beta,alpha);
+                std::cerr << "\th=" << datafile.Height[j] << " => theta=" << datafile.theta[j] << std::endl;
                 ios::ocstream fp(bname,true);
                 fp("%g %g %g %g %g\n",datafile.Height[j], datafile.Surface[j], datafile.beta[j], datafile.alpha[j], datafile.theta[j]);
             }

@@ -25,7 +25,7 @@ static size_t       NUM_STEPS = 10000; // used #steps
 class Bridge
 {
 public:
-
+    
     double K;      //!< kappa * R
     many_arrays<double,memory::global> arrays;
     array_t &U;
@@ -36,7 +36,7 @@ public:
     array_t &V;
     array_t &U0;
     mutable double last_umin;
-
+    
     Bridge() :
     K(1),
     arrays(7),
@@ -51,11 +51,11 @@ public:
     {
         arrays.allocate(NVAR);
     }
-
+    
     virtual ~Bridge() throw()
     {
     }
-
+    
     //__________________________________________________________________________
     //
     //
@@ -73,7 +73,7 @@ public:
         dudy[1] = drdy;
         dudy[2] = accel;
     }
-
+    
     
     //__________________________________________________________________________
     //
@@ -88,23 +88,23 @@ public:
         const double half  = h*0.5;
         const double y_mid = y_ini + half;
         Evaluate(k1,y_ini,U);
-
+        
         tao::setprobe(V, U, half, k1);
         Evaluate(k2,y_mid,V);
-
+        
         tao::setprobe(V,U,half,k2);
         Evaluate(k3,y_mid,V);
-
+        
         tao::setprobe(V,U,h,k3);
         Evaluate(k4,y_end,V);
-
+        
         for(size_t i=U.size();i>0;--i)
         {
             U[i] += h * (k1[i]+k2[i]+k2[i]+k3[i]+k3[i]+k4[i]) / 6.0;
         }
     }
-
-
+    
+    
     //__________________________________________________________________________
     //
     //
@@ -121,8 +121,8 @@ public:
             fp("%g %g\n", Sin(angle), beta + (1.0-Cos(angle)));
         }
     }
-
-
+    
+    
     //__________________________________________________________________________
     //
     //
@@ -134,18 +134,18 @@ public:
                      const double alpha,
                      const bool   save=false)
     {
-
+        
         //______________________________________________________________________
         //
         // initial conditions
         //______________________________________________________________________
-
+        
         if(theta+alpha>=180)
         {
             return false;
         }
-
-
+        
+        
         const double aa  = Deg2Rad(alpha);
         const double r_c = Sin(aa);
         const double y_c = beta + (1.0-Cos(aa));
@@ -153,10 +153,10 @@ public:
         const double u_c = Cos(rot)/Sin(rot);
         const size_t ny  = NUM_STEPS;
         const double y_b = beta+1.0;
-
+        
         U[1] = r_c; // initial radius
         U[2] = u_c; // initial slope drdy
-
+        
         last_umin    = U[1];
         bool success = true;
         auto_ptr<ios::ocstream> fp;
@@ -165,8 +165,8 @@ public:
             fp.reset( new ios::ocstream("profile.dat", false) );
             (*fp)("%g %g\n", r_c, y_c);
         }
-
-
+        
+        
         double reg[3] = { U[1],0,0 }; // curvature detector
         size_t num    = 1;
         for(size_t i=ny;i>0;--i)
@@ -178,7 +178,7 @@ public:
             const double y_ini = (y_c*i)/ny;
             const double y     = (y_c*(i-1))/ny;
             RK4(y_ini,y);
-
+            
             //__________________________________________________________________
             //
             // test valid radius
@@ -190,7 +190,7 @@ public:
                 success = false;
                 break;
             }
-
+            
             //__________________________________________________________________
             //
             // test valid position
@@ -202,7 +202,7 @@ public:
                 success = false;
                 break;
             }
-
+            
             //__________________________________________________________________
             //
             // test valid curvature
@@ -222,7 +222,7 @@ public:
                     break;
                 }
             }
-
+            
             //__________________________________________________________________
             //
             // may save
@@ -240,7 +240,7 @@ public:
         return success;
         
     }
-
+    
     //__________________________________________________________________________
     //
     //
@@ -346,7 +346,7 @@ public:
         (void) FinalRadius(beta,theta,alpha);
         return theta;
     }
-
+    
     //__________________________________________________________________________
     //
     //
@@ -387,7 +387,7 @@ public:
         }
         
     }
-
+    
     //__________________________________________________________________________
     //
     //
@@ -431,7 +431,7 @@ public:
         (void) FinalRadius(beta,theta,alpha,theta<=5);
         return beta;
     }
-
+    
     
     //__________________________________________________________________________
     //
@@ -469,8 +469,20 @@ public:
         
     }
     
+    //__________________________________________________________________________
+    //
+    //
+    // Inverse a Curve
+    //
+    //__________________________________________________________________________
     void InverseCurve( array<double> &Theta, const array<double> &Beta, const array<double> &Alpha)
     {
+        const size_t n = Theta.size(); assert(Beta.size()==n); assert(Alpha.size()==n);
+        for(size_t i=1;i<=n;++i)
+        {
+            Theta[i] = FindTheta(Beta[i], Alpha[i]);
+            std::cerr << "Theta(beta=" << Beta[i] <<",alpha=" << Alpha[i] << ",K=" << K << ")=" << Theta[i] << std::endl;
+        }
         
     }
     
@@ -497,12 +509,16 @@ YOCTO_PROGRAM_START()
     vector<double> Alpha;
     B.GenerateCurve(theta, Beta, Alpha);
     const string fn = vformat("alpha_K%g_theta%g.dat",K,theta);
-    ios::ocstream fp(fn,false);
-    for(size_t i=1;i<=Beta.size();++i)
     {
-        fp("%g %g\n", Beta[i], Alpha[i]);
+        ios::ocstream fp(fn,false);
+        for(size_t i=1;i<=Beta.size();++i)
+        {
+            fp("%g %g\n", Beta[i], Alpha[i]);
+        }
     }
-    
-    
+    std::cerr << "Inversing..." << std::endl;
+    vector<double> Theta(Beta.size(),0);
+    B.InverseCurve(Theta,Beta, Alpha);
+
 }
 YOCTO_PROGRAM_END()

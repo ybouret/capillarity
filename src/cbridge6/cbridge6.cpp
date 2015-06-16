@@ -56,6 +56,12 @@ public:
     {
     }
 
+    //__________________________________________________________________________
+    //
+    //
+    // The Equation
+    //
+    //__________________________________________________________________________
     inline void Evaluate(array<double>       &dudy,
                          const double         y,
                          const array<double> &u) throw()
@@ -68,6 +74,13 @@ public:
         dudy[2] = accel;
     }
 
+    
+    //__________________________________________________________________________
+    //
+    //
+    // Integrator
+    //
+    //__________________________________________________________________________
     inline void RK4(const double y_ini,
                     const double y_end) throw()
     {
@@ -92,6 +105,12 @@ public:
     }
 
 
+    //__________________________________________________________________________
+    //
+    //
+    // Saving the bridge
+    //
+    //__________________________________________________________________________
     inline void OutputBridge(const double beta) const
     {
         const size_t NB = 1024;
@@ -104,6 +123,12 @@ public:
     }
 
 
+    //__________________________________________________________________________
+    //
+    //
+    // Can We Find a Final Radius
+    //
+    //__________________________________________________________________________
     bool FinalRadius(const double beta,
                      const double theta,
                      const double alpha,
@@ -216,12 +241,268 @@ public:
         
     }
 
+    //__________________________________________________________________________
+    //
+    //
+    // Try to find Alpha for a given beta and theta
+    //
+    //__________________________________________________________________________
+    inline double FindAlpha(double beta,double theta)
+    {
+        //std::cerr << "FindAlpha(beta=" << beta << ",theta=" << theta << ")" << std::endl;
+        
+        if(theta<0||theta>=180)
+        {
+            return -1;
+        }
+        
+        //______________________________________________________________________
+        //
+        // bracketing alpha
+        //______________________________________________________________________
+        double hi = 180 - theta; // assuming false
+        double lo = hi/2;
+        while( !FinalRadius(beta,theta,lo) )
+        {
+            hi  = lo;
+            lo /= 2;
+            if(lo<ATOL)
+            {
+                //std::cerr << "Impossible..." << std::endl;
+                return -1;
+            }
+        }
+        
+        //______________________________________________________________________
+        //
+        // bissecting
+        //______________________________________________________________________
+        while(hi-lo>ATOL)
+        {
+            const double mid = (lo+hi)*0.5;
+            if(FinalRadius(beta,theta,mid))
+            {
+                // good
+                lo = mid;
+            }
+            else
+            {
+                // bad
+                hi = mid;
+            }
+            
+        }
+        
+        //______________________________________________________________________
+        //
+        // last good
+        //______________________________________________________________________
+        const double alpha = lo;
+        return alpha;
+    }
+    
+    //__________________________________________________________________________
+    //
+    //
+    // Try to find theta for a given beta and alpha
+    //
+    //__________________________________________________________________________
+    inline double FindTheta(const double beta, const double alpha)
+    {
+        if(alpha<=0)
+            return -1;
+        
+        //______________________________________________________________________
+        //
+        // assuming a good value
+        //______________________________________________________________________
+        double theta_lo  = 0;
+        if( !FinalRadius(beta, theta_lo, alpha))
+        {
+            return -1;
+        }
+        
+        //______________________________________________________________________
+        //
+        // assuming bad value
+        //______________________________________________________________________
+        double theta_up = 180.0 - alpha;
+        
+        // bracket between good and bad
+        while(theta_up-theta_lo>ATOL)
+        {
+            const double theta_mid = 0.5 * ( theta_up + theta_lo );
+            if( FinalRadius(beta,theta_mid,alpha) )
+            {
+                theta_lo = theta_mid;
+            }
+            else
+            {
+                theta_up = theta_mid;
+            }
+            
+        }
+        const double theta = theta_lo;
+        (void) FinalRadius(beta,theta,alpha);
+        return theta;
+    }
+
+    //__________________________________________________________________________
+    //
+    //
+    // Scan Alpha
+    //
+    //__________________________________________________________________________
+    void ScanAlpha(double beta,double theta)
+    {
+        ios::ocstream fp(vformat("alpha_ofK%g_beta%g_theta%g.dat",K,beta,theta),false);
+        for(int alpha=1;alpha<=179;++alpha)
+        {
+            double value = 0;
+            if(FinalRadius(beta,theta,alpha))
+            {
+                value = 1.0/U[1];
+            }
+            fp("%g %g\n", double(alpha), value);
+        }
+    }
+    
+    //__________________________________________________________________________
+    //
+    //
+    // Scan Theta
+    //
+    //__________________________________________________________________________
+    void ScanTheta(double beta, double alpha)
+    {
+        ios::ocstream fp( vformat("theta_ofK%g_beta%g_alpha%g.dat",K,beta,alpha),false);
+        for(int theta=0;theta<=179;++theta)
+        {
+            double value = 0;
+            if(FinalRadius(beta,theta,alpha))
+            {
+                value = 1.0/U[1];
+            }
+            fp("%g %g\n", double(theta), value);
+        }
+        
+    }
+
+    //__________________________________________________________________________
+    //
+    //
+    // Finding BetaMax
+    //
+    //__________________________________________________________________________
+    inline double FindBetaMax(const double theta)
+    {
+        std::cerr << "FindBetaMax(theta=" << theta << ")" << std::endl;
+        // check that a zero height is valid
+        double beta_lo = 0;
+        if(FindAlpha(beta_lo,theta)<0)
+        {
+            return -1;
+        }
+        
+        // find an invalid beta
+        double d_beta  = 1.0/K;
+        double beta_up = d_beta;
+        while(FindAlpha(beta_up,theta)>=0)
+        {
+            beta_lo = beta_up;
+            beta_up += d_beta;
+        }
+        
+        // beta_lo: valid, beta_up: invalid
+        while(beta_up-beta_lo>BTOL)
+        {
+            const double beta_mid = 0.5 * (beta_lo+beta_up);
+            if(FindAlpha(beta_mid,theta)<0)
+            {
+                beta_up = beta_mid;
+            }
+            else
+            {
+                beta_lo = beta_mid;
+            }
+        }
+        const double beta  = beta_lo;
+        const double alpha = FindAlpha(beta,theta);
+        (void) FinalRadius(beta,theta,alpha,theta<=5);
+        return beta;
+    }
+
+    
+    //__________________________________________________________________________
+    //
+    //
+    // Simulate a curve
+    //
+    //__________________________________________________________________________
+    void GenerateCurve(const double theta, vector<double> &Beta, vector<double> &Alpha)
+    {
+        Beta. free();
+        Alpha.free();
+        
+        const double beta_max = FindBetaMax(theta);
+        std::cerr << "beta_max=" << beta_max << std::endl;
+        if(beta_max<0)
+        {
+            return;
+        }
+        const double d_beta   = beta_max / 50;
+        for(double beta = 0; beta < beta_max; beta += d_beta)
+        {
+            std::cerr << "beta= " << beta << "          \r"; std::cerr.flush();
+            const double alpha = FindAlpha(beta, theta);
+            if(alpha>=0)
+            {
+                Beta.  push_back(beta);
+                Alpha. push_back(alpha);
+            }
+            else
+            {
+                break;
+            }
+        }
+        std::cerr << std::endl;
+        
+    }
+    
+    void InverseCurve( array<double> &Theta, const array<double> &Beta, const array<double> &Alpha)
+    {
+        
+    }
+    
+    
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Bridge);
 };
 
 YOCTO_PROGRAM_START()
 {
-
+    
+    if(argc<=2)
+    {
+        throw exception("Need K theta");
+    }
+    
+    const double K     = strconv::to<double>(argv[1],"K");
+    const double theta = strconv::to<double>(argv[2],"theta");
+    
+    Bridge B;
+    B.K = K;
+    
+    vector<double> Beta;
+    vector<double> Alpha;
+    B.GenerateCurve(theta, Beta, Alpha);
+    const string fn = vformat("alpha_K%g_theta%g.dat",K,theta);
+    ios::ocstream fp(fn,false);
+    for(size_t i=1;i<=Beta.size();++i)
+    {
+        fp("%g %g\n", Beta[i], Alpha[i]);
+    }
+    
+    
 }
 YOCTO_PROGRAM_END()

@@ -602,7 +602,7 @@ YOCTO_PROGRAM_START()
 #endif
 
 
-#if 0
+#if 1
     if(argc<=2)
     {
         throw exception("need R[mm], 1/kappa [mm]");

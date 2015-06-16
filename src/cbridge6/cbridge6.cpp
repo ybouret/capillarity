@@ -491,9 +491,63 @@ private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Bridge);
 };
 
+
+class DataFile
+{
+public:
+    explicit DataFile(const string &filename,
+                      const double R) :
+    Height(),
+    Surface(),
+    Count(0),
+    beta(),
+    alpha(),
+    theta()
+    {
+        data_set<double> ds;
+        ds.use(1, Height);
+        ds.use(2, Surface);
+        ios::icstream fp(filename);
+        ds.load(fp);
+        (size_t &)Count = Height.size();
+        beta.make(Count,0);
+        alpha.make(Count,0);
+        theta.make(Count,0);
+        std::cerr << "Count=" << Count << std::endl;
+        
+        const double area = numeric<double>::pi*R*R;
+        std::cerr << "Normalizing Area=" << area << " mm^2" << std::endl;
+        for(size_t j=Count;j>0;--j)
+        {
+            beta[j] = Height[j]/R;
+            const double sa = Sqrt(clamp<double>(0,Surface[j]/area,1.0));
+            alpha[j] = Rad2Deg(Asin(sa));
+        }
+        
+    }
+    
+    
+    
+    
+    virtual ~DataFile() throw()
+    {
+    }
+    
+    vector<double> Height;
+    vector<double> Surface;
+    const size_t   Count;
+    vector<double> beta;
+    vector<double> alpha;
+    vector<double> theta;
+    
+private:
+    YOCTO_DISABLE_COPY_AND_ASSIGN(DataFile);
+};
+
+
 YOCTO_PROGRAM_START()
 {
-    
+#if 0
     if(argc<=2)
     {
         throw exception("Need K theta");
@@ -519,6 +573,40 @@ YOCTO_PROGRAM_START()
     std::cerr << "Inversing..." << std::endl;
     vector<double> Theta(Beta.size(),0);
     B.InverseCurve(Theta,Beta, Alpha);
-
+#endif
+    
+#if 1
+    if(argc<=2)
+    {
+        throw exception("need R[mm], 1/kappa [mm]");
+    }
+    const double R     = strconv::to<double>(argv[1],"R");
+    const double kappa = 1.0/strconv::to<double>(argv[2],"1/kappa");
+    const double K     = R*kappa;
+    
+    Bridge B; B.K = K;
+    
+    for(int i=3;i<argc;++i)
+    {
+        const string filename = argv[i];
+        DataFile     datafile(filename,R);
+        string bname = vfs::get_base_name(filename);
+        bname += ".dat";
+        ios::ocstream::overwrite(bname);
+        {
+            for(size_t j=1;j<=datafile.Count;++j)
+            {
+                const double alpha = datafile.alpha[j];
+                const double beta  = datafile.beta[j];
+                datafile.theta[j]  = B.FindTheta(beta,alpha);
+                ios::ocstream fp(bname,true);
+                fp("%g %g %g %g %g\n",datafile.Height[j], datafile.Surface[j], datafile.beta[j], datafile.alpha[j], datafile.theta[j]);
+            }
+            
+        }
+    }
+#endif
+    
+    
 }
 YOCTO_PROGRAM_END()

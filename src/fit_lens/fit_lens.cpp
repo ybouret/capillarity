@@ -34,14 +34,14 @@ public:
         rho.make(N,0);
     }
 
-    void BuildWith(const double xc,const double R)
+    void BuildWith(const double Xc,const double Yc)
     {
         //assert(R>0);
         for(size_t i=1;i<=N;++i)
         {
-            const double dx = X[i]-xc;
-            const double dy = R - Y[i];
-            rho[i]   = Hypotenuse(dx, dy);
+            const double dx = X[i]-Xc;
+            const double dy = Yc - Y[i];
+            rho[i]    = Hypotenuse(dx, dy);
             alpha[i] =  2 * atan(dx/(dy+rho[i]));
 #if 0
             ios::ocstream fp( vformat("polar%g.dat",R),false);
@@ -58,7 +58,7 @@ public:
         }
     }
 
-    void SavePolar(const double xc, const double R) const
+    void SavePolar(const double Xc, const double Yc) const
     {
         ios::ocstream fp( "polar.dat", false);
         for(size_t i=1;i<=N;++i)
@@ -66,8 +66,8 @@ public:
             const double a = alpha[i];
             const double s = sin(a);
             const double c = cos(a);
-            const double x = xc+ rho[i] * s;
-            const double y = R - rho[i] * c;
+            const double x = Xc + rho[i] * s;
+            const double y = Yc - rho[i] * c;
             fp("%g %g %g %g\n",x,y,a,rho[i]);
         }
 
@@ -87,15 +87,15 @@ public:
         {
             res += Square(rho[i]-ave);
         }
-        return sqrt(res);
+        return sqrt(res/N);
     }
 
 
     double H( const array<double> &q)
     {
-        const double xc = q[1];
-        const double R  = q[2];
-        BuildWith(xc, R);
+        const double Xc = q[1];
+        const double Yc = q[2];
+        BuildWith(Xc, Yc);
         return Energy();
     }
 
@@ -136,7 +136,7 @@ YOCTO_PROGRAM_START()
         if(CG.run(F,q,dq,1e-4,&cb))
         {
             std::cerr << "SUCCESS" << std::endl;
-            lens.SavePolar(0, q[1]);
+            lens.SavePolar(q[1],q[2]);
         }
 
 

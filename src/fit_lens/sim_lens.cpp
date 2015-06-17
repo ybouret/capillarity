@@ -17,7 +17,7 @@ YOCTO_PROGRAM_START()
     for(size_t i=0;i<=N;++i)
     {
         const double x =  Xmin + (i * (Xmax-Xmin) )/N;// + (alea<double>()-0.5) * 0.1;
-        const double y = 0.8*((1.0 - cos(1.4*x) + (alea<double>()-0.5) * 0.02));
+        const double y = 0.8*((1.0 - cos(1.4*x) + (alea<double>()-0.5) * 0.01));
         //const double y = -sqrt(9-x*x);
         fp("%g %g\n",x+xc,y);
     }

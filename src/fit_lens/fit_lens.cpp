@@ -139,7 +139,7 @@ YOCTO_PROGRAM_START()
         Lens lens(filename);
         const size_t nvar = 2;
         vector<double> q(nvar,0);
-        q[1] = 0;
+        q[1] = lens.X[lens.N/2];
         q[2] = 1;
         vector<double> dq(nvar,1e-4);
 

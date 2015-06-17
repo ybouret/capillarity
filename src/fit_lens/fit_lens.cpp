@@ -5,6 +5,8 @@
 #include "yocto/ios/ocstream.hpp"
 #include "yocto/math/types.hpp"
 #include "yocto/math/opt/cgrad.hpp"
+#include "yocto/math/fit/lsf.hpp"
+#include "yocto/code/ipower.hpp"
 
 using namespace yocto;
 using namespace math;
@@ -14,12 +16,14 @@ class Lens
 public:
     vector<double> X;
     vector<double> Y;
+    vector<double> F;
     vector<double> alpha;
     vector<double> rho;
     const size_t   N;
     explicit Lens(const string &filename) :
     X(),
     Y(),
+    F(),
     alpha(),
     rho(),
     N(0)
@@ -30,6 +34,7 @@ public:
         ios::icstream fp(filename);
         ds.load(fp);
         (size_t &)N = X.size();
+        F.make(N,0);
         alpha.make(N,0);
         rho.make(N,0);
     }
@@ -111,6 +116,17 @@ public:
 
     }
 
+    double Eval(double angle, const array<double> &a )
+    {
+        assert(a.size()>0);
+        double ans = a[1];
+        for(size_t i=2;i<=a.size();++i)
+        {
+            ans += a[i] * ipower(angle,2*(i-1));
+        }
+        return ans;
+    }
+
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Lens);
 };
@@ -127,16 +143,42 @@ YOCTO_PROGRAM_START()
         q[2] = 1;
         vector<double> dq(nvar,1e-4);
 
-        //lens.BuildWith(0,1);
-        //lens.BuildWith(0,2);
-        numeric<double>::scalar_field F(  &lens, & Lens::H );
+        numeric<double>::scalar_field H(  &lens, & Lens::H );
         cgrad<double>::callback       cb( &lens, & Lens::CB);
         cgrad<double> CG;
 
-        if(CG.run(F,q,dq,1e-4,&cb))
+        if(CG.run(H,q,dq,1e-4,&cb))
         {
             std::cerr << "SUCCESS" << std::endl;
             lens.SavePolar(q[1],q[2]);
+
+            LeastSquares<double>::Samples samples;
+            samples.append(lens.alpha,lens.rho,lens.F);
+
+            size_t         nf   = 5;
+            vector<double> aorg(nf,0);
+            vector<double> aerr(nf,0);
+            vector<bool>   used(nf,true);
+            LeastSquares<double>::Function FF( &lens, & Lens::Eval );
+            LeastSquares<double>           Fit;
+
+            samples.prepare(nf);
+            std::cerr << "Fitting..." << std::endl;
+
+            if(Fit(samples, FF, aorg, used, aerr, 0))
+            {
+                for( size_t i=1; i <= nf; ++i )
+                {
+                    std::cerr << "a[" << i << "]=" << aorg[i] << " +/- " << aerr[i] << std::endl;
+                }
+                std::cerr << "R" << nf << "=" << samples.corr() << std::endl;
+            }
+            std::cerr << aorg[1];
+            for(size_t i=2;i<=nf;++i)
+            {
+                std::cerr << "+(" << aorg[i] << ")*(x**" << (2*(i-1)) << ")";
+            }
+            std::cerr << std::endl;
         }
 
 

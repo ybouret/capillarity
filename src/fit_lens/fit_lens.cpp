@@ -22,13 +22,20 @@ public:
     vector<double> alpha;
     vector<double> rho;
     const size_t   N;
+    const double   alpha_cut;
+    const double   Xpos;
+    const double   Ypos;
+
     explicit Lens(const string &filename) :
     X(),
     Y(),
     F(),
     alpha(),
     rho(),
-    N(0)
+    N(0),
+    alpha_cut(0),
+    Xpos(0),
+    Ypos(0)
     {
         data_set<double> ds;
         ds.use(1, X);
@@ -52,22 +59,13 @@ public:
             const double dy = Yc - Y[i];
             rho[i]    = Hypotenuse(dx, dy);
             alpha[i] =  2 * atan(dx/(dy+rho[i]));
-#if 0
-            ios::ocstream fp( vformat("polar%g.dat",R),false);
-            for(size_t i=1;i<=N;++i)
-            {
-                const double a = alpha[i];
-                const double s = sin(a);
-                const double c = cos(a);
-                const double x = xc+rho[i] * s;
-                const double y = R - rho[i] * c;
-                fp("%g %g %g %g\n",x,y,a,rho[i]);
-            }
-#endif
         }
+        (double &)alpha_cut = 0.5*(Fabs(alpha[1])+Fabs(alpha[N]));
+        (double &)Xpos      = Xc;
+        (double &)Ypos      = Yc;
     }
 
-    void SavePolar(const double Xc, const double Yc) const
+    void SavePolar() const
     {
         ios::ocstream fp( "polar.dat", false);
         for(size_t i=1;i<=N;++i)
@@ -75,13 +73,13 @@ public:
             const double a = alpha[i];
             const double s = sin(a);
             const double c = cos(a);
-            const double x = Xc + rho[i] * s;
-            const double y = Yc - rho[i] * c;
+            const double x = Xpos + rho[i] * s;
+            const double y = Ypos - rho[i] * c;
             fp("%g %g %g %g\n",x,y,a,rho[i]);
         }
     }
 
-    void SaveRadii(const double Xc, const double Yc) const
+    void SaveRadii( ) const
     {
         ios::ocstream fp( "radii.dat", false);
         for(size_t i=1;i<=N;++i)
@@ -89,17 +87,15 @@ public:
             const double a = alpha[i];
             const double s = sin(a);
             const double c = cos(a);
-            const double x = Xc + rho[i] * s;
-            const double y = Yc - rho[i] * c;
+            const double x = Xpos + rho[i] * s;
+            const double y = Ypos - rho[i] * c;
             fp("%g %g\n",x,y);
-            fp("%g %g\n\n",Xc,Yc);
+            fp("%g %g\n\n",Xpos,Ypos);
         }
 
     }
 
-    void SaveProfile(const double Xc,
-                     const double Yc,
-                     const array<double> &params) const
+    void SaveProfile(const array<double> &params) const
     {
         ios::ocstream fp("profile.dat",false);
         const double alpha_min = alpha[1];
@@ -111,8 +107,8 @@ public:
             const double s = sin(a);
             const double c = cos(a);
             const double r = Rho(a,params);
-            const double x = Xc + r * s;
-            const double y = Yc - r * c;
+            const double x = Xpos + r * s;
+            const double y = Ypos - r * c;
             fp("%g %g %g %g\n",x,y,Rad2Deg(a),Curvature(a,params));
         }
     }
@@ -135,7 +131,7 @@ public:
     }
 
 
-    double H( const array<double> &q)
+    double H(const array<double> &q)
     {
         const double Xc = q[1];
         const double Yc = q[2];
@@ -198,78 +194,68 @@ public:
         return c_num/c_den;
     }
 
-    void Continuity(const double Xc, const double Yc, const array<double> &a)
+    double RhoEx( const double angle, const array<double> &a)
     {
-        const double ac = 0.5*(-alpha[1]+alpha[N]);
-        const double rp = RhoPrime(ac, a);
-        const double rc = Rho(ac,a);
+        if( Fabs(angle) <= alpha_cut )
+        {
+            return Rho(angle,a);
+        }
+        else
+        {
+            return Rho(alpha_cut,a);
+        }
+    }
 
-        std::cerr << "alpha_c=" << Rad2Deg(ac) << std::endl;
+    void Continuity(const array<double> &a)
+    {
+
+        const double rp = RhoPrime(alpha_cut, a);
+        const double rc = Rho(alpha_cut,a);
+
+        std::cerr << "alpha_cut=" << Rad2Deg(alpha_cut) << std::endl;
         std::cerr << "rho_c  =" << rc << std::endl;
         std::cerr << "drho_c =" << rp << std::endl;
-#if 0
-
-        matrix<double> M(3,3);
-        vector<double> X(3,0.0);
-        X[2]    = rp;
-
-        M[1][1] = ipower(ac,2);
-        M[1][2] = ipower(ac,4);
-        M[1][3] = ipower(ac,6);
-
-        M[2][1] = 2 * ipower(ac,1);
-        M[2][2] = 4 * ipower(ac,3);
-        M[2][3] = 6 * ipower(ac,5);
-
-        const double af = numeric<double>::pi;
-        M[3][1] = 2 * ipower(af,1);
-        M[3][2] = 4 * ipower(af,3);
-        M[3][3] = 6 * ipower(af,5);
-
-        if( !crout<double>::build(M) )
-        {
-            throw exception("invalid continuity...");
-        }
-        crout<double>::solve(M, X);
-        std::cerr << "X=" << X << std::endl;
-        std::cerr << rc
-        << "+(" << X[1] << ")*x**2"
-        << "+(" << X[2] << ")*x**4"
-        << "+(" << X[3] << ")*x**6"
-        << std::endl;
-#endif
 
         ios::ocstream fp("extra.dat",false);
-        const int NA = 30;
-        {
-            const double a_ini = -Deg2Rad(90.0);
-            const double a_end = -ac;
-            for(int i=0;i<NA;++i)
-            {
-                const double angle = a_ini + i*(a_end-a_ini)/double(NA);
-                const double r     = rc;
-                fp("%g %g %g %g\n",Xc+r*sin(angle),Yc-r*cos(angle),angle,r);
-            }
-        }
+        const int NA = 100;
+        const double alpha_max = Deg2Rad(90.0);
 
         for(int i=-NA;i<=NA;++i)
         {
-            const double angle = (i*ac)/double(NA);
-            const double r     = Rho(angle,a);
-            fp("%g %g %g %g\n",Xc+r*sin(angle),Yc-r*cos(angle),angle,r);
+            const double angle = (i*alpha_max)/double(NA);
+            const double r     = RhoEx(angle,a);
+            fp("%g %g %g %g\n",Xpos+r*sin(angle),Ypos-r*cos(angle),angle,r);
         }
 
+    }
+
+
+    double GetOmega(const double angle, const array<double> &a)
+    {
+        if(Fabs(angle)<=alpha_cut)
         {
-            const double a_ini = ac;
-            const double a_end = Deg2Rad(90.0);
-            for(int i=1;i<=NA;++i)
-            {
-                const double angle = a_ini + i*(a_end-a_ini)/double(NA);
-                const double r     = rc;
-                fp("%g %g %g %g\n",Xc+r*sin(angle),Yc-r*cos(angle),angle,r);
-            }
+            const  double r = Rho(angle,a);
+            const  double rp = RhoPrime(angle,a);
+            return angle - asin( rp/Hypotenuse(r, rp) );
         }
+        else
+        {
+            return angle;
+        }
+    }
 
+    void SaveOmega(const array<double> &a)
+    {
+        ios::ocstream fp("omega.dat",false);
+        const int    NA        = 100;
+        const double alpha_max = Deg2Rad(90.0);
+
+        for(int i=0;i<=NA;++i)
+        {
+            const double angle = (i*alpha_max)/double(NA);
+            const double omega = GetOmega(angle,a);
+            fp("%g %g\n", angle, omega);
+        }
 
     }
 
@@ -298,8 +284,9 @@ YOCTO_PROGRAM_START()
             std::cerr << "SUCCESS" << std::endl;
             const double Xc = q[1];
             const double Yc = q[2];
-            lens.SavePolar(Xc,Yc);
-            lens.SaveRadii(Xc,Yc);
+            lens.BuildWith(Xc,Yc);
+            lens.SavePolar();
+            lens.SaveRadii();
 
             LeastSquares<double>::Samples samples;
             samples.append(lens.alpha,lens.rho,lens.F);
@@ -328,8 +315,9 @@ YOCTO_PROGRAM_START()
                 std::cerr << "+(" << aorg[i] << ")*(x**" << (2*(i-1)) << ")";
             }
             std::cerr << std::endl;
-            lens.SaveProfile(Xc, Yc, aorg);
-            lens.Continuity(Xc,Yc,aorg);
+            lens.SaveProfile(aorg);
+            lens.Continuity(aorg);
+            lens.SaveOmega(aorg);
         }
         
         

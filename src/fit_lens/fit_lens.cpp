@@ -80,7 +80,7 @@ public:
             fp("%g %g %g %g\n",x,y,a,rho[i]);
         }
     }
-    
+
     void SaveRadii(const double Xc, const double Yc) const
     {
         ios::ocstream fp( "radii.dat", false);
@@ -96,7 +96,7 @@ public:
         }
 
     }
-    
+
     void SaveProfile(const double Xc,
                      const double Yc,
                      const array<double> &params) const
@@ -116,8 +116,8 @@ public:
             fp("%g %g %g %g\n",x,y,Rad2Deg(a),Curvature(a,params));
         }
     }
-    
-    
+
+
     inline double Energy() const
     {
         double res = 0;
@@ -176,7 +176,7 @@ public:
         }
         return ans;
     }
-    
+
     double RhoSecond(double angle, const array<double> &a) const
     {
         double ans = 0;
@@ -197,25 +197,26 @@ public:
         const double c_num = r0*r0 + 2*r1*r1 - r0*r2;
         return c_num/c_den;
     }
-    
-    void Continuity(const array<double> &a)
+
+    void Continuity(const double Xc, const double Yc, const array<double> &a)
     {
         const double ac = 0.5*(-alpha[1]+alpha[N]);
         const double rp = RhoPrime(ac, a);
         const double rc = Rho(ac,a);
-        
+
         std::cerr << "alpha_c=" << Rad2Deg(ac) << std::endl;
         std::cerr << "rho_c  =" << rc << std::endl;
         std::cerr << "drho_c =" << rp << std::endl;
-        
+#if 0
+
         matrix<double> M(3,3);
         vector<double> X(3,0.0);
         X[2]    = rp;
-        
+
         M[1][1] = ipower(ac,2);
         M[1][2] = ipower(ac,4);
         M[1][3] = ipower(ac,6);
-        
+
         M[2][1] = 2 * ipower(ac,1);
         M[2][2] = 4 * ipower(ac,3);
         M[2][3] = 6 * ipower(ac,5);
@@ -224,7 +225,7 @@ public:
         M[3][1] = 2 * ipower(af,1);
         M[3][2] = 4 * ipower(af,3);
         M[3][3] = 6 * ipower(af,5);
-        
+
         if( !crout<double>::build(M) )
         {
             throw exception("invalid continuity...");
@@ -236,10 +237,42 @@ public:
         << "+(" << X[2] << ")*x**4"
         << "+(" << X[3] << ")*x**6"
         << std::endl;
+#endif
 
-        
+        ios::ocstream fp("extra.dat",false);
+        const int NA = 30;
+        {
+            const double a_ini = -Deg2Rad(90.0);
+            const double a_end = -ac;
+            for(int i=0;i<NA;++i)
+            {
+                const double angle = a_ini + i*(a_end-a_ini)/double(NA);
+                const double r     = rc;
+                fp("%g %g %g %g\n",Xc+r*sin(angle),Yc-r*cos(angle),angle,r);
+            }
+        }
+
+        for(int i=-NA;i<=NA;++i)
+        {
+            const double angle = (i*ac)/double(NA);
+            const double r     = Rho(angle,a);
+            fp("%g %g %g %g\n",Xc+r*sin(angle),Yc-r*cos(angle),angle,r);
+        }
+
+        {
+            const double a_ini = ac;
+            const double a_end = Deg2Rad(90.0);
+            for(int i=1;i<=NA;++i)
+            {
+                const double angle = a_ini + i*(a_end-a_ini)/double(NA);
+                const double r     = rc;
+                fp("%g %g %g %g\n",Xc+r*sin(angle),Yc-r*cos(angle),angle,r);
+            }
+        }
+
+
     }
-    
+
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Lens);
 };
@@ -267,7 +300,7 @@ YOCTO_PROGRAM_START()
             const double Yc = q[2];
             lens.SavePolar(Xc,Yc);
             lens.SaveRadii(Xc,Yc);
-            
+
             LeastSquares<double>::Samples samples;
             samples.append(lens.alpha,lens.rho,lens.F);
 
@@ -296,11 +329,11 @@ YOCTO_PROGRAM_START()
             }
             std::cerr << std::endl;
             lens.SaveProfile(Xc, Yc, aorg);
-            //lens.Continuity(aorg);
+            lens.Continuity(Xc,Yc,aorg);
         }
-
-
-
+        
+        
+        
     }
 }
 YOCTO_PROGRAM_END()

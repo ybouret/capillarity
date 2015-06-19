@@ -593,7 +593,11 @@ YOCTO_PROGRAM_START()
         DataFile     datafile(filename,R);
         string bname = vfs::get_base_name(filename);
         bname += ".dat";
-        ios::ocstream::overwrite(bname);
+        {
+            ios::ocstream fp(bname,false);
+            fp << "#h S beta alpha theta\n";
+        }
+
         {
             std::cerr << "Processing " << vfs::get_base_name(filename);
             for(size_t j=1;j<=datafile.Count;++j)

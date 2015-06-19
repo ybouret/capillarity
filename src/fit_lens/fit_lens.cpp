@@ -9,6 +9,7 @@
 #include "yocto/code/ipower.hpp"
 #include "yocto/math/trigconv.hpp"
 #include "yocto/math/kernel/crout.hpp"
+#include "yocto/code/utils.hpp"
 
 using namespace yocto;
 using namespace math;
@@ -25,6 +26,7 @@ public:
     const double   alpha_cut;
     const double   Xpos;
     const double   Ypos;
+    double         mu;
 
     explicit Lens(const string &filename) :
     X(),
@@ -35,7 +37,8 @@ public:
     N(0),
     alpha_cut(0),
     Xpos(0),
-    Ypos(0)
+    Ypos(0),
+    mu(10)
     {
         data_set<double> ds;
         ds.use(1, X);
@@ -194,15 +197,39 @@ public:
         return c_num/c_den;
     }
 
-    double RhoEx( const double angle, const array<double> &a)
+    double RhoEx( const double angle, const array<double> &a) const
     {
-        if( Fabs(angle) <= alpha_cut )
+        const double aa = Fabs(angle);
+        if( aa <= alpha_cut )
         {
             return Rho(angle,a);
         }
         else
         {
-            return Rho(alpha_cut,a);
+            const double rc    = Rho(alpha_cut,a);
+            const double rp    = RhoPrime(alpha_cut,a);
+            const double emp   = exp(-mu*numeric<double>::pi);
+            const double ratio = (emp-exp(-mu*aa))/(emp-exp(-mu*alpha_cut));
+
+            return rc + (rp/mu) * (1.0-ratio);
+        }
+    }
+
+    double RhoPrimeEx(const double angle, const array<double> &a) const
+    {
+        const double aa = Fabs(angle);
+        if(aa <= alpha_cut )
+        {
+            return RhoPrime(angle,a);
+        }
+        else
+        {
+            //const double ratio = ipower(clamp<double>(0,(numeric<double>::pi-aa)/(numeric<double>::pi-alpha_cut),1),mu);
+            const double emp   = exp(-mu*numeric<double>::pi);
+            const double ratio = (emp-exp(-mu*aa))/(emp-exp(-mu*alpha_cut));
+            const double value = RhoPrime(alpha_cut,a)*ratio;
+
+            return angle >= 0 ? value : -value;
         }
     }
 
@@ -218,33 +245,26 @@ public:
 
         ios::ocstream fp("extra.dat",false);
         const int NA = 100;
-        const double alpha_max = Deg2Rad(90.0);
+        const double alpha_max = Deg2Rad(120.0);
 
         for(int i=-NA;i<=NA;++i)
         {
             const double angle = (i*alpha_max)/double(NA);
             const double r     = RhoEx(angle,a);
-            fp("%g %g %g %g\n",Xpos+r*sin(angle),Ypos-r*cos(angle),angle,r);
+            fp("%g %g %g %g %g\n",Xpos+r*sin(angle),Ypos-r*cos(angle),angle,r,RhoPrimeEx(angle,a));
         }
 
     }
 
 
-    double GetOmega(const double angle, const array<double> &a)
+    double GetOmega(const double angle, const array<double> &a) const
     {
-        if(Fabs(angle)<=alpha_cut)
-        {
-            const  double r = Rho(angle,a);
-            const  double rp = RhoPrime(angle,a);
-            return angle - asin( rp/Hypotenuse(r, rp) );
-        }
-        else
-        {
-            return angle;
-        }
+        const  double r = RhoEx(angle,a);
+        const  double rp = RhoPrimeEx(angle,a);
+        return angle - asin( rp/Hypotenuse(r, rp) );
     }
 
-    void SaveOmega(const array<double> &a)
+    void SaveOmega(const array<double> &a) const
     {
         ios::ocstream fp("omega.dat",false);
         const int    NA        = 100;
@@ -254,7 +274,7 @@ public:
         {
             const double angle = (i*alpha_max)/double(NA);
             const double omega = GetOmega(angle,a);
-            fp("%g %g\n", angle, omega);
+            fp("%g %g\n", Rad2Deg(angle), Rad2Deg(omega) );
         }
 
     }

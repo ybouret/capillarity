@@ -18,16 +18,15 @@ using namespace math;
 class Lens
 {
 public:
-    vector<double> X;
-    vector<double> Y;
-    vector<double> F;
-    vector<double> alpha;
-    vector<double> rho;
-    const size_t   N;
-    const double   alpha_cut;
-    const double   Xpos;
-    const double   Ypos;
-    double         mu;
+    vector<double>         X;
+    vector<double>         Y;
+    vector<double>         F;
+    vector<double>         alpha;
+    vector<double>         rho;
+    const size_t           N;
+    const double           Xpos;
+    const double           Ypos;
+    double                 mu;
     mutable vector<double> stk;
 
     explicit Lens(const string &filename, const double ratio) :
@@ -37,7 +36,6 @@ public:
     alpha(),
     rho(),
     N(0),
-    alpha_cut(0),
     Xpos(0),
     Ypos(0),
     mu(10),
@@ -55,6 +53,7 @@ public:
         alpha.make(N,0);
         rho.  make(N,0);
         stk.  make(N,0);
+        std::cerr << "ratio=" << ratio << std::endl;
         for(size_t i=1;i<=N;++i)
         {
             X[i] *= ratio;
@@ -71,7 +70,6 @@ public:
             rho[i]    = Hypotenuse(dx, dy);
             alpha[i]  = 2 * atan(dx/(dy+rho[i]));
         }
-        (double &)alpha_cut = 0.5*(Fabs(alpha[1])+Fabs(alpha[N]));
         (double &)Xpos      = Xc;
         (double &)Ypos      = Yc;
     }
@@ -106,21 +104,23 @@ public:
 
     }
 
+
     void SaveProfile(const array<double> &params) const
     {
         ios::ocstream fp("profile.dat",false);
-        const double alpha_min = alpha[1];
-        const double alpha_max = alpha[N];
-        const int    NA        = 50;
+        //const double S         = params[4];
+        const double alpha_min = -3.14;
+        const double alpha_max =  3.14;
+        const int    NA        = 500;
         for(int i=0;i<=NA;++i)
         {
             const double a = alpha_min + i*(alpha_max-alpha_min)/NA;
             const double s = sin(a);
             const double c = cos(a);
-            const double r = Rho(a,params);
+            const double r = RhoEx(a,params);
             const double x = Xpos + r * s;
             const double y = Ypos - r * c;
-            fp("%g %g %g %g\n",x,y,Rad2Deg(a),Curvature(a,params));
+            fp("%g %g\n",x,y);
         }
     }
 
@@ -167,147 +167,53 @@ public:
 
     }
 
-    double Rho(double angle, const array<double> &a ) const
+    inline
+    double G(const double x,const array<double> &Q) const
     {
-        assert(a.size()>0);
-        double ans = a[1];
-        for(size_t i=2;i<=a.size();++i)
-        {
-            ans += a[i] * ipower(angle,2*(i-1));
-        }
-        return ans;
+        const double a=Q[1];
+        const double b=Q[2];
+        const double K=Q[3];
+        return
+        a
+        + b              * ipower(x,2)
+        + (6*K-3*b-6*a)  * ipower(x,4)
+        + (-8*K+3*b+8*a) * ipower(x,6)
+        + (3*K-b-3*a)    * ipower(x,8);
     }
 
-    double RhoPrime(double angle, const array<double> &a) const
+    //! fit/value function
+    double Rho(double alpha, const array<double> &Q) const
     {
-        double ans = 0;
-        for(size_t i=2;i<=a.size();++i)
-        {
-            const size_t p = 2*(i-1);
-            ans += a[i] * p * ipower(angle,p-1);
-        }
-        return ans;
+        const double S = Q[4];
+        return G(alpha*S,Q);
     }
 
-    double RhoSecond(double angle, const array<double> &a) const
+    double RhoEx(double alpha, const array<double> &Q) const
     {
-        double ans = 0;
-        for(size_t i=2;i<=a.size();++i)
-        {
-            const size_t p = 2*(i-1);
-            ans += a[i] * p * (p-1) * ipower(angle,p-2);
-        }
-        return ans;
-    }
-
-    double Curvature(double angle, const array<double> &a) const
-    {
-        const double r0    = Rho(angle,a);
-        const double r1    = RhoPrime(angle,a);
-        const double r2    = RhoSecond(angle,a);
-        const double c_den = sqrt(r0*r0+r1*r1);
-        const double c_num = r0*r0 + 2*r1*r1 - r0*r2;
-        return c_num/c_den;
-    }
-
-    double RhoEx( const double angle, const array<double> &a) const
-    {
-        const double aa = Fabs(angle);
-        if( aa <= alpha_cut )
-        {
-            return Rho(angle,a);
-        }
-        else
-        {
-            const double rc    = Rho(alpha_cut,a);
-            const double rp    = RhoPrime(alpha_cut,a);
-            const double emp   = exp(-mu*numeric<double>::pi);
-            const double ratio = (emp-exp(-mu*aa))/(emp-exp(-mu*alpha_cut));
-
-            return rc + (rp/mu) * (1.0-ratio);
-        }
-    }
-
-    double RhoPrimeEx(const double angle, const array<double> &a) const
-    {
-        const double aa = Fabs(angle);
-        if(aa <= alpha_cut )
-        {
-            return RhoPrime(angle,a);
-        }
-        else
-        {
-            //const double ratio = ipower(clamp<double>(0,(numeric<double>::pi-aa)/(numeric<double>::pi-alpha_cut),1),mu);
-            const double emp   = exp(-mu*numeric<double>::pi);
-            const double ratio = (emp-exp(-mu*aa))/(emp-exp(-mu*alpha_cut));
-            const double value = RhoPrime(alpha_cut,a)*ratio;
-
-            return angle >= 0 ? value : -value;
-        }
-    }
-
-    void Continuity(const array<double> &a)
-    {
-
-        const double rp = RhoPrime(alpha_cut, a);
-        const double rc = Rho(alpha_cut,a);
-
-        std::cerr << "alpha_cut=" << Rad2Deg(alpha_cut) << std::endl;
-        std::cerr << "rho_c  =" << rc << std::endl;
-        std::cerr << "drho_c =" << rp << std::endl;
-
-        ios::ocstream fp("extra.dat",false);
-        const int NA = 100;
-        const double alpha_max = Deg2Rad(120.0);
-
-        for(int i=-NA;i<=NA;++i)
-        {
-            const double angle = (i*alpha_max)/double(NA);
-            const double r     = RhoEx(angle,a);
-            fp("%g %g %g %g %g\n",Xpos+r*sin(angle),Ypos-r*cos(angle),angle,r,RhoPrimeEx(angle,a));
-        }
-
-    }
-
-
-    double GetOmega(const double angle, const array<double> &a) const
-    {
-        const  double r = RhoEx(angle,a);
-        const  double rp = RhoPrimeEx(angle,a);
-        return angle - asin( rp/Hypotenuse(r, rp) );
-    }
-
-    void SaveOmega(const array<double> &a) const
-    {
-        ios::ocstream fp("omega.dat",false);
-        const int    NA        = 100;
-        const double alpha_max = Deg2Rad(90.0);
-
-        for(int i=0;i<=NA;++i)
-        {
-            const double angle = (i*alpha_max)/double(NA);
-            const double omega = GetOmega(angle,a);
-            fp("%g %g\n", Rad2Deg(angle), Rad2Deg(omega) );
-        }
-
+        const double K = Q[3];
+        const double S = Q[4];
+        const double alpha_max = 1.0/S;
+        return Fabs(alpha) >= alpha_max ? K : Rho(alpha,Q);
     }
 
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Lens);
 };
 
+
 #include "yocto/string/conv.hpp"
 
 YOCTO_PROGRAM_START()
 {
     const char *program = vfs::get_base_name(argv[0]);
-    if(argc<=2)
-        throw exception("%s: need mm/pixel datafile",program);
+    if(argc<=3)
+        throw exception("%s: need pixels mm lens_pixels",program);
 
-    const double ratio    = strconv::to<double>(argv[1],"ratio");
-    const string filename = argv[2];
+    const double pixels   = strconv::to<double>(argv[1],"pixels");
+    const double mm       = strconv::to<double>(argv[2],"mm");
+    const string filename = argv[3];
 
-    Lens lens(filename,ratio);
+    Lens lens(filename,mm/pixels);
     const size_t nvar = 2;    //Xc,Yc
     vector<double> q(nvar,0);
     q[1] = lens.X[lens.N/2];
@@ -330,7 +236,7 @@ YOCTO_PROGRAM_START()
         LeastSquares<double>::Samples samples;
         samples.append(lens.alpha,lens.rho,lens.F);
 
-        size_t         nf   = 5;
+        size_t         nf   = 4;
         vector<double> aorg(nf,0);
         vector<double> aerr(nf,0);
         vector<bool>   used(nf,true);
@@ -338,8 +244,16 @@ YOCTO_PROGRAM_START()
         LeastSquares<double>           Fit;
 
         samples.prepare(nf);
-        std::cerr << "Fitting..." << std::endl;
 
+        aorg[1] = lens.rho[lens.N/2];
+        aorg[2] = 0;
+        aorg[3] = 2*aorg[1];
+        aorg[4] = 1;
+
+
+
+        std::cerr << "Fitting..." << std::endl;
+        Fit.verbose = true;
         if(Fit(samples, FF, aorg, used, aerr, 0))
         {
             for( size_t i=1; i <= nf; ++i )
@@ -347,16 +261,14 @@ YOCTO_PROGRAM_START()
                 std::cerr << "a[" << i << "]=" << aorg[i] << " +/- " << aerr[i] << " (" << (100.0*aerr[i]/Fabs(aorg[i])) << "%)" << std::endl;
             }
             std::cerr << "R" << nf << "=" << samples.corr() << std::endl;
+            lens.SaveProfile(aorg);
+            //lens.SaveOmega(aorg);
         }
-        std::cerr << aorg[1];
-        for(size_t i=2;i<=nf;++i)
+        else
         {
-            std::cerr << "+(" << aorg[i] << ")*(x**" << (2*(i-1)) << ")";
+            throw exception("Couldn't fit...");
         }
-        std::cerr << std::endl;
-        lens.SaveProfile(aorg);
-        //lens.Continuity(aorg);
-        lens.SaveOmega(aorg);
+
     }
     else
     {

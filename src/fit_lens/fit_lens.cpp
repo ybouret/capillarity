@@ -344,7 +344,7 @@ YOCTO_PROGRAM_START()
         {
             for( size_t i=1; i <= nf; ++i )
             {
-                std::cerr << "a[" << i << "]=" << aorg[i] << " +/- " << aerr[i] << std::endl;
+                std::cerr << "a[" << i << "]=" << aorg[i] << " +/- " << aerr[i] << " (" << (100.0*aerr[i]/Fabs(aorg[i])) << "%)" << std::endl;
             }
             std::cerr << "R" << nf << "=" << samples.corr() << std::endl;
         }

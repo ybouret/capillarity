@@ -117,7 +117,7 @@ public:
             const double a = alpha_min + i*(alpha_max-alpha_min)/NA;
             const double s = sin(a);
             const double c = cos(a);
-            const double r = RhoEx(a,params);
+            const double r = Rho(a,params);
             const double x = Xpos + r * s;
             const double y = Ypos - r * c;
             fp("%g %g\n",x,y);
@@ -181,19 +181,63 @@ public:
         + (3*K-b-3*a)    * ipower(x,8);
     }
 
+    inline double dG(const double x, const array<double> &Q) const
+    {
+        const double a=Q[1];
+        const double b=Q[2];
+        const double K=Q[3];
+        return
+        2*b                * ipower(x,1)
+        + 4*(6*K-3*b-6*a)  * ipower(x,3)
+        + 6*(-8*K+3*b+8*a) * ipower(x,5)
+        + 8*(3*K-b-3*a)    * ipower(x,7);
+    }
+
     //! fit/value function
-    double Rho(double alpha, const array<double> &Q) const
+    double Rho__(double alpha, const array<double> &Q) const
     {
         const double S = Q[4];
         return G(alpha*S,Q);
     }
 
-    double RhoEx(double alpha, const array<double> &Q) const
+    double Rho(double alpha, const array<double> &Q) const
     {
         const double K = Q[3];
         const double S = Q[4];
         const double alpha_max = 1.0/S;
-        return Fabs(alpha) >= alpha_max ? K : Rho(alpha,Q);
+        return Fabs(alpha) >= alpha_max ? K : Rho__(alpha,Q);
+    }
+
+    double RhoPrime(double alpha, const array<double> &Q) const
+    {
+        const double S = Q[4];
+        const double alpha_max = 1.0/S;
+        return Fabs(alpha) >= alpha_max ? 0 : S*dG(S*alpha,Q);
+    }
+
+    double Omega(double alpha, const array<double> &Q) const
+    {
+        const double r0 = Rho(alpha,Q);
+        const double r1 = RhoPrime(alpha,Q);
+        return alpha-asin(r1/Hypotenuse(r0, r1));
+    }
+
+
+    void SaveOmega(const array<double> &Q) const
+    {
+        ios::ocstream fp("omega.dat",false);
+        //const double S         = params[4];
+        const double alpha_min = 0;
+        const double alpha_max = 180;
+        const int    NA        = 500;
+        for(int i=0;i<=NA;++i)
+        {
+            const double a = alpha_min + i*(alpha_max-alpha_min)/NA;
+            const double angle = Deg2Rad(a);
+            const double w = Omega(angle,Q);
+            fp("%g %g %g %g\n",a,Rad2Deg(w),Rho(angle,Q),RhoPrime(angle,Q));
+        }
+
     }
 
 private:
@@ -240,7 +284,7 @@ YOCTO_PROGRAM_START()
         vector<double> aorg(nf,0);
         vector<double> aerr(nf,0);
         vector<bool>   used(nf,true);
-        LeastSquares<double>::Function FF( &lens, & Lens::Rho );
+        LeastSquares<double>::Function FF( &lens, & Lens::Rho__ );
         LeastSquares<double>           Fit;
 
         samples.prepare(nf);
@@ -262,7 +306,7 @@ YOCTO_PROGRAM_START()
             }
             std::cerr << "R" << nf << "=" << samples.corr() << std::endl;
             lens.SaveProfile(aorg);
-            //lens.SaveOmega(aorg);
+            lens.SaveOmega(aorg);
         }
         else
         {

@@ -10,6 +10,7 @@
 #include "yocto/math/trigconv.hpp"
 #include "yocto/math/kernel/crout.hpp"
 #include "yocto/code/utils.hpp"
+#include "yocto/sort/quick.hpp"
 
 using namespace yocto;
 using namespace math;
@@ -27,8 +28,9 @@ public:
     const double   Xpos;
     const double   Ypos;
     double         mu;
+    mutable vector<double> stk;
 
-    explicit Lens(const string &filename) :
+    explicit Lens(const string &filename, const double ratio) :
     X(),
     Y(),
     F(),
@@ -38,7 +40,8 @@ public:
     alpha_cut(0),
     Xpos(0),
     Ypos(0),
-    mu(10)
+    mu(10),
+    stk()
     {
         data_set<double> ds;
         ds.use(1, X);
@@ -48,27 +51,32 @@ public:
         (size_t &)N = X.size();
         if(N<2)
             throw exception("not enough data points");
-        F.make(N,0);
+        F.    make(N,0);
         alpha.make(N,0);
-        rho.make(N,0);
+        rho.  make(N,0);
+        stk.  make(N,0);
+        for(size_t i=1;i<=N;++i)
+        {
+            X[i] *= ratio;
+            Y[i] *= ratio;
+        }
     }
 
-    void BuildWith(const double Xc,const double Yc)
+    inline void BuildWith(const double Xc,const double Yc)
     {
-        //assert(R>0);
         for(size_t i=1;i<=N;++i)
         {
             const double dx = X[i]-Xc;
             const double dy = Yc - Y[i];
             rho[i]    = Hypotenuse(dx, dy);
-            alpha[i] =  2 * atan(dx/(dy+rho[i]));
+            alpha[i]  = 2 * atan(dx/(dy+rho[i]));
         }
         (double &)alpha_cut = 0.5*(Fabs(alpha[1])+Fabs(alpha[N]));
         (double &)Xpos      = Xc;
         (double &)Ypos      = Yc;
     }
 
-    void SavePolar() const
+    inline void SavePolar() const
     {
         ios::ocstream fp( "polar.dat", false);
         for(size_t i=1;i<=N;++i)
@@ -82,7 +90,7 @@ public:
         }
     }
 
-    void SaveRadii( ) const
+    inline void SaveRadii( ) const
     {
         ios::ocstream fp( "radii.dat", false);
         for(size_t i=1;i<=N;++i)
@@ -128,7 +136,12 @@ public:
         ave/=N;
         for(size_t i=1;i<=N;++i)
         {
-            res += Square(rho[i]-ave);
+            stk[i] = Square(rho[i]-ave);
+        }
+        quicksort(stk);
+        for(size_t i=1;i<=N;++i)
+        {
+            res += stk[i];
         }
         return sqrt(res/N);
     }
@@ -189,9 +202,9 @@ public:
 
     double Curvature(double angle, const array<double> &a) const
     {
-        const double r0 = Rho(angle,a);
-        const double r1 = RhoPrime(angle,a);
-        const double r2 = RhoSecond(angle,a);
+        const double r0    = Rho(angle,a);
+        const double r1    = RhoPrime(angle,a);
+        const double r2    = RhoSecond(angle,a);
         const double c_den = sqrt(r0*r0+r1*r1);
         const double c_num = r0*r0 + 2*r1*r1 - r0*r2;
         return c_num/c_den;
@@ -283,66 +296,75 @@ private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Lens);
 };
 
+#include "yocto/string/conv.hpp"
+
 YOCTO_PROGRAM_START()
 {
-    for(int i=1;i<argc;++i)
+    const char *program = vfs::get_base_name(argv[0]);
+    if(argc<=2)
+        throw exception("%s: need mm/pixel datafile",program);
+
+    const double ratio    = strconv::to<double>(argv[1],"ratio");
+    const string filename = argv[2];
+
+    Lens lens(filename,ratio);
+    const size_t nvar = 2;    //Xc,Yc
+    vector<double> q(nvar,0);
+    q[1] = lens.X[lens.N/2];
+    q[2] = 1;
+    vector<double> dq(nvar,1e-4);
+
+    numeric<double>::scalar_field H(  &lens, & Lens::H );
+    cgrad<double>::callback       cb( &lens, & Lens::CB);
+    cgrad<double> CG;
+
+    if(CG.run(H,q,dq,1e-4,&cb))
     {
-        const string filename = argv[i];
-        Lens lens(filename);
-        const size_t nvar = 2;
-        vector<double> q(nvar,0);
-        q[1] = lens.X[lens.N/2];
-        q[2] = 1;
-        vector<double> dq(nvar,1e-4);
+        std::cerr << "Polar Fit SUCCESS" << std::endl;
+        const double Xc = q[1];
+        const double Yc = q[2];
+        lens.BuildWith(Xc,Yc);
+        lens.SavePolar();
+        lens.SaveRadii();
 
-        numeric<double>::scalar_field H(  &lens, & Lens::H );
-        cgrad<double>::callback       cb( &lens, & Lens::CB);
-        cgrad<double> CG;
+        LeastSquares<double>::Samples samples;
+        samples.append(lens.alpha,lens.rho,lens.F);
 
-        if(CG.run(H,q,dq,1e-4,&cb))
+        size_t         nf   = 5;
+        vector<double> aorg(nf,0);
+        vector<double> aerr(nf,0);
+        vector<bool>   used(nf,true);
+        LeastSquares<double>::Function FF( &lens, & Lens::Rho );
+        LeastSquares<double>           Fit;
+
+        samples.prepare(nf);
+        std::cerr << "Fitting..." << std::endl;
+
+        if(Fit(samples, FF, aorg, used, aerr, 0))
         {
-            std::cerr << "SUCCESS" << std::endl;
-            const double Xc = q[1];
-            const double Yc = q[2];
-            lens.BuildWith(Xc,Yc);
-            lens.SavePolar();
-            lens.SaveRadii();
-
-            LeastSquares<double>::Samples samples;
-            samples.append(lens.alpha,lens.rho,lens.F);
-
-            size_t         nf   = 3;
-            vector<double> aorg(nf,0);
-            vector<double> aerr(nf,0);
-            vector<bool>   used(nf,true);
-            LeastSquares<double>::Function FF( &lens, & Lens::Rho );
-            LeastSquares<double>           Fit;
-
-            samples.prepare(nf);
-            std::cerr << "Fitting..." << std::endl;
-
-            if(Fit(samples, FF, aorg, used, aerr, 0))
+            for( size_t i=1; i <= nf; ++i )
             {
-                for( size_t i=1; i <= nf; ++i )
-                {
-                    std::cerr << "a[" << i << "]=" << aorg[i] << " +/- " << aerr[i] << std::endl;
-                }
-                std::cerr << "R" << nf << "=" << samples.corr() << std::endl;
+                std::cerr << "a[" << i << "]=" << aorg[i] << " +/- " << aerr[i] << std::endl;
             }
-            std::cerr << aorg[1];
-            for(size_t i=2;i<=nf;++i)
-            {
-                std::cerr << "+(" << aorg[i] << ")*(x**" << (2*(i-1)) << ")";
-            }
-            std::cerr << std::endl;
-            lens.SaveProfile(aorg);
-            lens.Continuity(aorg);
-            lens.SaveOmega(aorg);
+            std::cerr << "R" << nf << "=" << samples.corr() << std::endl;
         }
-        
-        
-        
+        std::cerr << aorg[1];
+        for(size_t i=2;i<=nf;++i)
+        {
+            std::cerr << "+(" << aorg[i] << ")*(x**" << (2*(i-1)) << ")";
+        }
+        std::cerr << std::endl;
+        lens.SaveProfile(aorg);
+        //lens.Continuity(aorg);
+        lens.SaveOmega(aorg);
     }
+    else
+    {
+        throw exception("Couldn't Fit Polar Shape...");
+    }
+
+    
+    
 }
 YOCTO_PROGRAM_END()
 

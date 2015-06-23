@@ -4,14 +4,16 @@
 #include "yocto/math/fcn/drvs.hpp"
 #include "yocto/counted-object.hpp"
 #include "yocto/ptr/arc.hpp"
+#include "yocto/math/v2d.hpp"
 
 using namespace yocto;
 using namespace math;
 
 #define LENS_DRVS_DEFAULT_SCALING 1e-4
 typedef numeric<double>::function function_type;
+typedef v2d<double>               V2D;
 
-//! warning all angle are in degrees
+//! warning all angle are in radians
 class Lens : public counted_object
 {
 public:
@@ -23,8 +25,10 @@ public:
     function_type      dradius; //!< d_radius/d_alpha
     function_type      omega;   //!< omega(alpha)
     function_type      surface; //!< surface(alpha)
+    V2D                profile(const double alpha) const;
     virtual ~Lens() throw();
 
+    void Output(const double height) const;
 
 protected:
     explicit Lens();

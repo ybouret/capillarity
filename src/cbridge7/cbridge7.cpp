@@ -4,14 +4,22 @@
 
 YOCTO_PROGRAM_START()
 {
-    const Lens::Pointer lens( new SphericalLens(70) );
-    Bridge bridge(lens, 70);
+    if(argc<=3)
+        throw exception("need radius clength theta");
+    const double R = strconv::to<double>(argv[1],"R");
+    const double C = strconv::to<double>(argv[2],"C");
 
-    for(int i=1;i<argc;++i)
-    {
-        const double theta = strconv::to<double>(argv[i],"theta");
-        std::cerr << "alpha(h=0,theta=" << theta << ")=" << bridge.FindAlpha(0,theta) << std::endl;
-    }
+    const Lens::Pointer lens( new SphericalLens(R));
+    Bridge bridge(lens, C);
+
+
+    const double theta  = strconv::to<double>(argv[3],"theta");
+    const double alpha0 = bridge.FindAlpha(0,theta);
+    std::cerr << "alpha(h=0,theta=" << theta << ")=" << alpha0 << std::endl;
+    lens->Output(0);
+    std::cerr << "out=" << bridge.FinalRadius(0, theta, alpha0, true) << std::endl;
+    std::cerr << "fin=" << bridge.Y[1] << std::endl;
+    //std::cerr << "h_max(theta=" << theta << ")=" << bridge.FindHmax(theta) << std::endl;
 
 }
 YOCTO_PROGRAM_END()

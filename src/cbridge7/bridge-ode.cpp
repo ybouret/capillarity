@@ -75,9 +75,9 @@ bool Bridge:: FinalRadius(const double height,
     // prepare initial conditions
     //__________________________________________________________________________
     const double Rc   = lens->radius(0);
-    const double R0   = lens->radius(alpha);
-    const double z0   = height + Rc - R0 * Cos(alpha);
-    const double r0   = R0 * Sin(alpha);
+    const V2D    q0   = lens->profile(alpha);
+    const double r0   = q0.x;
+    const double z0   = q0.y + height;
     const double drdz = Cos(angle)/Sin(angle);
     Y[1] = r0;
     Y[2] = drdz;

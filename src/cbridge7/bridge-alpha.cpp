@@ -6,16 +6,16 @@ double Bridge:: FindAlpha(const double height,
                           const double theta)
 {
     const double      omega_max = 180-theta;
-    zfunction<double> zfn( lens->omega, omega_max );
+    zfunction<double> zfn( lens->omega, Deg2Rad(omega_max) );
     zfind<double>     solve(ATOL);
-    double alpha_max = solve(zfn.call,0,180);
+    double alpha_max = Rad2Deg(solve(zfn.call,0,numeric<double>::pi));
     std::cerr << "alpha_max=" << alpha_max << std::endl;
 
     double alpha_min = alpha_max;
     while(true)
     {
         alpha_min = alpha_max/2;
-        std::cerr << "probe alpha_min=" << alpha_min << std::endl;
+        std::cerr << "\talpha_min=" << alpha_min << std::endl;
         if(alpha_min<ATOL)
         {
             return -1;
@@ -27,6 +27,8 @@ double Bridge:: FindAlpha(const double height,
         }
         alpha_max = alpha_min;
     }
+    std::cerr << "\t\tfinal: " << Y[1] << std::endl;
+
     std::cerr << "bracketed alpha: " << alpha_min << " => " << alpha_max << std::endl;
 
     // alpha_min: valid, alpha_max: invalid
@@ -35,10 +37,12 @@ double Bridge:: FindAlpha(const double height,
         const double alpha_mid = 0.5*(alpha_min+alpha_max);
         if(FinalRadius(height, theta, alpha_mid))
         {
+            std::cerr << "Good: " << Y[1] << std::endl;
             alpha_min = alpha_mid;
         }
         else
         {
+            std::cerr << "Bad : " << Y[1] << std::endl;
             alpha_max = alpha_mid;
         }
     }

@@ -1,6 +1,7 @@
 #include "lens.hpp"
 #include "yocto/code/utils.hpp"
 #include "yocto/exception.hpp"
+#include "yocto/math/trigconv.hpp"
 
 Lens::Lens() :
 drvs(),
@@ -33,7 +34,7 @@ double Lens:: Omega__(const double alpha)
 {
     const double r0 = radius(alpha);
     const double r1 = dradius(alpha);
-    return alpha - Asin(r1/Hypotenuse(r0, r1));
+    return alpha - Rad2Deg(Asin(r1/Hypotenuse(r0, r1)));
 }
 
 double Lens:: Surface__(const double alpha) 

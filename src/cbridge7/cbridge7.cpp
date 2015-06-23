@@ -11,7 +11,6 @@ YOCTO_PROGRAM_START()
     {
         const double theta = strconv::to<double>(argv[i],"theta");
         std::cerr << "alpha(h=0,theta=" << theta << ")=" << bridge.FindAlpha(0,theta) << std::endl;
-
     }
 
 }

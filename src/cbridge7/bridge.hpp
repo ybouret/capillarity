@@ -37,8 +37,9 @@ public:
                      const bool   save=false);
     
 
+    //! warning, theta is in degree
     double FindAlpha(const double height,const double theta);
-    
+
 
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Bridge);

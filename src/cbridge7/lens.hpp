@@ -11,6 +11,7 @@ using namespace math;
 #define LENS_DRVS_DEFAULT_SCALING 1e-4
 typedef numeric<double>::function function_type;
 
+//! warning all angle are in degrees
 class Lens : public counted_object
 {
 public:

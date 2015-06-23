@@ -9,7 +9,8 @@ class Bridge
 {
 public:
     static size_t NUM_STEPS;
-
+    static double ATOL;
+    
     Lens::Pointer lens;
     const double  capillary_length;
     arrays_t      arrays;
@@ -36,6 +37,8 @@ public:
                      const bool   save=false);
     
 
+    double FindAlpha(const double height,const double theta);
+    
 
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Bridge);

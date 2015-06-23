@@ -74,10 +74,10 @@ bool Bridge:: FinalRadius(const double height,
     //
     // prepare initial conditions
     //__________________________________________________________________________
-    const double Rc   = lens->radius(0);
-    const V2D    q0   = lens->profile(alpha);
-    const double r0   = q0.x;
-    const double z0   = q0.y + height;
+    const double Rc   = lens->radius(0.0)+height;
+    const double R0   = lens->radius(alpha);
+    const double r0   = R0*Sin(alpha);
+    const double z0   = Rc - R0*Cos(alpha);
     const double drdz = Cos(angle)/Sin(angle);
     Y[1] = r0;
     Y[2] = drdz;
@@ -103,7 +103,7 @@ bool Bridge:: FinalRadius(const double height,
     for(size_t i=NUM_STEPS;i>0;--i)
     {
         const double z_ini = (i*z0)/NUM_STEPS;
-        const double z     = ((i-1)*z0)/NUM_STEPS;
+        const double z     = ((i-1)*z0)/NUM_STEPS; assert(z>=0);
         RK4(z_ini, z);
 
         //______________________________________________________________________
@@ -116,9 +116,8 @@ bool Bridge:: FinalRadius(const double height,
         //
         // absolute position
         //______________________________________________________________________
-        if( isnan(r) || isinf(r) || r <= 0)
+        if( isnan(r) || isinf(r) || r <= 0.0 )
         {
-            //std::cerr << "invalid u=" << u << std::endl;
             success = false;
             break;
         }

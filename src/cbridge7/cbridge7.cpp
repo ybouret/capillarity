@@ -19,7 +19,9 @@ YOCTO_PROGRAM_START()
     lens->Output(0);
     std::cerr << "out=" << bridge.FinalRadius(0, theta, alpha0, true) << std::endl;
     std::cerr << "fin=" << bridge.Y[1] << std::endl;
-    //std::cerr << "h_max(theta=" << theta << ")=" << bridge.FindHmax(theta) << std::endl;
-
+    const double hmax = bridge.FindHmax(theta);
+    std::cerr << "h_max(theta=" << theta << ")=" << hmax << std::endl;
+    //bridge.ScanAlpha(0, theta);
+    
 }
 YOCTO_PROGRAM_END()

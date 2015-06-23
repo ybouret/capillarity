@@ -45,6 +45,7 @@ public:
     double FindHmax(const double theta);
 
     void Output(const double height);
+    void  ScanAlpha(const double height, const double theta);
 
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Bridge);

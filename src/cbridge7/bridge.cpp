@@ -2,7 +2,7 @@
 #include "yocto/exception.hpp"
 
 size_t Bridge::NUM_STEPS = 10000;
-double Bridge::ATOL      = 1e-5;
+double Bridge::ATOL      = 1e-4;
 double Bridge::HTOL      = 1e-4;
 
 Bridge:: ~Bridge() throw() {}

@@ -7,7 +7,7 @@ double Bridge::FindHmax(const double theta)
 
     double h_lo = 0;
     const double alpha0 = FindAlpha(h_lo, theta);
-    std::cerr << "alpha0(" << theta << ")=" << alpha0 << std::endl;
+    //std::cerr << "alpha0(" << theta << ")=" << alpha0 << std::endl;
     if( alpha0 < 0 )
     {
         return -1;
@@ -19,14 +19,14 @@ double Bridge::FindHmax(const double theta)
     {
         h_up = h_lo + capillary_length;
         const double alpha = FindAlpha(h_up, theta);
-        std::cerr << "alpha(" << h_up << ")=" << alpha << std::endl;
+        //std::cerr << "alpha(" << h_up << ")=" << alpha << std::endl;
         if(alpha<0)
         {
             break;
         }
         h_lo = h_up;
     }
-    std::cerr << "bracket h_max: " << h_lo << " => " << h_up << std::endl;
+    //std::cerr << "bracket h_max: " << h_lo << " => " << h_up << std::endl;
 
     while(h_up-h_lo>HTOL)
     {

@@ -21,7 +21,7 @@ YOCTO_PROGRAM_START()
     std::cerr << "fin=" << bridge.Y[1] << std::endl;
     const double hmax = bridge.FindHmax(theta);
     std::cerr << "h_max(theta=" << theta << ")=" << hmax << std::endl;
-    //bridge.ScanAlpha(0, theta);
     
+
 }
 YOCTO_PROGRAM_END()

@@ -44,8 +44,12 @@ public:
     //! theta in degrees
     double FindHmax(const double theta);
 
-    void Output(const double height);
-    void  ScanAlpha(const double height, const double theta);
+    //! scanning alpha for algo debug
+    void ScanAlpha(const double height, const double theta);
+
+    //! warning, alpha is in degree, return as well
+    double FindTheta(const double height, const double alpha);
+
 
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Bridge);

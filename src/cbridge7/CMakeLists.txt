@@ -6,6 +6,7 @@ bridge.cpp
 bridge-ode.cpp
 bridge-alpha.cpp
 bridge-hmax.cpp
+bridge-theta.cpp
 )
 
 ADD_EXECUTABLE(cbridge7 cbridge7.cpp)

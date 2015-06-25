@@ -51,6 +51,8 @@ public:
     double FindTheta(const double height, const double alpha);
 
 
+    void Tests();
+    
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Bridge);
 };

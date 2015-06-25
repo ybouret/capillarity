@@ -40,7 +40,7 @@ void Bridge:: Tests()
             const double h = alea<double>() * hmax;
             std::cerr << " |_Testing h=" << h << std::endl;
             const double a = FindAlpha(h,theta);
-            std::cerr << "  |_alpha=" << a << std::endl;
+            std::cerr << " |_alpha=" << a << std::endl;
             const double t = FindTheta(h,a);
             if(RInt(t)!=theta)
             {

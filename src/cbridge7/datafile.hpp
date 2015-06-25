@@ -1,12 +1,11 @@
 #ifndef DATAFILE_INCLUDED
 #define DATAFILE_INCLUDED 1
 
-#include "lens.hpp"
 #include "yocto/sequence/vector.hpp"
 #include "yocto/string.hpp"
 
 using namespace yocto;
-using namespace math;
+//using namespace math;
 
 
 class DataFile
@@ -17,7 +16,7 @@ public:
     const size_t   N; //!< number of points
     vector<double> alpha;
     vector<double> theta;
-    DataFile( const string &filename, Lens::Pointer &lens );
+    DataFile( const string &filename);
     ~DataFile() throw();
 
 

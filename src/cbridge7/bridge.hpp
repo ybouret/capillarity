@@ -5,6 +5,8 @@ typedef array<double>                      array_t;
 typedef many_arrays<double,memory::global> arrays_t;
 
 
+class DataFile;
+
 class Bridge
 {
 public:
@@ -52,6 +54,9 @@ public:
 
 
     void Tests();
+
+    void Process( DataFile &data );
+    
     
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Bridge);

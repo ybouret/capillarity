@@ -3,6 +3,7 @@
 #include "yocto/string/conv.hpp"
 #include "yocto/code/rand.hpp"
 #include "datafile.hpp"
+#include "yocto/fs/local-fs.hpp"
 
 YOCTO_PROGRAM_START()
 {
@@ -14,13 +15,17 @@ YOCTO_PROGRAM_START()
 
     Lens::Pointer lens( new SphericalLens(R));
     Bridge        bridge(lens, C);
-    //bridge.Tests();
     for(int i=3;i<argc;++i)
     {
         const string filename = argv[i];
         std::cerr << "|_Loading " << filename << std::endl;
         DataFile     data(filename);
-        
+
+        const string b_name   = vfs::get_base_name(filename);
+        const string savename = b_name + ".dat";
+        std::cerr << "|_Saving to: " << savename << std::endl;
+        bridge.Process(data,savename);
+
     }
 
 }

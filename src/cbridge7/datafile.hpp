@@ -19,7 +19,7 @@ public:
     DataFile( const string &filename);
     ~DataFile() throw();
 
-
+    
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(DataFile);
 };

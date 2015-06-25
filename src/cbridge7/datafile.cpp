@@ -25,23 +25,19 @@ N(0)
     alpha.make(N,0.0);
     theta.make(N,0.0);
 
-#if 0
-    zfind<double>     solve( Bridge::ATOL );
-    zfunction<double> zfn( lens->surface, 0 );
-
-    for(size_t i=1;i<=N;++i)
-    {
-        const double Si = S[i];
-        if(Si<0||Si>lens->max_surface)
-        {
-            throw exception("Invalid Data: maximum surface exceeded!");
-        }
-        zfn.target = Si;
-        triplet<double> aa = {0,0,lens->max_alpha};
-        triplet<double> ss = {zfn.call(aa.a),0,zfn.call(aa.c)};
-        if(ss.a*ss.b>0)
-            throw exception("Unexpected Failure in height computation!");
-    }
-#endif
 
 }
+
+#if 0
+#include "yocto/ios/ocstream.hpp"
+
+void DataFile:: save(const string &filename) const
+{
+    ios::wcstream fp(filename);
+    fp << "#h S alpha theta\n";
+    for(size_t i=1;i<=N;++i)
+    {
+        fp("%g %g %g %g\n", h[i], S[i], alpha[i], theta[i] );
+    }
+}
+#endif

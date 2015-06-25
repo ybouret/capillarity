@@ -25,11 +25,16 @@ public:
     function_type      dradius; //!< d_radius/d_alpha
     function_type      omega;   //!< omega(alpha)
     function_type      surface; //!< surface(alpha)
+    function_type      negsurf; //!< -surfac(alpha)
     V2D                profile(const double alpha) const;
+    const double       max_surface;
+    const double       max_alpha;     //!< in radians
+    const double       max_alpha_deg;
     virtual ~Lens() throw();
 
     void Output(const double height) const;
-
+    void Initialize();
+    
 protected:
     explicit Lens();
     virtual double GetRadius(const double alpha) const = 0;
@@ -38,7 +43,8 @@ protected:
     double dRadius__(const double alpha);
     double Omega__(const double alpha);
     double Surface__(const double alpha);
-
+    double NegSurf__(const double alpha);
+    
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Lens);
 };

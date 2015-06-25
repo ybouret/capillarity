@@ -21,5 +21,6 @@ V(  arrays.next_array() )
     if(capillary_length<=0) throw exception("negative capillary length");
     arrays.allocate(2);
     assert(2==Y.size());
+    lens->Initialize();
 }
 

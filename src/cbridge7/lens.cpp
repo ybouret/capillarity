@@ -1,6 +1,9 @@
 #include "lens.hpp"
 #include "yocto/code/utils.hpp"
 #include "yocto/exception.hpp"
+#include "yocto/math/opt/bracket.hpp"
+#include "yocto/math/opt/minimize.hpp"
+#include "yocto/math/trigconv.hpp"
 
 Lens::Lens() :
 drvs(),
@@ -8,8 +11,30 @@ scaling(LENS_DRVS_DEFAULT_SCALING),
 radius(this, &Lens::Radius__),
 dradius(this, &Lens::dRadius__),
 omega(this, &Lens::Omega__),
-surface(this,&Lens::Surface__)
+surface(this,&Lens::Surface__),
+negsurf(this,&Lens::NegSurf__),
+max_surface(0),
+max_alpha(0),
+max_alpha_deg(0)
 {
+
+
+}
+
+void Lens:: Initialize()
+{
+    triplet<double> a = { 0, 0, numeric<double>::pi };
+    triplet<double> s = { 0,0,0 };
+    if( !bracket<double>::inside(negsurf, a, s) )
+    {
+        throw exception("Invalid Lens Profile!");
+    }
+    minimize<double>(negsurf, a, s, 0);
+    (double&)max_alpha     = a.b;
+    (double&)max_alpha_deg = Rad2Deg(max_alpha);
+    (double&)max_surface   = surface(max_alpha);
+    std::cerr << "LensMaxAlpha   = " << max_alpha_deg << std::endl;
+    std::cerr << "LensMaxSurface = " << max_surface   << std::endl;
 }
 
 Lens:: ~Lens() throw()
@@ -39,6 +64,11 @@ double Lens:: Omega__(const double alpha)
 double Lens:: Surface__(const double alpha)
 {
     return numeric<double>::pi * Square( radius(alpha) * Sin(alpha) );
+}
+
+double Lens:: NegSurf__(const double alpha)
+{
+    return -Surface__(alpha);
 }
 
 V2D Lens:: profile(const double alpha) const

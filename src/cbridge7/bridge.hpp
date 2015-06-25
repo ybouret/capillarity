@@ -15,12 +15,12 @@ public:
     Lens::Pointer lens;
     const double  capillary_length;
     arrays_t      arrays;
-    array_t &Y;
-    array_t &k1;
-    array_t &k2;
-    array_t &k3;
-    array_t &k4;
-    array_t &V;
+    array_t      &Y;
+    array_t      &k1;
+    array_t      &k2;
+    array_t      &k3;
+    array_t      &k4;
+    array_t      &V;
 
     explicit Bridge(const Lens::Pointer &usr_lens, const double usr_clength);
     virtual ~Bridge() throw();

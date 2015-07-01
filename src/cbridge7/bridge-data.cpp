@@ -64,7 +64,7 @@ double Bridge:: Extract( DataFile &data )
         }
 
         // find the corresponding polar angle
-        zfn.target = Si;
+        zfn.target  = Si;
         triplet<double> aa = {0,0,lens->max_alpha};
         triplet<double> ss = {zfn.call(aa.a),0,zfn.call(aa.c)};
         if(ss.a*ss.b>0)

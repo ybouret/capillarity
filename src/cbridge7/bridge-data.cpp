@@ -6,6 +6,7 @@
 
 #include "yocto/ios/ocstream.hpp"
 
+
 void Bridge:: Process(DataFile &data, const string &savename)
 {
     {

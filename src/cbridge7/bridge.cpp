@@ -16,7 +16,9 @@ k1( arrays.next_array() ),
 k2( arrays.next_array() ),
 k3( arrays.next_array() ),
 k4( arrays.next_array() ),
-V(  arrays.next_array() )
+V(  arrays.next_array() ),
+h_shift(0),
+h_speed(0)
 {
     if(capillary_length<=0) throw exception("negative capillary length");
     arrays.allocate(2);

@@ -24,6 +24,9 @@ public:
     array_t      &k3;
     array_t      &k4;
     array_t      &V;
+    double        h_shift;
+    double        h_speed;
+
 
     explicit Bridge(const Lens::Pointer &usr_lens, const double usr_clength);
     virtual ~Bridge() throw();
@@ -56,9 +59,23 @@ public:
 
     void Tests();
 
-    void Process( DataFile &data, const string &savename );
-    
+    void   Process( DataFile &data, const string &savename );
+    double Extract( DataFile &data );
+
     
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Bridge);
+};
+
+class Optimizer
+{
+public:
+    explicit Optimizer(Bridge &B, DataFile &D);
+    virtual ~Optimizer() throw();
+
+    Bridge   &bridge;
+    DataFile &data;
+
+private:
+    YOCTO_DISABLE_COPY_AND_ASSIGN(Optimizer);
 };

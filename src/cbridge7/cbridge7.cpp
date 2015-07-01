@@ -26,6 +26,8 @@ YOCTO_PROGRAM_START()
         std::cerr << "|_Saving to: " << savename << std::endl;
         bridge.Process(data,savename);
 
+        
+
     }
 
 }

@@ -21,13 +21,19 @@ YOCTO_PROGRAM_START()
         std::cerr << "|_Loading " << filename << std::endl;
         DataFile     data(filename);
 
+#if 1
         const string b_name   = vfs::get_base_name(filename);
         const string savename = b_name + ".dat";
         std::cerr << "|_Saving to: " << savename << std::endl;
         bridge.Process(data,savename);
+#endif
 
+#if 0
+        Optimizer Opt(bridge,data);
+        vector<double> p(1,0.0);
+        Opt.Run(p);
+#endif
         
-
     }
 
 }

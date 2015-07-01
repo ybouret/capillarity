@@ -8,6 +8,7 @@ bridge-alpha.cpp
 bridge-hmax.cpp
 bridge-theta.cpp
 bridge-data.cpp
+bridge-opt.cpp
 datafile.hpp
 datafile.cpp
 )

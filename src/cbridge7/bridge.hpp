@@ -75,6 +75,13 @@ public:
 
     Bridge   &bridge;
     DataFile &data;
+    double    Compute( const array_t &p );
+    numeric<double>::scalar_field field;
+    bool      Callback( const array_t &p );
+
+    void      Run( array_t &p );
+
+
 
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Optimizer);

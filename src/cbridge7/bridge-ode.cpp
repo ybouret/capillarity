@@ -103,7 +103,7 @@ bool Bridge:: FinalRadius(const double height,
     for(size_t i=NUM_STEPS;i>0;--i)
     {
         const double z_ini = (i*z0)/NUM_STEPS;
-        const double z     = ((i-1)*z0)/NUM_STEPS; assert(z>=0);
+        const double z     = ((i-1)*z0)/NUM_STEPS; //assert(z>=0);
         RK4(z_ini, z);
 
         //______________________________________________________________________

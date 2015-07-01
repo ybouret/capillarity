@@ -78,9 +78,10 @@ double Bridge:: Extract( DataFile &data )
     double err = 0;
     for(size_t i=2;i<data.N;++i)
     {
-        const double tmp = (data.theta[i]-data.theta[i-1])*(data.S[i]-data.S[i-1]);
+        const double tmp = (data.theta[i]-data.theta[i-1])*(data.S[i]-data.S[i-1])/Smax;
         err += tmp*tmp;
     }
+    std::cerr << "\terr=" << err << std::endl;
     return err;
 
 }

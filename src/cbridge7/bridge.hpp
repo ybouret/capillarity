@@ -75,8 +75,13 @@ public:
 
     Bridge   &bridge;
     DataFile &data;
-    double    Compute( const array_t &p );
-    numeric<double>::scalar_field field;
+    numeric<double>::scalar_field F;
+    numeric<double>::vector_field G;
+    double    dh;
+
+
+    double    Function( const array_t &p );
+    void      Gradient( array_t &g, const array_t &p);
     bool      Callback( const array_t &p );
 
     void      Run( array_t &p );

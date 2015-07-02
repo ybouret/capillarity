@@ -9,7 +9,9 @@ DataFile:: ~DataFile() throw()
 {
 }
 
-DataFile:: DataFile( const string &filename) :
+DataFile:: DataFile(const string &filename,
+                    const double speed,
+                    const double start) :
 h(),
 S(),
 N(0)
@@ -22,10 +24,26 @@ N(0)
         ds.load(fp);
     }
     (size_t &)N = h.size();
+    t.make(N,0.0);
     alpha.make(N,0.0);
     theta.make(N,0.0);
 
-
+    if(h[N]>=h[1])
+    {
+        // increasing
+        for(size_t i=1;i<=N;++i)
+        {
+            t[i] = start + h[i]/speed;
+        }
+    }
+    else
+    {
+        // decreasing
+        for(size_t i=1;i<=N;++i)
+        {
+            t[i] = start + (h[N]-h[i])/speed;
+        }
+    }
 }
 
 #if 0

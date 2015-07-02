@@ -19,7 +19,7 @@ YOCTO_PROGRAM_START()
     {
         const string filename = argv[i];
         std::cerr << "|_Loading " << filename << std::endl;
-        DataFile     data(filename);
+        DataFile     data(filename,1,0);
 
 #if 1
         const string b_name   = vfs::get_base_name(filename);

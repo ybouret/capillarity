@@ -14,9 +14,19 @@ public:
     vector<double> h;
     vector<double> S;
     const size_t   N; //!< number of points
+    vector<double> t; //!< time, deduce from speed
     vector<double> alpha;
     vector<double> theta;
-    DataFile( const string &filename);
+
+    //! build with t = start + h/speed or t=start+(h_end-h)/speed
+    /**
+     \param filename datafile
+     \param speed    speed in mm/s
+     \param start    start time in s
+     */
+    DataFile(const string &filename,
+             const double speed,
+             const double start);
     ~DataFile() throw();
 
     

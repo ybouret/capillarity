@@ -35,7 +35,7 @@ void Bridge:: Process(DataFile &data, const string &savename)
         data.alpha[i] = Rad2Deg(solve.run(zfn.call,aa,ss));
 
         // then find the corresponding contact angle
-        data.theta[i] = FindTheta(data.h[i]+h_shift+h_speed*i, data.alpha[i]);
+        data.theta[i] = FindTheta(data.h[i]+data.t[i]*ev_rate, data.alpha[i]);
         {
             ios::acstream fp(savename);
             fp("%g %g %g %g\n", data.h[i], data.S[i], data.alpha[i], data.theta[i] );
@@ -73,7 +73,7 @@ double Bridge:: Extract( DataFile &data )
         data.alpha[i] = Rad2Deg(solve.run(zfn.call,aa,ss));
 
         // then find the corresponding contact angle
-        data.theta[i] = FindTheta(data.h[i]+h_shift+h_speed*i, data.alpha[i]);
+        data.theta[i] = FindTheta(data.h[i]+data.t[i]*ev_rate, data.alpha[i]);
     }
 
     double err = 0;

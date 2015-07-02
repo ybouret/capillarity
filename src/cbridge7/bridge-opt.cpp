@@ -22,10 +22,10 @@ double Optimizer:: Function( const array_t &p )
     switch(p.size())
     {
         case 2:
-            bridge.h_speed = p[2];
+            //bridge.h_speed = p[2];
 
         case 1:
-            bridge.h_shift = p[1];
+            //bridge.h_shift = p[1];
             break;
 
         default:

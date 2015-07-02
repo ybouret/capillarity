@@ -24,8 +24,7 @@ public:
     array_t      &k3;
     array_t      &k4;
     array_t      &V;
-    double        h_shift;
-    double        h_speed;
+    double        ev_rate; //!< evaporation rate
 
 
     explicit Bridge(const Lens::Pointer &usr_lens, const double usr_clength);
@@ -42,7 +41,7 @@ public:
                      const double theta,
                      const double alpha,
                      const bool   save=false);
-    
+
 
     //! warning, theta is in degree
     double FindAlpha(const double height,const double theta);
@@ -62,7 +61,7 @@ public:
     void   Process( DataFile &data, const string &savename );
     double Extract( DataFile &data );
 
-    
+
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Bridge);
 };
@@ -85,9 +84,9 @@ public:
     bool      Callback( const array_t &p );
 
     void      Run( array_t &p );
-
-
-
+    
+    
+    
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Optimizer);
 };

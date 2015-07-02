@@ -11,9 +11,9 @@ bridge-data.cpp
 bridge-opt.cpp
 datafile.hpp
 datafile.cpp
-window.hpp
-window.cpp
 bridge-mt.cpp
+worker.hpp
+worker.cpp
 )
 
 ADD_EXECUTABLE(cbridge7 cbridge7.cpp)

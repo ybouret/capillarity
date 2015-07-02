@@ -2,7 +2,7 @@
 #include "yocto/math/fcn/zfind.hpp"
 #include "yocto/math/trigconv.hpp"
 
-double Bridge::FindHmax(const double theta)
+double Bridge::FindHmax(const double theta) throw()
 {
 
     double h_lo = 0;

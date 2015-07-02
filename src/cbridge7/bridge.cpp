@@ -9,7 +9,8 @@ double Bridge::HTOL      = 1e-5;
 
 Bridge:: ~Bridge() throw() {}
 
-Bridge:: Bridge(const Lens::Pointer &usr_lens,const double usr_clength) :
+Bridge:: Bridge(const Lens::Pointer &usr_lens,
+                const double         usr_clength) :
 lens(usr_lens),
 capillary_length(usr_clength),
 arrays(10),
@@ -19,7 +20,8 @@ k2( arrays.next_array() ),
 k3( arrays.next_array() ),
 k4( arrays.next_array() ),
 V(  arrays.next_array() ),
-ev_rate(0)
+ev_rate(0),
+lastResult(0)
 {
     if(capillary_length<=0) throw exception("negative capillary length");
     arrays.allocate(2);

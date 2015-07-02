@@ -1,7 +1,7 @@
 #include "bridge.hpp"
 #include "yocto/math/trigconv.hpp"
 
-double Bridge:: FindTheta(const double height, const double alpha_deg)
+double Bridge:: FindTheta(const double height, const double alpha_deg) throw()
 {
 
     const double alpha     = Deg2Rad(alpha_deg);

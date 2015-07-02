@@ -20,7 +20,7 @@ void  Bridge:: ScanAlpha(const double height, const double theta)
 
 
 double Bridge:: FindAlpha(const double height,
-                          const double theta)
+                          const double theta) throw()
 {
     const double      omega_max = 180-theta;
     zfunction<double> zfn( lens->omega, Deg2Rad(omega_max) );

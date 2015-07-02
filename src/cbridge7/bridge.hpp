@@ -7,8 +7,9 @@ typedef array<double>                      array_t;
 typedef many_arrays<double,memory::global> arrays_t;
 
 class DataFile;
-class Window;
 
+#define BRIDGE_ERR_MAX_SURFACE_EXCEEDED 1
+#define BRIDGE_ERR_HEIGHT_NOT_FOUND     2
 
 class Bridge
 {
@@ -26,8 +27,8 @@ public:
     array_t      &k3;
     array_t      &k4;
     array_t      &V;
-    double        ev_rate; //!< evaporation rate
-
+    double        ev_rate;   //!< evaporation rate
+    int           lastResult; //!< for ExtractMT
 
     explicit Bridge(const Lens::Pointer &usr_lens, const double usr_clength);
     virtual ~Bridge() throw();
@@ -39,6 +40,9 @@ public:
     void RK4(const double z_ini,const double z_end) throw();
 
     //! warning, angles are in degrees
+    /**
+     no throw if no save...
+     */
     bool FinalRadius(const double height,
                      const double theta,
                      const double alpha,
@@ -46,16 +50,16 @@ public:
 
 
     //! warning, theta is in degree
-    double FindAlpha(const double height,const double theta);
+    double FindAlpha(const double height,const double theta) throw();
 
     //! theta in degrees
-    double FindHmax(const double theta);
+    double FindHmax(const double theta) throw();
 
     //! scanning alpha for algo debug
     void ScanAlpha(const double height, const double theta);
 
     //! warning, alpha is in degree, return as well
-    double FindTheta(const double height, const double alpha);
+    double FindTheta(const double height, const double alpha) throw();
 
 
     void Tests();
@@ -63,7 +67,9 @@ public:
     void   Process( DataFile &data, const string &savename );
     double Extract( DataFile &data );
     
-    
+    void ExtractMT(const threading::context &ctx, DataFile &data) throw();
+
+
 
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Bridge);

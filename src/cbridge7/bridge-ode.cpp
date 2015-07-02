@@ -44,9 +44,9 @@ void Bridge:: RK4(const double z_ini,const double z_end) throw()
 bool Bridge:: FinalRadius(const double height,
                           const double theta_deg,
                           const double alpha_deg,
-                          const bool   save)
+                          const bool   save) 
 {
-    static vfs & fs = local_fs::instance();
+    //static vfs & fs = local_fs::instance();
 
     //__________________________________________________________________________
     //
@@ -54,7 +54,7 @@ bool Bridge:: FinalRadius(const double height,
     //__________________________________________________________________________
     if(save)
     {
-        fs.try_remove_file("profile.dat");
+        local_fs::instance().try_remove_file("profile.dat");
     }
 
     //__________________________________________________________________________

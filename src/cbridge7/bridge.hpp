@@ -1,12 +1,14 @@
 #include "lens.hpp"
 #include "yocto/sequence/many-arrays.hpp"
 #include "yocto/string.hpp"
+#include "yocto/threading/context.hpp"
 
 typedef array<double>                      array_t;
 typedef many_arrays<double,memory::global> arrays_t;
 
-
 class DataFile;
+class Window;
+
 
 class Bridge
 {
@@ -60,6 +62,8 @@ public:
 
     void   Process( DataFile &data, const string &savename );
     double Extract( DataFile &data );
+    
+    void   ExtractMT(const threading::context &);
 
 
 private:

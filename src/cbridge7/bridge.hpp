@@ -63,8 +63,7 @@ public:
     void   Process( DataFile &data, const string &savename );
     double Extract( DataFile &data );
     
-    void   ExtractMT(const threading::context &);
-
+    
 
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Bridge);

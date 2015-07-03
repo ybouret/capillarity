@@ -11,6 +11,10 @@ typedef many_arrays<double,memory::global> arrays_t;
 class Bridge
 {
 public:
+    static size_t NUM_STEPS;
+    static double ATOL;
+    static double HTOL;
+
     auto_ptr<Lens> lens;
     const double   capillary_length;
     arrays_t       arrays;
@@ -24,6 +28,20 @@ public:
     explicit Bridge(const Lens &usr_lens, const double clength);
     virtual ~Bridge() throw();
     
+    //! Y=[r drdz]
+    void Evaluate( array_t &dYdz, double z, const array_t &Y ) throw();
+
+    //! make a step
+    void RK4(const double z_ini,const double z_end) throw();
+
+    //! warning, angles are in degrees
+    /**
+     no throw if no save...
+     */
+    bool FinalRadius(const double height,
+                     const double theta,
+                     const double alpha,
+                     const bool   save=false);
 
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Bridge);

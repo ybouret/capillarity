@@ -3,6 +3,7 @@
 
 #include "lens.hpp"
 #include "yocto/sequence/vector.hpp"
+#include "yocto/string.hpp"
 
 class VLens : public Lens
 {
@@ -50,6 +51,7 @@ public:
         return a+ (K-a)*GS(alpha,b,beta);
     }
     
+    static VLens *ReadFrom(const string &filename);
 
 
 private:

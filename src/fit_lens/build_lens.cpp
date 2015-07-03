@@ -326,6 +326,14 @@ YOCTO_PROGRAM_START()
         lens.SaveProfile();
         lens.SaveOmega();
     }
+
+    {
+        ios::wcstream fp("lens.prm");
+        for(size_t i=1;i<=lens.params.size();++i)
+        {
+            fp("%.8g\n", lens.params[i] );
+        }
+    }
     
     
 }

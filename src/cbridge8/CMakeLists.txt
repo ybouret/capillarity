@@ -3,6 +3,9 @@ lens.hpp
 lens.cpp
 vlens.hpp
 vlens.cpp
+
+bridge.hpp
+bridge.cpp
 )
 
 ADD_EXECUTABLE(cbridge8 cbridge8.cpp)

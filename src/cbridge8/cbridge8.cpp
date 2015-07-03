@@ -1,7 +1,11 @@
 #include "vlens.hpp"
+#include "bridge.hpp"
 #include "yocto/program.hpp"
 #include "yocto/ptr/auto.hpp"
 
+#include "yocto/threading/simd.hpp"
+
+using namespace threading;
 
 YOCTO_PROGRAM_START()
 {
@@ -18,6 +22,11 @@ YOCTO_PROGRAM_START()
         std::cerr << "max angle=" << lens->max_surf_angle << std::endl;
         std::cerr << "max value=" << lens->max_surf_value << std::endl;
     }
+
+    SIMD   simd;
+    //Bridge bridge(*lens,2.7);
+    simd.create<Bridge,const Lens&,double>(*lens,2.7);
+
 }
 YOCTO_PROGRAM_END()
 

@@ -12,11 +12,11 @@ class Lens : public object
 {
 public:
     derivative<double> drvs;
-    function_type      rho;
-    function_type      rho_rad;
-    function_type      omega;
-    function_type      surface;
-    function_type      negsurf; //!< to find max surface
+    function_type      rho;        //!< angle in degree
+    function_type      rho_rad;    //!< angle in radians (ONLY FUNCTION!)
+    function_type      omega;      //!< angle in degree
+    function_type      surface;    //!< angle in degree
+    function_type      negsurf;    //!< to find max surface
     const double       max_surf_angle;
     const double       max_surf_value;
     virtual ~Lens() throw();
@@ -24,12 +24,7 @@ public:
 
     virtual  double ComputeRho(const double alpha) throw() = 0; //!< alpha in degree
     virtual  Lens  *clone() const = 0;
-    double   rho_(double alpha) throw();
-    double   rho_rad_(double alpha_rad) throw();
-    double   drho(double alpha) throw();
-    double   omega_(double alpha) throw();
-    double   surface_(double alpha) throw();
-    double   negsurf_(double alpha) throw();
+
 
     void initialize();
 
@@ -38,7 +33,12 @@ protected:
 
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Lens);
-
+    double   rho_(double alpha) throw();
+    double   rho_rad_(double alpha_rad) throw();
+    double   drho(double alpha) throw();
+    double   omega_(double alpha) throw();
+    double   surface_(double alpha) throw();
+    double   negsurf_(double alpha) throw();
 };
 
 class SphericalLens : public Lens

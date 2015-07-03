@@ -25,8 +25,10 @@ double Bridge:: FindAlpha(const double height,
     const double      omega_max = 180-theta;
     zfunction<double> zfn( lens->omega, omega_max );
     zfind<double>     solve(ATOL);
+
+    // TODO: correct BUG !
     double alpha_max = solve(zfn.call,0,180);
-    //std::cerr << "alpha_max=" << alpha_max << std::endl;
+    std::cerr << "alpha_max(theta=" << theta <<")=" << alpha_max << std::endl;
 
     double alpha_min = alpha_max;
     while(true)

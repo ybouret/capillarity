@@ -4,6 +4,7 @@
 #include "yocto/ptr/auto.hpp"
 
 #include "yocto/threading/simd.hpp"
+#include "yocto/ios/ocstream.hpp"
 
 using namespace threading;
 
@@ -27,7 +28,19 @@ YOCTO_PROGRAM_START()
     Bridge bridge(*lens,2.7);
     simd.create<Bridge,const Lens&,double>(*lens,2.7);
 
-    bridge.Tests();
+#if 1
+    ios::ocstream::overwrite("hmax.dat");
+    for(int theta=5;theta<=175;theta+=5)
+    {
+        //bridge.ScanAlpha(0, theta);
+        std::cerr << "theta=" << theta << std::endl;
+        const double hmax = bridge.FindHmax(theta);
+        ios::acstream fp("hmax.dat");
+        fp("%d %g\n", theta, hmax);
+    }
+#endif
+    
+    //bridge.Tests();
 }
 YOCTO_PROGRAM_END()
 

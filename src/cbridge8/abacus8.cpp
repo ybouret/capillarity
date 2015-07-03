@@ -9,6 +9,10 @@
 #include "yocto/math/fit/lsf.hpp"
 #include "yocto/fs/local-fs.hpp"
 
+#include "yocto/threading/simd.hpp"
+
+using namespace threading;
+
 static const double HRES = 0.01;
 class Slope
 {
@@ -36,21 +40,89 @@ public:
 
 YOCTO_PROGRAM_START()
 {
+    // reading params
     if(argc<=2)
         throw exception("need lens.file clength");
-    const string lens_name = argv[1];
-    auto_ptr<Lens> lens( VLens::ReadFrom(lens_name) );
-    const double R = lens->rho(0);
+    const string   lens_name = argv[1];
+    auto_ptr<Lens> full_lens( VLens::ReadFrom(lens_name) );
+    const double R = full_lens->rho(0);
     const double C = strconv::to<double>(argv[2],"C");
-
+    auto_ptr<Lens> spherical( new SphericalLens(R) );
+    
+    // preparing output
     string root = vfs::get_base_name(lens_name);
     vfs::remove_extension(root);
     std::cerr << "root=" << root << std::endl;
     std::cerr << "R   =" << R    << std::endl;
     std::cerr << "C   =" << C    << std::endl;
-    const string a_name = vformat("abacus_%s_R%g_C%g.dat", root.c_str(), R, C);
-    std::cerr << "a_name=" << a_name << std::endl;
+    
+    
+    const string f_name = vformat("abacus_%s_C%g.dat", root.c_str(), C);
+    const string s_name = vformat("abacus_%s_C%g_R%g.dat", root.c_str(), C, R);
+    const string h_name = vformat("height_%s_C%g.dat", root.c_str(),C);
+    
+    ios::ocstream::overwrite(f_name);
+    ios::ocstream::overwrite(s_name);
+    ios::ocstream::overwrite(h_name);
 
+    SIMD simd(2,0);
+    simd[0].build<Bridge,const Lens &, double>(*full_lens,C);
+    simd[1].build<Bridge,const Lens &, double>(*spherical,C);
+
+    Bridge & f_bridge  = simd[0].as<Bridge>();
+    Bridge & s_bridge  = simd[1].as<Bridge>();
+    
+    
+    static const char   wheel[] = "-\\|/";
+    static const size_t nwheel  = sizeof(wheel)/sizeof(wheel[0])-1;
+    size_t              iwheel  = 0;
+    
+    context::kernel kHmax( cfunctor(Bridge::CallHmax) );
+    
+    bool skip=false;
+    for(int theta = 30; theta < 180; theta += 5 )
+    {
+        std::cerr << "theta=" << theta << std::endl;
+        
+        // find max height to integrate
+        f_bridge.param1 = s_bridge.param1 = theta;
+        simd(kHmax);
+        
+        //const double f_hmax = f_bridge.FindHmax(theta);
+        //const double s_hmax = s_bridge.FindHmax(theta);
+        const double f_hmax = f_bridge.result;
+        const double s_hmax = s_bridge.result;
+        
+        {
+            ios::acstream fp(h_name);
+            fp("%d %g %g\n",theta,f_hmax,s_hmax);
+        }
+        std::cerr << "\theight_max=" << f_hmax << ", " << s_hmax << std::endl;
+        
+        // draw the abacus
+        //const size_t NH = 2+size_t(Ceil(hmax/HRES));
+        if(skip)
+        {
+            {
+                ios::acstream fp(f_name);
+                fp << "\n";
+            }
+            {
+                ios::acstream fp(f_name);
+                fp << "\n";
+            }
+        }
+        else
+        {
+            skip=true;
+        }
+        
+        
+        
+    }
+    
+    
+    
 #if 0
     auto_ptr<Lens> lens( new SphericalLens(R));
     Bridge         bridge(*lens, C);

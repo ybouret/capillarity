@@ -1,6 +1,8 @@
 ADD_LIBRARY(cbridge8lib STATIC
 lens.hpp
 lens.cpp
+vlens.hpp
+vlens.cpp
 )
 
 ADD_EXECUTABLE(cbridge8 cbridge8.cpp)

@@ -5,11 +5,14 @@
 
 #include "yocto/threading/simd.hpp"
 #include "yocto/ios/ocstream.hpp"
+#include "yocto/code/rand.hpp"
 
 using namespace threading;
 
 YOCTO_PROGRAM_START()
 {
+    alea_init();
+
     auto_ptr<Lens> lens( new SphericalLens(70) );
     lens->initialize();
     std::cerr << "max angle=" << lens->max_surf_angle << std::endl;
@@ -28,7 +31,7 @@ YOCTO_PROGRAM_START()
     Bridge bridge(*lens,2.7);
     simd.create<Bridge,const Lens&,double>(*lens,2.7);
 
-#if 1
+#if 0
     ios::ocstream::overwrite("hmax.dat");
     for(int theta=5;theta<=175;theta+=5)
     {
@@ -41,6 +44,9 @@ YOCTO_PROGRAM_START()
 #endif
     
     //bridge.Tests();
+    context::kernel kTest( cfunctor(Bridge::CallTests) );
+    simd(kTest);
+
 }
 YOCTO_PROGRAM_END()
 

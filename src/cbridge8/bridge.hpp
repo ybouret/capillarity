@@ -4,6 +4,7 @@
 #include "lens.hpp"
 #include "yocto/ptr/auto.hpp"
 #include "yocto/sequence/many-arrays.hpp"
+#include "yocto/threading/context.hpp"
 
 typedef array<double>                      array_t;
 typedef many_arrays<double,memory::global> arrays_t;
@@ -58,6 +59,12 @@ public:
 
 
     void Tests();
+
+
+    void TestsMT(const threading::context &) throw();
+
+    static void CallTests( threading::context &) throw();
+    
 
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Bridge);

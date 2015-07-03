@@ -26,7 +26,6 @@ double Bridge:: FindAlpha(const double height,
     zfunction<double> zfn( lens->omega, omega_max );
     zfind<double>     solve(ATOL);
 
-    // TODO: correct BUG : must ensure alpha_max in 0:180
     triplet<double> A = { 0, 0, 180 };
     triplet<double> W = { zfn.call(0), 0, zfn.call(180.0) };
     if(W.a*W.c>0)
@@ -36,13 +35,11 @@ double Bridge:: FindAlpha(const double height,
 
 
     double alpha_max = solve.run(zfn.call,A,W);
-    //std::cerr << "alpha_max(theta=" << theta <<")=" << alpha_max << std::endl;
 
     double alpha_min = alpha_max;
     while(true)
     {
         alpha_min = alpha_max/2;
-        //std::cerr << "\talpha_min=" << alpha_min << std::endl;
         if(alpha_min<ATOL)
         {
             return -1;
@@ -54,9 +51,7 @@ double Bridge:: FindAlpha(const double height,
         }
         alpha_max = alpha_min;
     }
-    //std::cerr << "\t\tfinal: " << Y[1] << std::endl;
 
-    //std::cerr << "bracketed alpha: " << alpha_min << " => " << alpha_max << std::endl;
 
     // alpha_min: valid, alpha_max: invalid
     while(alpha_max-alpha_min>ATOL)

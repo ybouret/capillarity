@@ -39,7 +39,6 @@ V(  arrays.next_array() )
 
 void Bridge:: Tests()
 {
-    alea_init();
     for(ptrdiff_t theta=15;theta<=165;theta+=15)
     {
         std::cerr << "Test theta=" << theta << std::endl;
@@ -62,4 +61,47 @@ void Bridge:: Tests()
 
         }
     }
+}
+
+#include "yocto/threading/window.hpp"
+
+void Bridge:: TestsMT(const threading::context &ctx ) throw()
+{
+    const threading::window win(ctx,35,1);
+    {
+        scoped_lock guard(ctx.access);
+        Bridge *self = this;
+        std::cerr << "Bridge@" << (void*)self << "/" << (void*)&ctx << " : " << win.start << " -> " << win.final << std::endl;
+    }
+
+    for(size_t i=win.start;i<=win.final;++i)
+    {
+        const int theta = i*5;
+        {
+            scoped_lock guard(ctx.access);
+            std::cerr << "theta=" << theta << std::endl;
+        }
+        const double hmax = FindHmax(theta);
+        for(int i=1;i<=10;++i)
+        {
+            const double h = alea<double>() * hmax;
+            const double a = FindAlpha(h,theta);
+            const double t = FindTheta(h,a);
+
+            if(RInt(t)!=theta)
+            {
+                scoped_lock guard(ctx.access);
+                std::cerr << "wrong inversion for theta=" << theta << ", h=" << h  << std::endl;
+            }
+            
+        }
+
+    }
+}
+
+
+void Bridge:: CallTests(threading::context &ctx) throw()
+{
+    Bridge &bridge = ctx.as<Bridge>();
+    bridge.TestsMT(ctx);
 }

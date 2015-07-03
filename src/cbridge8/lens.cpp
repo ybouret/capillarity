@@ -35,7 +35,7 @@ double Lens:: omega_(double alpha) throw()
 {
     const double r0 = rho_(alpha);
     const double r1 = drho(alpha);
-    return alpha - Rad2Deg( Asin(r0/Hypotenuse(r0,r1) ) );
+    return alpha - Rad2Deg( Asin(r1/Hypotenuse(r0,r1) ) );
 }
 
 double Lens:: surface_(double alpha) throw()

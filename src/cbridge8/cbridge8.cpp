@@ -24,9 +24,10 @@ YOCTO_PROGRAM_START()
     }
 
     SIMD   simd;
-    //Bridge bridge(*lens,2.7);
+    Bridge bridge(*lens,2.7);
     simd.create<Bridge,const Lens&,double>(*lens,2.7);
 
+    bridge.Tests();
 }
 YOCTO_PROGRAM_END()
 

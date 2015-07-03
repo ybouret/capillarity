@@ -6,6 +6,10 @@ vlens.cpp
 
 bridge.hpp
 bridge.cpp
+bridge-ode.cpp
+bridge-alpha.cpp
+bridge-hmax.cpp
+bridge-theta.cpp
 )
 
 ADD_EXECUTABLE(cbridge8 cbridge8.cpp)

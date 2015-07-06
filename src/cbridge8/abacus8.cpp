@@ -90,8 +90,6 @@ YOCTO_PROGRAM_START()
         f_bridge.param1 = s_bridge.param1 = theta;
         simd(kHmax);
         
-        //const double f_hmax = f_bridge.FindHmax(theta);
-        //const double s_hmax = s_bridge.FindHmax(theta);
         const double f_hmax = f_bridge.result;
         const double s_hmax = s_bridge.result;
         

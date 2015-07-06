@@ -119,9 +119,13 @@ YOCTO_PROGRAM_START()
         
         for(size_t i=0;i<=NH;++i)
         {
-            
+            (std::cerr << "[" << wheel[++iwheel%nwheel] << "]  \r").flush();
+            const double f_height = clamp<double>(0,(i*f_hmax)/double(NH),f_hmax);
+            const double s_height = clamp<double>(0,(i*s_hmax)/double(NH),s_hmax);
+
         }
-        
+        std::cerr << std::endl;
+
     }
     
     

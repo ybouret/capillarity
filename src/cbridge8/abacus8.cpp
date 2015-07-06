@@ -65,6 +65,7 @@ YOCTO_PROGRAM_START()
     ios::ocstream::overwrite(s_name);
     ios::ocstream::overwrite(h_name);
 
+    //! special SIMD for hmax
     SIMD simd(2,0);
     simd[0].build<Bridge,const Lens &, double>(*full_lens,C);
     simd[1].build<Bridge,const Lens &, double>(*spherical,C);
@@ -77,8 +78,9 @@ YOCTO_PROGRAM_START()
     static const size_t nwheel  = sizeof(wheel)/sizeof(wheel[0])-1;
     size_t              iwheel  = 0;
     
-    context::kernel kHmax( cfunctor(Bridge::CallHmax) );
-    
+    context::kernel kHmax(  cfunctor(Bridge::CallHmax)  );
+    context::kernel kAlpha( cfunctor(Bridge::CallAlpha) );
+
     bool skip=false;
     for(int theta = 30; theta < 180; theta += 5 )
     {
@@ -108,7 +110,7 @@ YOCTO_PROGRAM_START()
                 fp << "\n";
             }
             {
-                ios::acstream fp(f_name);
+                ios::acstream fp(s_name);
                 fp << "\n";
             }
         }
@@ -116,13 +118,38 @@ YOCTO_PROGRAM_START()
         {
             skip=true;
         }
-        
+
+        {
+            ios::acstream fp(f_name);
+            fp("#h S(theta=%d)\n", theta);
+        }
+
+        {
+            ios::acstream fp(s_name);
+            fp("#h S(theta=%d)\n", theta);
+        }
+
         for(size_t i=0;i<=NH;++i)
         {
             (std::cerr << "[" << wheel[++iwheel%nwheel] << "]  \r").flush();
             const double f_height = clamp<double>(0,(i*f_hmax)/double(NH),f_hmax);
             const double s_height = clamp<double>(0,(i*s_hmax)/double(NH),s_hmax);
 
+            f_bridge.param1 = f_height;
+            s_bridge.param1 = s_height;
+            f_bridge.param2 = s_bridge.param2 = theta;
+            simd(kAlpha);
+
+            {
+                ios::acstream fp(f_name);
+                fp("%g %g\n", f_height, f_bridge.lens->surface(f_bridge.result) );
+            }
+
+            {
+                ios::acstream fp(s_name);
+                fp("%g %g\n", s_height, s_bridge.lens->surface(s_bridge.result) );
+
+            }
         }
         std::cerr << std::endl;
 

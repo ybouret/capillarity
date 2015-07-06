@@ -22,6 +22,7 @@ k3( arrays.next_array() ),
 k4( arrays.next_array() ),
 V(  arrays.next_array() ),
 param1(0),
+param2(0),
 result(0)
 {
     if( capillary_length <= 0 )
@@ -85,4 +86,11 @@ void Bridge:: CallHmax( threading::context &ctx) throw()
 {
     Bridge &bridge = ctx.as<Bridge>();
     bridge.result = bridge.FindHmax(bridge.param1);
+}
+
+
+void Bridge:: CallAlpha( threading::context &ctx) throw()
+{
+    Bridge &bridge = ctx.as<Bridge>();
+    bridge.result = bridge.FindAlpha(bridge.param1,bridge.param2);
 }

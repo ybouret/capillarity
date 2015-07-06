@@ -26,6 +26,7 @@ public:
     array_t       &k4;
     array_t       &V;
     double        param1;
+    double        param2;
     double        result;
     
     explicit Bridge(const Lens &usr_lens, const double clength);
@@ -63,8 +64,11 @@ public:
     void Tests(const threading::context &) throw();
     static void CallTests( threading::context &) throw();
     
-    // result = FindHmax(param1)
+    //! result = FindHmax(param1)
     static void CallHmax( threading::context &) throw();
+
+    //! result = FindAlpha(height=param1,theta=param2);
+    static void CallAlpha( threading::context &) throw();
 
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Bridge);

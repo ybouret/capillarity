@@ -10,6 +10,11 @@ bridge-ode.cpp
 bridge-alpha.cpp
 bridge-hmax.cpp
 bridge-theta.cpp
+
+datafile.hpp
+datafile.cpp
+
+bridge-data.cpp
 )
 
 ADD_EXECUTABLE(cbridge8 cbridge8.cpp)

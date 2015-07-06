@@ -23,7 +23,8 @@ k4( arrays.next_array() ),
 V(  arrays.next_array() ),
 param1(0),
 param2(0),
-result(0)
+result(0),
+args(0)
 {
     if( capillary_length <= 0 )
     {

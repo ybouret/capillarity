@@ -28,7 +28,8 @@ public:
     double        param1;
     double        param2;
     double        result;
-    
+    void         *args;   // datafile...
+
     explicit Bridge(const Lens &usr_lens, const double clength);
     virtual ~Bridge() throw();
     
@@ -70,6 +71,9 @@ public:
     //! result = FindAlpha(height=param1,theta=param2);
     static void CallAlpha( threading::context &) throw();
 
+    //! process data (address in args)
+    void Process(const threading::context &ctx) throw();
+    static void CallProcess(threading::context &ctx) throw();
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Bridge);
 

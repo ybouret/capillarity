@@ -100,7 +100,7 @@ YOCTO_PROGRAM_START()
         std::cerr << "\theight_max=" << f_hmax << ", " << s_hmax << std::endl;
         
         // draw the abacus
-        //const size_t NH = 2+size_t(Ceil(hmax/HRES));
+        const size_t NH = 2+size_t(Ceil(max_of(f_hmax,s_hmax)/HRES));
         if(skip)
         {
             {
@@ -117,7 +117,10 @@ YOCTO_PROGRAM_START()
             skip=true;
         }
         
-        
+        for(size_t i=0;i<=NH;++i)
+        {
+            
+        }
         
     }
     

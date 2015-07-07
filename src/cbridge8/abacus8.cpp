@@ -78,8 +78,8 @@ YOCTO_PROGRAM_START()
     static const size_t nwheel  = sizeof(wheel)/sizeof(wheel[0])-1;
     size_t              iwheel  = 0;
     
-    context::kernel kHmax(  cfunctor(Bridge::CallHmax)  );
-    context::kernel kAlpha( cfunctor(Bridge::CallAlpha) );
+    SIMD::Kernel kHmax(  cfunctor(Bridge::CallHmax)  );
+    SIMD::Kernel kAlpha( cfunctor(Bridge::CallAlpha) );
 
     bool skip=false;
     for(int theta = 30; theta < 180; theta += 5 )

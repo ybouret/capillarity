@@ -4,8 +4,10 @@
 #include "lens.hpp"
 #include "yocto/ptr/auto.hpp"
 #include "yocto/sequence/many-arrays.hpp"
-#include "yocto/threading/context.hpp"
+#include "yocto/threading/simd.hpp"
 
+using namespace threading;
+typedef SIMD::Context                      Context;
 typedef array<double>                      array_t;
 typedef many_arrays<double,memory::global> arrays_t;
 
@@ -62,18 +64,18 @@ public:
     double FindTheta(const double height, const double alpha) throw();
 
 
-    void Tests(const threading::context &) throw();
-    static void CallTests( threading::context &) throw();
+    void Tests(const Context &) throw();
+    static void CallTests( Context &) throw();
     
     //! result = FindHmax(param1)
-    static void CallHmax( threading::context &) throw();
+    static void CallHmax( Context &) throw();
 
     //! result = FindAlpha(height=param1,theta=param2);
-    static void CallAlpha( threading::context &) throw();
+    static void CallAlpha( Context &) throw();
 
     //! process data (address in args)
-    void Process(const threading::context &ctx) throw();
-    static void CallProcess(threading::context &ctx) throw();
+    void Process(const Context &ctx) throw();
+    static void CallProcess(Context &ctx) throw();
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Bridge);
 

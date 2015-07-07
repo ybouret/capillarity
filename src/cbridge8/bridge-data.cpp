@@ -1,17 +1,18 @@
 #include "bridge.hpp"
 #include "datafile.hpp"
-#include "yocto/threading/window.hpp"
 #include "yocto/math/fcn/zfind.hpp"
 
-void Bridge::Process(const threading::context &ctx) throw()
+void Bridge::Process(const Context &ctx) throw()
 {
     assert(args);
     DataFile &data = *(DataFile *)args;
-    const threading::window win(ctx,data.N,1);
+    const SIMD::Window win(ctx,data.N,1);
+#if 0
     {
         scoped_lock guard(ctx.access);
         std::cerr << "Process from " << win.start << " to " << win.final << std::endl;
     }
+#endif
 
     zfind<double>     solve( ATOL );
     zfunction<double> zfn(lens->surface,0);
@@ -39,7 +40,7 @@ void Bridge::Process(const threading::context &ctx) throw()
     }
 }
 
-void Bridge::CallProcess(threading::context &ctx) throw()
+void Bridge::CallProcess(Context &ctx) throw()
 {
     Bridge &bridge = ctx.as<Bridge>();
     bridge.Process(ctx);

@@ -30,7 +30,7 @@ YOCTO_PROGRAM_START()
     simd_round.create<Bridge,const Lens&,double>(*sphr,clength);
 
     const size_t nt = simd_shape.size; assert(simd_shape.size==simd_round.size);
-    context::kernel kProc( cfunctor(Bridge::CallProcess) );
+    SIMD::Kernel kProc( cfunctor(Bridge::CallProcess) );
     
     for(int i=3;i<argc;++i)
     {

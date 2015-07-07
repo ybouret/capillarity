@@ -40,11 +40,10 @@ args(0)
 }
 
 #include "yocto/code/rand.hpp"
-#include "yocto/threading/window.hpp"
 
-void Bridge:: Tests(const threading::context &ctx ) throw()
+void Bridge:: Tests(const Context &ctx ) throw()
 {
-    const threading::window win(ctx,35,1);
+    const SIMD::Window win(ctx,35,1);
     {
         scoped_lock guard(ctx.access);
         Bridge *self = this;
@@ -77,20 +76,20 @@ void Bridge:: Tests(const threading::context &ctx ) throw()
 }
 
 
-void Bridge:: CallTests(threading::context &ctx) throw()
+void Bridge:: CallTests(Context &ctx) throw()
 {
     Bridge &bridge = ctx.as<Bridge>();
     bridge.Tests(ctx);
 }
 
-void Bridge:: CallHmax( threading::context &ctx) throw()
+void Bridge:: CallHmax( Context &ctx) throw()
 {
     Bridge &bridge = ctx.as<Bridge>();
     bridge.result = bridge.FindHmax(bridge.param1);
 }
 
 
-void Bridge:: CallAlpha( threading::context &ctx) throw()
+void Bridge:: CallAlpha( Context &ctx) throw()
 {
     Bridge &bridge = ctx.as<Bridge>();
     bridge.result = bridge.FindAlpha(bridge.param1,bridge.param2);

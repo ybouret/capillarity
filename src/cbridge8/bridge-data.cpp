@@ -6,7 +6,11 @@ void Bridge::Process(const Context &ctx) throw()
 {
     assert(args);
     DataFile &data = *(DataFile *)args;
-    const SIMD::Window win(ctx,data.N,1);
+    size_t i  = 1;
+    size_t length = data.N;
+
+    ctx.split(i,length);
+
 #if 0
     {
         scoped_lock guard(ctx.access);
@@ -16,7 +20,7 @@ void Bridge::Process(const Context &ctx) throw()
 
     zfind<double>     solve( ATOL );
     zfunction<double> zfn(lens->surface,0);
-    for(size_t i=win.start;i<=win.final;++i)
+    for(;length>0;++i,--length)
     {
         const double Si = data.S[i];
         if(Si<=0||Si>lens->max_surf_value)
@@ -42,6 +46,6 @@ void Bridge::Process(const Context &ctx) throw()
 
 void Bridge::CallProcess(Context &ctx) throw()
 {
-    Bridge &bridge = ctx.as<Bridge>();
-    bridge.Process(ctx);
+    //Bridge &bridge = ctx.as<Bridge>();
+    //bridge.Process(ctx);
 }

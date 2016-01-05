@@ -1,6 +1,6 @@
 #include "bridge.hpp"
 #include "yocto/exception.hpp"
-#include "yocto/math/kernel/tao.hpp"
+#include "yocto/math/core/tao.hpp"
 #include "yocto/math/trigconv.hpp"
 #include "yocto/fs/local-fs.hpp"
 #include "yocto/ptr/auto.hpp"

@@ -4,10 +4,10 @@
 #include "lens.hpp"
 #include "yocto/ptr/auto.hpp"
 #include "yocto/sequence/many-arrays.hpp"
-#include "yocto/threading/simd.hpp"
+#include "yocto/threading/crew.hpp"
 
 using namespace threading;
-typedef SIMD::Context                      Context;
+typedef threading::context                 Context;
 typedef array<double>                      array_t;
 typedef many_arrays<double,memory::global> arrays_t;
 

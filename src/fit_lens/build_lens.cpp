@@ -6,10 +6,10 @@
 #include "yocto/ios/ocstream.hpp"
 #include "yocto/math/types.hpp"
 #include "yocto/math/opt/cgrad.hpp"
-#include "yocto/math/fit/lsf.hpp"
+#include "yocto/math/fit/glsf.hpp"
 #include "yocto/code/ipower.hpp"
 #include "yocto/math/trigconv.hpp"
-#include "yocto/math/kernel/crout.hpp"
+#include "yocto/math/core/lu.hpp"
 #include "yocto/code/utils.hpp"
 #include "yocto/sort/quick.hpp"
 #include "yocto/string/conv.hpp"
@@ -307,20 +307,19 @@ YOCTO_PROGRAM_START()
         }
 
         std::cerr << "Fitting..." << std::endl;
-        LeastSquares<double>::Samples samples;
+        GLS<double>::Samples samples;
         samples.append(lens.alpha,lens.rho,lens.F);
         samples.prepare(nvar);
 
-        LeastSquares<double>::Function FF( cfunctor2(RhoFit) );
+        GLS<double>::Function FF( cfunctor2(RhoFit) );
 
-        LeastSquares<double> Fit;
-        Fit.verbose = true;
-        if(!Fit(samples, FF, aorg, used, aerr, 0))
+
+        if(!samples.fit_with(FF, aorg, used, aerr, 0))
         {
             throw exception("Couldn't fit..");
         }
         //Fit.display(std::cerr,aorg,aerr);
-        std::cerr << "R" << nvar << "=" << samples.corr() << std::endl;
+        //std::cerr << "R" << nvar << "=" << samples.corr() << std::endl;
         //lens.SaveProfile(aorg);
         //lens.SaveOmega(aorg);
         lens.SaveProfile();

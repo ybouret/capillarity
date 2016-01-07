@@ -14,7 +14,7 @@ class diffBridge
 public:
     double kappa;
 
-    inline  diffBridge() throw() : kappa(6.0) {}
+    inline  diffBridge() throw() : kappa(2) {}
     inline ~diffBridge() throw() {}
 
     inline void computeZ( array<double> &dYdz, double z, const array<double> &Y )
@@ -36,8 +36,8 @@ public:
         const double C = cos(phi);
         const double S = sin(phi);
 
-        dYds[1] = C;
-        dYds[2] = S;
+        dYds[1] = C; // dr/ds
+        dYds[2] = S; // dz/ds
 
         const double f = kappa*kappa*z-S/r;
 
@@ -69,9 +69,9 @@ YOCTO_PROGRAM_START()
     odeint.start(2);
 
     const double R     = 1;
-    const double h     = 0.12;
-    const double theta = Deg2Rad(78.0);
-    const double alpha = Deg2Rad(10.0);
+    const double h     = 0.01;
+    const double theta = Deg2Rad(45.0);
+    const double alpha = Deg2Rad(40.0);
     const double z0    = h + R*(1.0-cos(alpha));
     const double r0    = R*sin(alpha);
 

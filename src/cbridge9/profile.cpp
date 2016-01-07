@@ -24,7 +24,7 @@ public:
         const double speed = sqrt(1.0+drdz*drdz);
 
         dYdz[1] = drdz;
-        dYdz[2] = speed*speed*speed*(kappa*kappa*z+1.0/(r*speed));
+        dYdz[2] = speed*speed*speed*(-kappa*kappa*z+1.0/(r*speed));
     }
 
     inline void computeS( array<double> &dYds, double , const array<double> &Y )
@@ -38,7 +38,7 @@ public:
 
         dYds[1] = C; // dr/ds
         dYds[2] = S; // dz/ds
-        dYds[3] = kappa*kappa*z-S/r; // dphi/ds
+        dYds[3] = -(kappa*kappa*z+S/r); // dphi/ds
 
     }
 
@@ -51,7 +51,7 @@ public:
 
         const double speed    = Hypotenuse(drds, dzds);
         const double speed_sq = speed*speed;
-        const double f        = speed*speed_sq*(-kappa*kappa*z + dzds/r/speed);
+        const double f        = speed*speed_sq*(kappa*kappa*z + dzds/r/speed);
 
         dYds[1] =  drds;
         dYds[2] =  dzds;

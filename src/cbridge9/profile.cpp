@@ -38,10 +38,26 @@ public:
 
         dYds[1] = C; // dr/ds
         dYds[2] = S; // dz/ds
+        dYds[3] = kappa*kappa*z-S/r; // dphi/ds
 
-        const double f = kappa*kappa*z-S/r;
+    }
 
-        dYds[3] = f;
+    inline void computeQ( array<double> &dYds, double s, const array<double> &Y )
+    {
+        const double r    = Y[1];
+        const double z    = Y[2];
+        const double drds = Y[3];
+        const double dzds = Y[4];
+
+        const double speed    = Hypotenuse(drds, dzds);
+        const double speed_sq = speed*speed;
+        const double f        = speed*speed_sq*(-kappa*kappa*z + dzds/r/speed);
+
+        dYds[1] =  drds;
+        dYds[2] =  dzds;
+        dYds[3] =  dzds * f / speed_sq;
+        dYds[4] = -drds * f / speed_sq;
+
 
     }
 
@@ -70,8 +86,8 @@ YOCTO_PROGRAM_START()
 
     const double R     = 1;
     const double h     = 0.01;
-    const double theta = Deg2Rad(45.0);
-    const double alpha = Deg2Rad(40.0);
+    const double theta = Deg2Rad(50.0);
+    const double alpha = Deg2Rad(30.0);
     const double z0    = h + R*(1.0-cos(alpha));
     const double r0    = R*sin(alpha);
 
@@ -88,7 +104,7 @@ YOCTO_PROGRAM_START()
 
     diffBridge bridge;
     ode::Field<double>::Equation eqZ( &bridge, &diffBridge::computeZ);
-
+    try
     {
         ios::wcstream fp("zprofile.dat");
         fp("%g %g\n", r0, z0);
@@ -101,6 +117,12 @@ YOCTO_PROGRAM_START()
             fp("%g %g\n", Y[1], zfinal);
         }
     }
+    catch(const exception &e)
+    {
+        std::cerr << "couldnt integrate zProfile" << std::endl;
+        std::cerr << e.what() << std::endl;
+        std::cerr << e.when() << std::endl;
+    }
 
     const double ds  = 1e-3;
     double       dss = ds/10;
@@ -108,13 +130,14 @@ YOCTO_PROGRAM_START()
 
     Y.make(3);
     odeint.start(3);
+    const double phi0=theta+alpha-numeric<double>::pi;
     Y[1] = r0;
     Y[2] = z0;
-    Y[3] = theta+alpha-numeric<double>::pi;
+    Y[3] = phi0;
     {
         ios::wcstream fp("sprofile.dat");
         fp("%g %g %g\n", r0, z0, Y[3]);
-        for(size_t i=0;i<=400;++i)
+        for(size_t i=0;i<=800;++i)
         {
             const double start = i*ds;
             const double final = (i+1)*ds;
@@ -122,7 +145,27 @@ YOCTO_PROGRAM_START()
             fp("%g %g %g\n", Y[1], Y[2], Y[3]);
         }
     }
-    
+
+    Y.make(4);
+    odeint.start(4);
+    Y[1] = r0;
+    Y[2] = z0;
+    Y[3] = cos(phi0);
+    Y[4] = sin(phi0);
+    ode::Field<double>::Equation eqQ( &bridge, &diffBridge::computeQ);
+
+    {
+        ios::wcstream fp("qprofile.dat");
+        fp("%g %g\n", r0, z0);
+        for(size_t i=0;i<=800;++i)
+        {
+            const double start = i*ds;
+            const double final = (i+1)*ds;
+            odeint(eqQ,Y,start,final,dss,NULL);
+            fp("%g %g\n", Y[1], Y[2]);
+        }
+    }
+
     
 }
 YOCTO_PROGRAM_END()

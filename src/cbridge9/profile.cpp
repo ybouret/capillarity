@@ -102,6 +102,8 @@ YOCTO_PROGRAM_START()
     double       dzz  = dz/10;
 
 
+    std::cerr << "generating profile from Z equation..." << std::endl;
+
     diffBridge bridge;
     ode::Field<double>::Equation eqZ( &bridge, &diffBridge::computeZ);
     try
@@ -124,6 +126,7 @@ YOCTO_PROGRAM_START()
         std::cerr << e.when() << std::endl;
     }
 
+    std::cerr << "generation profile from S equation..." << std::endl;
     const double ds  = 1e-3;
     double       dss = ds/10;
     ode::Field<double>::Equation eqS( &bridge, &diffBridge::computeS);
@@ -146,6 +149,7 @@ YOCTO_PROGRAM_START()
         }
     }
 
+    std::cerr << "generation profile from Q equation" << std::endl;
     Y.make(4);
     odeint.start(4);
     Y[1] = r0;

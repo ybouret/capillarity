@@ -1,10 +1,9 @@
 #ifndef BRIDGE_INCLUDED
 #define BRIDGE_INCLUDED 1
 
-#include "yocto/math/ode/rk4.hpp"
+#include "yocto/math/ode/explicit/driver-ck.hpp"
+#include "lens.hpp"
 
-using namespace yocto;
-using namespace math;
 
 #define BRIDGE_R   1
 #define BRIDGE_Z   2
@@ -19,8 +18,7 @@ class Bridge
 public:
     const size_t      nvar;
     bool              flag;
-    ode::RK4<double>  rk4;
-    Array            &Q;
+    ode::driverCK<double>::type  odeint;
     Equation          Eq;
     Callback          Cb;
     
@@ -30,9 +28,6 @@ public:
 
     void initialize();
     
-
-
-
 
 
 private:

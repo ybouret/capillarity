@@ -3,12 +3,11 @@
 Bridge:: Bridge() :
 nvar(3),
 flag(true),
-rk4(),
-Q(rk4.YY),
+odeint(1e-7),
 Eq( this, &Bridge::Eq ),
 Cb( this, &Bridge::Cb )
 {
-    rk4.allocate(nvar);
+    odeint.start(nvar);
 }
 
 Bridge:: ~Bridge() throw()

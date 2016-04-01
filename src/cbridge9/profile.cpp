@@ -42,7 +42,7 @@ public:
 
     }
 
-    inline void computeQ( array<double> &dYds, double s, const array<double> &Y )
+    inline void computeQ( array<double> &dYds, double , const array<double> &Y )
     {
         const double r    = Y[1];
         const double z    = Y[2];
@@ -85,7 +85,7 @@ YOCTO_PROGRAM_START()
     odeint.start(2);
 
     const double R     = 1;
-    const double h     = 0.01;
+    const double h     = 0.00;
     const double theta = Deg2Rad(50.0);
     const double alpha = Deg2Rad(30.0);
     const double z0    = h + R*(1.0-cos(alpha));

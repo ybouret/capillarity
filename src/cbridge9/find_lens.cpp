@@ -7,12 +7,15 @@
 #include "yocto/math/io/data-set.hpp"
 #include "yocto/sort/quick.hpp"
 #include "yocto/code/ipower.hpp"
+#include "yocto/math/fit/glsf.hpp"
 
 using namespace yocto;
 using namespace math;
 
 namespace
 {
+
+
     class LensShape
     {
     public:
@@ -22,24 +25,28 @@ namespace
         vector<double> Y;
         vector<double> rho;
         vector<double> alpha;
+        vector<double> rho_f;
         double         xmiddle;
         double         scaling;
         double         Xc;
         double         Yc;
         numeric<double>::scalar_field energy;
         cgrad<double>::callback       cb;
+        GLS<double>::Function         ppoly;
 
         inline LensShape(const string &filename, const double user_px2mm) :
         px2mm(user_px2mm),
         N(0),
         X(), Y(), rho(),
         alpha(),
+        rho_f(),
         xmiddle(0),
         scaling(0),
         Xc(0),
         Yc(0),
         energy(this, & LensShape::H),
-        cb(this,& LensShape::CB)
+        cb(    this, & LensShape::CB),
+        ppoly( this, & LensShape::ComputeLSF)
         {
             ios::icstream fp(filename);
 
@@ -59,6 +66,7 @@ namespace
             (size_t &)N = X.size();
             rho.make(N);
             alpha.make(N);
+            rho_f.make(N);
             std::cerr << "#coord=" << N << std::endl;
             for(size_t i=N;i>0;--i)
             {
@@ -147,7 +155,7 @@ namespace
             double RR = a[3]*scaling;
             for(size_t j=4;j<=nvar;++j)
             {
-                const size_t p = j-2;
+                const size_t p = 2+2*(j-4);
                 RR += a[j] * ipower(alpha, p);
             }
             return RR;
@@ -178,6 +186,18 @@ namespace
             return true;
         }
 
+        double ComputeLSF(const double aa, const array<double> &aorg)
+        {
+            assert(aorg.size()>0);
+            double RR = scaling * aorg[1];
+            for(size_t i=2;i<=aorg.size();++i)
+            {
+                const size_t p = 2+2*(i-2);
+                RR += aorg[i] * ipower(aa, p);
+            }
+            return RR;
+        }
+
     private:
         YOCTO_DISABLE_COPY_AND_ASSIGN(LensShape);
     };
@@ -195,7 +215,7 @@ YOCTO_PROGRAM_START()
 
     LensShape shape(filename,mm/pixels);
 
-    vector<double> params(5);
+    vector<double> params(6);
     vector<double> dparam(params.size(),1e-4);
     double &Xc = params[1];
     double &Yc = params[2];
@@ -203,6 +223,35 @@ YOCTO_PROGRAM_START()
     Xc = shape.xmiddle;
     Yc = shape.scaling;
     RR = 1;
+
+
+
+
+    (void) shape.energy(params);
+    std::cerr << "params=" << params << std::endl;
+    {
+        vector<double> aorg(params.size()-2);
+        const size_t   nvar = aorg.size();
+        vector<bool>   used(nvar,true);
+        vector<double> aerr(nvar);
+        GLS<double>::Samples samples;
+        samples.append(shape.alpha, shape.rho, shape.rho_f);
+        samples.prepare(nvar);
+        if(!samples.fit_with(shape.ppoly, aorg, used, aerr))
+        {
+            throw exception("Couldn't guess initial polynomial...");
+        }
+        GLS<double>::display(std::cerr, aorg, aerr);
+        for(size_t i=1;i<=nvar;++i)
+        {
+            params[i+2] = aorg[i];
+        }
+    }
+    (void) shape.energy(params);
+    shape.SavePolar(params);
+    shape.SaveShape();
+    shape.SaveFitted(params);
+    //return 0;
 
 
     cgrad<double> CG;

@@ -101,11 +101,27 @@ So that the initial angle is
 
 \subsection{Spherical Matching}
 Let us assume that we observe only a part of the bridge, but we numerically need
-a description for $\alpha\in[0,\pi]$.
+a description for $\alpha\in[0,\pi]$.\\
+
+Then we assume that we have fit of $\rho(\alpha)$ for $\alpha\in[0,\beta]$.
+We need a $\mathcal{C}^1$ continuation of $\rho$ for $\alpha\in[\beta,\pi]$, so
+that the tangent angle is continuous
+The continuous fit gives us $\rho(\beta),\rho'(\beta)$
+We need to expand it to $\rho_\pi,\rho'(\pi)=0$.
+The minimal continuation is
+\begin{equation}
+	\tilde{\rho}(\alpha) = \rho_\beta + \left(\alpha-\beta\right) \rho'_\beta
+	+ \left(\dfrac{\alpha-\beta}{\pi-\beta}\right)^2 U + \left(\dfrac{\alpha-\beta}{\pi-\beta}\right)^3 V
+\end{equation}
+We may set 
+\begin{equation}
+	\rho_\pi \equiv \dfrac{1}{\beta}\int_0^\beta R(\alpha)\,\mathrm{d}\alpha
+\end{equation}
 
 \subsection{Finding the Lens Representation}
 We assume that we get a set of points representing the lens, namely $\lbrace x_i,y_i \rbrace_{i\in[1:N]}$ that must
-fit
+fit.
+
 \begin{equation}
 	\left\lbrace
 		\begin{array}{rcl}
@@ -124,11 +140,6 @@ If we choose $X_c,Y_c$, then
 	\right.
 \end{equation}
 The $X_c,Y_c$ values are determined by the minimization of $\sigma^2_\rho$.
-The we assume that we have fit of $\rho(\alpha)$ for $\alpha\in[0,\beta]$.
-We need a $\mathcal{C}^2$ continuation of $\rho$ for $\alpha\in[\beta,\pi]$.
-The continuous fit gives us $\rho(\beta),\rho'(\beta)$ and $\rho''(\beta)$.
-We need to expand it to $\rho_\pi,\rho'(\pi)=0$ and $\rho''(\pi)=0$.
-
 
 \end{document}
 

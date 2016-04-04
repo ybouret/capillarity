@@ -8,10 +8,9 @@ YOCTO_PROGRAM_START()
     const double beta = 0.1;
     const double rho_beta = 0.9;
     const double rho_beta_prime  = 0.1;
-    const double rho_beta_second = -0.01;
     const double R  = 1;
 
-    LensExtend ll(beta,rho_beta,rho_beta_prime,rho_beta_second,R);
+    LensExtend ll(beta,rho_beta,rho_beta_prime,R);
 
     {
         ios::wcstream fp("rho.dat");

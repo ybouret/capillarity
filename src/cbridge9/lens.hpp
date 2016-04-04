@@ -10,21 +10,20 @@ class LensExtend
 {
 public:
     const double beta;
+    const double pimb; //!< pi-beta
     const double rho_beta;
     const double rho_beta_prime;
-    const double rho_beta_second;
     const double R;
     const double U;
     const double V;
-    const double W;
 
     LensExtend(const double _beta,
                const double _rho_beta,
                const double _rho_beta_prime,
-               const double _rho_beta_second,
                const double _R) throw();
     ~LensExtend() throw();
 
+    //! compute with alpha in radians
     double compute(double alpha) const throw();
 
     

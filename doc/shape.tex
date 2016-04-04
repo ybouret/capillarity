@@ -108,11 +108,21 @@ We need a $\mathcal{C}^1$ continuation of $\rho$ for $\alpha\in[\beta,\pi]$, so
 that the tangent angle is continuous
 The continuous fit gives us $\rho(\beta),\rho'(\beta)$
 We need to expand it to $\rho_\pi,\rho'(\pi)=0$.
-The minimal continuation is
+Using an even description,
 \begin{equation}
-	\tilde{\rho}(\alpha) = \rho_\beta + \left(\alpha-\beta\right) \rho'_\beta
-	+ \left(\dfrac{\alpha-\beta}{\pi-\beta}\right)^2 U + \left(\dfrac{\alpha-\beta}{\pi-\beta}\right)^3 V
+	\tilde{\rho}(\alpha) = \rho_\pi + P\left( \left(\dfrac{\pi-\alpha}{\pi-\beta}\right)^2 \right)
+	, \;\; P(X) = \dfrac{UX+VX^2}{2}
 \end{equation}
+with
+\begin{equation}
+\left\lbrace
+	\begin{array}{rcl}
+	U & = & -4\left(\rho_\pi-\rho_\beta\right)+\left(\pi-\beta\right) \rho'_\beta\\
+	V & = & 2\left(\rho_\pi-\rho_\beta\right)-\left(\pi-\beta\right) \rho'_\beta \\
+	\end{array}
+\right.
+\end{equation}
+
 We may set 
 \begin{equation}
 	\rho_\pi \equiv \dfrac{1}{\beta}\int_0^\beta R(\alpha)\,\mathrm{d}\alpha

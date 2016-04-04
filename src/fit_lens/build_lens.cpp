@@ -265,8 +265,9 @@ YOCTO_PROGRAM_START()
         numeric<double>::scalar_field H(  &lens, & Lens::H );
         cgrad<double>::callback       cb( &lens, & Lens::CB);
         cgrad<double> CG;
+        vector<bool> used(q.size(),true);
 
-        if(!CG.run(H,q,dq,1e-4,&cb))
+        if(!CG.run(H,q,used,dq,1e-4,&cb))
         {
             throw exception("Couldn't find the center of the lens...");
         }

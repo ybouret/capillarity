@@ -255,8 +255,10 @@ YOCTO_PROGRAM_START()
 
 
     cgrad<double> CG;
+    vector<bool> used(params.size(),true);
     CG.run(shape.energy,
            params,
+           used,
            dparam,
            1e-5,
            //0

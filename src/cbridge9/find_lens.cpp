@@ -266,6 +266,7 @@ YOCTO_PROGRAM_START()
     shape.SavePolar(params);
     shape.SaveShape();
     shape.SaveFitted(params);
-
+    std::cerr << std::endl;
+    std::cerr << "params=" << params << std::endl;
 }
 YOCTO_PROGRAM_END()

@@ -7,4 +7,7 @@ TARGET_LINK_YOCTO(bridge mk)
 ADD_EXECUTABLE(find_lens find_lens.cpp)
 TARGET_LINK_YOCTO(find_lens mk)
 
-INSTALL( TARGETS profile bridge find_lens RUNTIME DESTINATION bin )
+ADD_EXECUTABLE(real_lens real_lens.cpp)
+TARGET_LINK_YOCTO(real_lens mk)
+
+INSTALL( TARGETS profile bridge real_lens RUNTIME DESTINATION bin )

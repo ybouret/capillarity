@@ -246,7 +246,7 @@ private:
 
 YOCTO_PROGRAM_START()
 {
-    const char *program = vfs::get_base_name(argv[0]);
+    //const char *program = vfs::get_base_name(argv[0]);
     if(argc<=3)
         throw exception("%s: need pixels mm lens_pixels",program);
 

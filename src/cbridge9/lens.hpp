@@ -2,34 +2,35 @@
 #define LENS_INCLUDED 1
 
 #include "yocto/math/fcn/drvs.hpp"
+#include "yocto/sequence/vector.hpp"
+#include "yocto/math/trigconv.hpp"
 
 using namespace yocto;
 using namespace math;
 
-class LensExtend
+typedef numeric<double>::function Function;
+typedef derivative<double>        Derivative;
+
+class Lens
 {
 public:
-    const double beta;
-    const double pimb; //!< pi-beta
-    const double rho_beta;
-    const double rho_beta_prime;
-    const double R;
-    const double U;
-    const double V;
+    const double   beta; //!< upper limit of fitted value
+    const double   pimb; //!< pi - beta
+    vector<double> coef; //!< polynomial coefficient of alpha<2>
+    const double   rho_beta; //!< fitted@beta
+    const double   rho_beta_prime; //!< derivative of fitted@beta
+    Function       rho_fitted;
+    explicit Lens(const double         user_beta,
+                  const array<double> &user_coef,
+                  Derivative          &drvs );
 
-    LensExtend(const double _beta,
-               const double _rho_beta,
-               const double _rho_beta_prime,
-               const double _R) throw();
-    ~LensExtend() throw();
+    virtual ~Lens() throw();
 
-    //! compute with alpha in radians
-    double compute(double alpha) const throw();
+    double compute_fitted(const double alpha);
 
-    
+
 private:
-    YOCTO_DISABLE_COPY_AND_ASSIGN(LensExtend);
+    YOCTO_DISABLE_COPY_AND_ASSIGN(Lens);
 };
-
 
 #endif

@@ -266,5 +266,6 @@ YOCTO_PROGRAM_START()
     const double beta = (-shape.alpha.front()+shape.alpha.back())/2;
     std::cerr << "beta=" << beta << " (" <<  Rad2Deg(beta) << " deg)" << std::endl;
     shape.saveRadii("radii.dat", param);
+    
 }
 YOCTO_PROGRAM_END()

@@ -1,41 +1,34 @@
 #include "lens.hpp"
+#include "yocto/code/ipower.hpp"
+#include "yocto/math/core/tao.hpp"
 
-LensExtend:: LensExtend(const double _beta,
-                        const double _rho_beta,
-                        const double _rho_beta_prime,
-                        const double _R) throw():
-beta(_beta),
+Lens:: ~Lens() throw()
+{}
+
+
+Lens:: Lens(const double         user_beta,
+            const array<double> &user_coef,
+            Derivative          &drvs) :
+beta(user_beta),
 pimb(numeric<double>::pi-beta),
-rho_beta(_rho_beta),
-rho_beta_prime(_rho_beta_prime),
-R(_R),
-U(0),
-V(0)
+coef(user_coef.size()),
+rho_beta(0),
+rho_beta_prime(0),
+rho_fitted(this, &Lens::compute_fitted)
 {
-    static const double pi = numeric<double>::pi;
-    assert(beta<pi);
-    const double rho1 = pimb*rho_beta_prime;
-    const double rho0 = rho_beta;
-    {
-        const double UU = 3*R - 2*rho1 -3*rho0;
-        (double &)U = UU;
-    }
-
-    {
-        const double VV = -2*R + rho1 + 2*rho0;
-        (double &)V = VV;
-    }
+    tao::set(coef,user_coef);
+    (double&)rho_beta       = compute_fitted(beta);
+    (double&)rho_beta_prime = drvs(rho_fitted,beta,1e-4);
 }
 
 
-LensExtend:: ~LensExtend() throw()
+double Lens:: compute_fitted(const double alpha)
 {
-}
-
-
-double LensExtend:: compute(double alpha) const throw()
-{
-    const double del = alpha - beta;
-    const double X   = del/pimb;
-    return rho_beta + del * rho_beta_prime + X*X*(U+X*V);
+    double       rho = 0;
+    const double a2  = alpha*alpha;
+    for(size_t i=coef.size(),p=i-1;i>0;--i,--p)
+    {
+        rho += coef[i] * ipower(a2,p);
+    }
+    return rho;
 }

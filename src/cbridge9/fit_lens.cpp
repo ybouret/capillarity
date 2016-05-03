@@ -8,6 +8,7 @@
 #include "yocto/math/types.hpp"
 #include "yocto/math/stat/descr.hpp"
 #include "yocto/code/ipower.hpp"
+#include "yocto/math/trigconv.hpp"
 
 using namespace yocto;
 using namespace math;
@@ -140,8 +141,8 @@ public:
             const double rf = profile(alpha[i],param);
             H += Square(rr-rf);
         }
-        //H = Sqrt(H/N)/scaling;
-        H /= (N*scaling*scaling);
+        H = Sqrt(H/N)/scaling;
+        //H /= (N*scaling*scaling);
         return H;
     }
 
@@ -176,8 +177,25 @@ public:
             const double rr = profile(alpha[i],param);
             const double xx = center_x + rr * sin(alpha[i]);
             const double yy = center_y - rr * cos(alpha[i]);
-            fp("%g %g %g %g %g\n", xx, yy, alpha[i], rr, alpha[i]*alpha[i]);
+            fp("%g %g %g %g %g\n", alpha[i], rho[i], rr, xx, yy);
         }
+    }
+
+    void saveRadii(const string &filename, const array<double> &param) const
+    {
+        ios::wcstream fp(filename);
+        assert(param.size()>=NVAR);
+        const double center_x = param[I_XC];
+        const double center_y = param[I_YC];
+        for(size_t i=1;i<=N;++i)
+        {
+            const double rr = profile(alpha[i],param);
+            const double xx = center_x + rr * sin(alpha[i]);
+            const double yy = center_y - rr * cos(alpha[i]);
+            fp("%g %g\n", center_x, center_y);
+            fp("%g %g\n\n", xx, yy);
+        }
+
     }
 
 private:
@@ -204,7 +222,7 @@ YOCTO_PROGRAM_START()
     //
     // guess center
     //__________________________________________________________________________
-    const size_t ndof = 2;
+    const size_t ndof = 3;
     const size_t nvar = NVAR + ndof;
     vector<double> param(nvar);
     vector<bool>   param_used(nvar,false);
@@ -232,22 +250,10 @@ YOCTO_PROGRAM_START()
     param_used.make(nvar,true);
     {
         numeric<double>::scalar_field F( &shape, & Shape::profile_energy);
-#if 0
-        if(!CG.run(F,param,param_used,param_scal, ftol))
-        {
-            throw exception("cannot estimate basic parameters!");
-        }
-        (void)F(param);
-#endif
-
-        std::cerr << "param_approx=" << param << std::endl;
-        shape.saveApprox("shape1.dat",param);
-
-
         cgrad<double>::callback CB(&shape, & Shape::profile_callback);
 
         param_used.make(nvar,true);
-        for(size_t i=NVAR+1;i<=nvar;++i) param_used[i]=false;
+        //for(size_t i=NVAR+1;i<=nvar;++i) param_used[i]=false;
         if(!CG.run(F,param,param_used,param_scal, ftol, &CB))
         {
             throw exception("cannot estimate parameters!");
@@ -255,10 +261,10 @@ YOCTO_PROGRAM_START()
         (void)F(param);
 
         std::cerr << "param_approx=" << param << std::endl;
-        shape.saveApprox("shape2.dat",param);
-
+        shape.saveApprox("shape1.dat",param);
     }
-    
-    
+    const double beta = (-shape.alpha.front()+shape.alpha.back())/2;
+    std::cerr << "beta=" << beta << " (" <<  Rad2Deg(beta) << " deg)" << std::endl;
+    shape.saveRadii("radii.dat", param);
 }
 YOCTO_PROGRAM_END()

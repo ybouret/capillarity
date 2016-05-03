@@ -26,6 +26,8 @@ public:
     vector<double> Y;     //!< Y coordinates of the lens profile
     vector<double> rho;   //!< radius
     vector<double> alpha; //!< alpha
+    vector<double> alpha_sq; //
+    vector<double> rho_v2;   //!< rho for alpha_sq;
     const size_t   N; //!< #points
     double         Xg;
     double         scaling;
@@ -37,6 +39,8 @@ public:
     Y(),
     rho(),
     alpha(),
+    alpha_sq(),
+    rho_v2(),
     N(0),
     scaling(0)
     {
@@ -51,6 +55,8 @@ public:
         (size_t &)N = X.size();
         rho.make(N);
         alpha.make(N);
+        alpha_sq.make(N);
+        rho_v2.make(N);
         std::cerr << "// found " << N << " coordinates" << std::endl;
         for(size_t i=N;i>0;--i)
         {
@@ -89,9 +95,12 @@ public:
             const double dy = center_y - Y[i];
             const double rr = Hypotenuse(dx, dy);
             const double at = atan(dx/(dy+rr));
-            rho[i]   = rr;
-            alpha[i] = at+at;
+            rho[i]      = rr;
+            alpha[i]    = at+at;
+            rho_v2[i]   = rr;
+            alpha_sq[i] = alpha[i]*alpha[i];
         }
+        co_qsort(alpha_sq,rho_v2);
     }
 
     //! return variance of estimated radius
@@ -195,7 +204,7 @@ YOCTO_PROGRAM_START()
     //
     // guess center
     //__________________________________________________________________________
-    const size_t ndof = 1;
+    const size_t ndof = 2;
     const size_t nvar = NVAR + ndof;
     vector<double> param(nvar);
     vector<bool>   param_used(nvar,false);
@@ -219,15 +228,17 @@ YOCTO_PROGRAM_START()
     //
     // guess other parameters
     //__________________________________________________________________________
-    param[I_R0] = param[I_YC];
-    for(size_t i=1;i<=NVAR;++i) param_used[i] = true;
+    param[I_R0] = shape.rho_v2[1];
+    param_used.make(nvar,true);
     {
         numeric<double>::scalar_field F( &shape, & Shape::profile_energy);
+#if 0
         if(!CG.run(F,param,param_used,param_scal, ftol))
         {
             throw exception("cannot estimate basic parameters!");
         }
         (void)F(param);
+#endif
 
         std::cerr << "param_approx=" << param << std::endl;
         shape.saveApprox("shape1.dat",param);
@@ -236,6 +247,7 @@ YOCTO_PROGRAM_START()
         cgrad<double>::callback CB(&shape, & Shape::profile_callback);
 
         param_used.make(nvar,true);
+        for(size_t i=NVAR+1;i<=nvar;++i) param_used[i]=false;
         if(!CG.run(F,param,param_used,param_scal, ftol, &CB))
         {
             throw exception("cannot estimate parameters!");

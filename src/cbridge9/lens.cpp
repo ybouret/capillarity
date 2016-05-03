@@ -6,9 +6,9 @@ Lens:: ~Lens() throw()
 {}
 
 
-Lens:: Lens(const double         user_beta,
-            const array<double> &user_coef,
-            Derivative          &drvs) :
+Lens:: Lens(const double            user_beta,
+            const array<double>    &user_coef,
+            const SharedDerivative &user_drvs) :
 beta(user_beta),
 pimb(numeric<double>::pi-beta),
 coef(user_coef.size()),
@@ -19,12 +19,15 @@ R_pi(0),
 U(0),
 V(0),
 R_fitted(this, &Lens::compute_fitted),
-R(this, &Lens::compute_extend)
+R(       this, &Lens::compute_extend),
+omega(   this, &Lens::compute_omega ),
+drvs(user_drvs),
+alpha_h(1e-4)
 {
     tao::set(coef,user_coef);
     (double&)R0           = compute_fitted(0);
     (double&)R_beta       = compute_fitted(beta);
-    (double&)R_beta_prime = drvs(R_fitted,beta,1e-4);
+    (double&)R_beta_prime = (*drvs)(R_fitted,beta,alpha_h);
     (double&)R_pi         = R0;
     std::cerr << "R0          = " << R0           << std::endl;
     std::cerr << "beta        = " << beta         << std::endl;
@@ -60,7 +63,14 @@ double Lens:: compute_extend(const double alpha)
     }
     else
     {
-        const double X = Square( (numeric<double>::pi-alpha) / pimb );
-        return R_beta + X*(U+V*X)*0.5;
+        const double X = Square( (numeric<double>::pi-fabs(alpha)) / pimb );
+        return R_pi + X*(U+V*X)*0.5;
     }
+}
+
+double Lens:: compute_omega(const double alpha)
+{
+    const double dr = (*drvs)(R,alpha,alpha_h);
+    const double rr = R(alpha);
+    return alpha - asin( dr/Hypotenuse(dr,rr) );
 }

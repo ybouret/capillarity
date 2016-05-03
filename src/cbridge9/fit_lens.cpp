@@ -1,0 +1,202 @@
+#include "yocto/program.hpp"
+#include "yocto/string/conv.hpp"
+#include "yocto/ios/ocstream.hpp"
+#include "yocto/ios/icstream.hpp"
+#include "yocto/sequence/vector.hpp"
+#include "yocto/math/io/data-set.hpp"
+#include "yocto/sort/quick.hpp"
+#include "yocto/math/types.hpp"
+#include "yocto/math/stat/descr.hpp"
+
+using namespace yocto;
+using namespace math;
+
+#define NVAR   3
+
+#define I_XC   1
+#define I_YC   2
+#define I_R0   3
+
+class Shape
+{
+public:
+
+    vector<double> X;     //!< X coordinates of the lens profile
+    vector<double> Y;     //!< Y coordinates of the lens profile
+    vector<double> rho;   //!< radius
+    vector<double> alpha; //!< alpha
+    const size_t   N; //!< #points
+    double         Xg;
+    double         scaling;
+
+
+
+    inline Shape(const string &filename, const double px2mm ) :
+    X(),
+    Y(),
+    rho(),
+    alpha(),
+    N(0),
+    scaling(0)
+    {
+        std::cerr << "// loading data from '" << filename << "'" << std::endl;
+        ios::icstream fp(filename);
+        {
+            data_set<double> ds;
+            ds.use(1, X);
+            ds.use(2, Y);
+            ds.load(fp);
+        }
+        (size_t &)N = X.size();
+        rho.make(N);
+        alpha.make(N);
+        std::cerr << "// found " << N << " coordinates" << std::endl;
+        for(size_t i=N;i>0;--i)
+        {
+            X[i] *= px2mm;
+            Y[i] *= px2mm;
+        }
+        co_qsort(X,Y);
+        {
+            double Yg=0;
+            for(size_t i=N;i>0;--i)
+            {
+                Xg += X[i];
+                Yg += Y[i];
+            }
+            Xg/=N;
+            Yg/=N;
+            for(size_t i=N;i>0;--i)
+            {
+                scaling += Square(X[i]-Xg) + Square(Y[i]-Yg);
+            }
+            scaling=Sqrt(scaling/N);
+        }
+        std::cerr << "scaling=" << scaling << std::endl;
+
+    }
+
+    inline ~Shape() throw()
+    {
+    }
+
+    void buildPolar(const double center_x,const double center_y)
+    {
+        for(size_t i=N;i>0;--i)
+        {
+            const double dx = X[i] - center_x;
+            const double dy = center_y - Y[i];
+            const double rr = Hypotenuse(dx, dy);
+            const double at = atan(dx/(dy+rr));
+            rho[i]   = rr;
+            alpha[i] = at+at;
+        }
+    }
+
+    //! return variance of estimated radius
+    double center_energy(const array<double> &param)
+    {
+        assert(param.size()>=2);
+        const double center_x = param[I_XC];
+        const double center_y = param[I_YC];
+        buildPolar(center_x, center_y);
+        double ave=0;
+        double sig=0;
+        compute_average_and_stddev(ave,sig,rho);
+        return sig/scaling;
+    }
+
+    void savePolar(const string &filename) const
+    {
+        ios::wcstream fp(filename);
+        for(size_t i=1;i<=N;++i)
+        {
+            fp("%g %g %g %g\n", X[i], Y[i], alpha[i], rho[i] );
+        }
+    }
+
+    //! return function to minimize
+    double profile_energy(const array<double> &param)
+    {
+        assert(param.size()>=NVAR);
+        const double center_x = param[I_XC];
+        const double center_y = param[I_YC];
+        buildPolar(center_x, center_y);
+        const double R0       = param[I_R0];
+
+        double H = 0;
+        for(size_t i=N;i>0;--i)
+        {
+            H += Square(R0-rho[i]);
+        }
+        H = Sqrt(H/N)/scaling;
+        return H;
+    }
+
+    void saveApprox(const string &filemame) const
+    {
+        
+    }
+
+private:
+    YOCTO_DISABLE_COPY_AND_ASSIGN(Shape);
+};
+
+
+#include "yocto/math/opt/cgrad.hpp"
+
+YOCTO_PROGRAM_START()
+{
+    if(argc<=3)
+        throw exception("%s: need pixels mm lens_pixels",program);
+
+    const double pixels   = strconv::to<double>(argv[1],"pixels");
+    const double mm       = strconv::to<double>(argv[2],"mm");
+    const string filename = argv[3];
+
+    Shape shape(filename,mm/pixels);
+    cgrad<double> CG;
+    const double ftol = 1e-5;
+
+    //__________________________________________________________________________
+    //
+    // guess center
+    //__________________________________________________________________________
+    const size_t ndof = 0;
+    const size_t nvar = NVAR + ndof;
+    vector<double> param(nvar);
+    vector<bool>   param_used(nvar,false);
+    vector<double> param_scal(nvar,1e-4);
+
+    {
+        numeric<double>::scalar_field F( &shape, & Shape::center_energy);
+        param[I_XC] = shape.Xg;
+        param[I_YC] = shape.scaling;
+        param_used[1] = param_used[2] = true;
+        if(!CG.run(F,param,param_used,param_scal, ftol))
+        {
+            throw exception("cannot estimate center!");
+        }
+        (void)F(param);
+    }
+    std::cerr << "center_approx=" << param << std::endl;
+    shape.savePolar("shape0.dat");
+
+    //__________________________________________________________________________
+    //
+    // guess other parameters
+    //__________________________________________________________________________
+    param[I_R0] = param[I_YC];
+    for(size_t i=1;i<=NVAR;++i) param_used[i] = true;
+    {
+        numeric<double>::scalar_field F( &shape, & Shape::profile_energy);
+        if(!CG.run(F,param,param_used,param_scal, ftol))
+        {
+            throw exception("cannot estimate center!");
+        }
+        (void)F(param);
+    }
+    std::cerr << "param_approx=" << param << std::endl;
+
+}
+YOCTO_PROGRAM_END()

@@ -266,6 +266,17 @@ YOCTO_PROGRAM_START()
     const double beta = (-shape.alpha.front()+shape.alpha.back())/2;
     std::cerr << "beta=" << beta << " (" <<  Rad2Deg(beta) << " deg)" << std::endl;
     shape.saveRadii("radii.dat", param);
-    
+
+    std::cerr << std::endl;
+    std::cerr << "--------" << std::endl;
+    std::cerr.flush();
+
+    fprintf(stderr,"%.8g\n", beta);
+    for(size_t i=NVAR;i<=param.size();++i)
+    {
+        fprintf(stderr,"%.8g",param[i]);
+        if(i<param.size()) fprintf(stderr,",");
+    }
+    fprintf(stderr,"\n");
 }
 YOCTO_PROGRAM_END()

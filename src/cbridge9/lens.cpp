@@ -12,13 +12,32 @@ Lens:: Lens(const double         user_beta,
 beta(user_beta),
 pimb(numeric<double>::pi-beta),
 coef(user_coef.size()),
-rho_beta(0),
-rho_beta_prime(0),
-rho_fitted(this, &Lens::compute_fitted)
+R0(0),
+R_beta(0),
+R_beta_prime(0),
+R_pi(0),
+U(0),
+V(0),
+R_fitted(this, &Lens::compute_fitted),
+R(this, &Lens::compute_extend)
 {
     tao::set(coef,user_coef);
-    (double&)rho_beta       = compute_fitted(beta);
-    (double&)rho_beta_prime = drvs(rho_fitted,beta,1e-4);
+    (double&)R0           = compute_fitted(0);
+    (double&)R_beta       = compute_fitted(beta);
+    (double&)R_beta_prime = drvs(R_fitted,beta,1e-4);
+    (double&)R_pi         = R0;
+    std::cerr << "R0          = " << R0           << std::endl;
+    std::cerr << "beta        = " << beta         << std::endl;
+    std::cerr << "R_beta      = " << R_beta       << std::endl;
+    std::cerr << "R_beta_prime= " << R_beta_prime << std::endl;
+    std::cerr << "R_pi        = " << R_pi         << std::endl;
+
+    const double dR = R_pi - R_beta;
+    const double sp = pimb*R_beta_prime;
+    (double &)U = sp - 4.0 * dR;
+    (double &)V = 2.0*dR - sp;
+    std::cerr << "U=" << U << "; V=" << V << std::endl;
+
 }
 
 
@@ -31,4 +50,17 @@ double Lens:: compute_fitted(const double alpha)
         rho += coef[i] * ipower(a2,p);
     }
     return rho;
+}
+
+double Lens:: compute_extend(const double alpha)
+{
+    if(fabs(alpha)<=beta)
+    {
+        return compute_fitted(alpha);
+    }
+    else
+    {
+        const double X = Square( (numeric<double>::pi-alpha) / pimb );
+        return R_beta + X*(U+V*X)*0.5;
+    }
 }

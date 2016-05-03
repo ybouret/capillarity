@@ -7,6 +7,7 @@
 #include "yocto/sort/quick.hpp"
 #include "yocto/math/types.hpp"
 #include "yocto/math/stat/descr.hpp"
+#include "yocto/code/ipower.hpp"
 
 using namespace yocto;
 using namespace math;
@@ -111,7 +112,7 @@ public:
         ios::wcstream fp(filename);
         for(size_t i=1;i<=N;++i)
         {
-            fp("%g %g %g %g\n", X[i], Y[i], alpha[i], rho[i] );
+            fp("%g %g %g %g %g\n", X[i], Y[i], alpha[i], rho[i], alpha[i] * alpha[i]);
         }
     }
 
@@ -122,20 +123,52 @@ public:
         const double center_x = param[I_XC];
         const double center_y = param[I_YC];
         buildPolar(center_x, center_y);
-        const double R0       = param[I_R0];
 
         double H = 0;
         for(size_t i=N;i>0;--i)
         {
-            H += Square(R0-rho[i]);
+            const double rr = rho[i];
+            const double rf = profile(alpha[i],param);
+            H += Square(rr-rf);
         }
-        H = Sqrt(H/N)/scaling;
+        //H = Sqrt(H/N)/scaling;
+        H /= (N*scaling*scaling);
         return H;
     }
 
-    void saveApprox(const string &filemame) const
+    bool profile_callback(const array<double> &param)
     {
-        
+        const double H = profile_energy(param);
+        std::cerr << "H=" << H << std::endl;
+        return true;
+    }
+
+    inline double profile(const double angle, const array<double> &param) const
+    {
+        double        ans  = param[I_R0];
+        const  size_t nvar = param.size();
+        const double  a2   = angle*angle;
+        for(size_t i=NVAR+1,j=1;i<=nvar;++i,++j)
+        {
+            ans += param[i] * ipower(a2,j);
+        }
+        return ans;
+    }
+
+    void saveApprox(const string &filename, const array<double> &param) const
+    {
+        ios::wcstream fp(filename);
+        assert(param.size()>=NVAR);
+        const double center_x = param[I_XC];
+        const double center_y = param[I_YC];
+
+        for(size_t i=1;i<=N;++i)
+        {
+            const double rr = profile(alpha[i],param);
+            const double xx = center_x + rr * sin(alpha[i]);
+            const double yy = center_y - rr * cos(alpha[i]);
+            fp("%g %g %g %g %g\n", xx, yy, alpha[i], rr, alpha[i]*alpha[i]);
+        }
     }
 
 private:
@@ -162,7 +195,7 @@ YOCTO_PROGRAM_START()
     //
     // guess center
     //__________________________________________________________________________
-    const size_t ndof = 0;
+    const size_t ndof = 1;
     const size_t nvar = NVAR + ndof;
     vector<double> param(nvar);
     vector<bool>   param_used(nvar,false);
@@ -192,11 +225,28 @@ YOCTO_PROGRAM_START()
         numeric<double>::scalar_field F( &shape, & Shape::profile_energy);
         if(!CG.run(F,param,param_used,param_scal, ftol))
         {
-            throw exception("cannot estimate center!");
+            throw exception("cannot estimate basic parameters!");
         }
         (void)F(param);
-    }
-    std::cerr << "param_approx=" << param << std::endl;
 
+        std::cerr << "param_approx=" << param << std::endl;
+        shape.saveApprox("shape1.dat",param);
+
+
+        cgrad<double>::callback CB(&shape, & Shape::profile_callback);
+
+        param_used.make(nvar,true);
+        if(!CG.run(F,param,param_used,param_scal, ftol, &CB))
+        {
+            throw exception("cannot estimate parameters!");
+        }
+        (void)F(param);
+
+        std::cerr << "param_approx=" << param << std::endl;
+        shape.saveApprox("shape2.dat",param);
+
+    }
+    
+    
 }
 YOCTO_PROGRAM_END()

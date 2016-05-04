@@ -1,6 +1,7 @@
 #include "lens.hpp"
 #include "yocto/code/ipower.hpp"
 #include "yocto/math/core/tao.hpp"
+#include "yocto/math/fcn/intg.hpp"
 
 Lens:: ~Lens() throw()
 {}
@@ -24,11 +25,14 @@ omega(   this, &Lens::compute_omega ),
 drvs(user_drvs),
 alpha_h(1e-4)
 {
+    integrator<double> intg;
+    // TODO: check values...
     tao::set(coef,user_coef);
     (double&)R0           = compute_fitted(0);
     (double&)R_beta       = compute_fitted(beta);
     (double&)R_beta_prime = (*drvs)(R_fitted,beta,alpha_h);
-    (double&)R_pi         = R0;
+    (double&)R_pi         = intg(0,beta,R_fitted,1e-5)/beta;
+
     std::cerr << "R0          = " << R0           << std::endl;
     std::cerr << "beta        = " << beta         << std::endl;
     std::cerr << "R_beta      = " << R_beta       << std::endl;
@@ -73,4 +77,40 @@ double Lens:: compute_omega(const double alpha)
     const double dr = (*drvs)(R,alpha,alpha_h);
     const double rr = R(alpha);
     return alpha - asin( dr/Hypotenuse(dr,rr) );
+}
+
+
+#include "yocto/exceptions.hpp"
+#include "yocto/string/tokenizer.hpp"
+#include "yocto/string/conv.hpp"
+
+static inline bool is_sep(char C) throw()
+{
+    return C == ' ' || C == '\t' || C == ',';
+}
+
+Lens * Lens:: load( ios::istream &fp, const SharedDerivative &user_drvs )
+{
+    static const char fn[] = "Lens::load";
+    string         line;
+    vector<string> words(8,as_capacity);
+
+    if( fp.read_line(line) <= 0 ) throw imported::exception(fn,"missing line containing beta");
+    words.free();
+    tokenizer::split(words, line, is_sep);
+    if(words.size()<=0) throw imported::exception(fn,"missing beta value");
+    const double __beta =  strconv::to<double>(words[1],"beta");
+
+    line.clear();
+    if(fp.read_line(line)<=0) throw imported::exception(fn,"missing line containing parameters");
+    words.free();
+    tokenizer::split(words, line, is_sep);
+    vector<double> __coef( words.size(), as_capacity);
+    for(size_t i=1;i<=words.size();++i)
+    {
+        __coef.push_back( strconv::to<double>(words[i],"coef") );
+    }
+
+
+    return new Lens(__beta,__coef,user_drvs);
 }

@@ -42,6 +42,8 @@ public:
     double compute_extend(const double alpha);
     double compute_omega(const double alpha);
 
+    static Lens * load( ios::istream &fp, const SharedDerivative &user_drvs );
+
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Lens);
 };

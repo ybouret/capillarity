@@ -15,8 +15,7 @@ YOCTO_PROGRAM_START()
     SharedDerivative drvs( new Derivative() );
     if(argc>1)
     {
-        ios::icstream    fp(argv[1]);
-        shared_ptr<Lens> lens( Lens::load(fp,drvs) );
+        shared_ptr<Lens> lens( Lens::load(argv[1],drvs) );
 
 
         {
@@ -40,6 +39,11 @@ YOCTO_PROGRAM_START()
                 fp("%g %g %g\n", ad, Rad2Deg(omega), (*drvs)(lens->R,alpha,1e-4));
             }
         }
+
+        Bridge bridge;
+
+        bridge.compute_profile(*lens, Deg2Rad(40.0), Deg2Rad(100.0), 0.0);
+
     }
 }
 YOCTO_PROGRAM_END()

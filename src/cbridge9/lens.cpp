@@ -114,3 +114,24 @@ Lens * Lens:: load( ios::istream &fp, const SharedDerivative &user_drvs )
 
     return new Lens(__beta,__coef,user_drvs);
 }
+
+#include "yocto/ios/icstream.hpp"
+
+Lens * Lens:: load( const string &filename, const SharedDerivative &user_drvs )
+{
+    ios::icstream fp(filename);
+    return load(fp,user_drvs);
+}
+
+
+void Lens:: starting_point(array<double> &param,
+                           const double   alpha,
+                           const double   theta,
+                           const double   height)
+{
+    const double rr = R(alpha);
+    param[BRIDGE_R] = rr * sin(alpha);
+    param[BRIDGE_Z] = height + R0 - rr * cos(alpha);
+    param[BRIDGE_A] = numeric<double>::pi-(omega(alpha)+theta);
+}
+

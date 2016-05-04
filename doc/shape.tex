@@ -153,6 +153,8 @@ With an even description,
 
 \section{Integration}
 
+\subsection{Geometry and initial condition}
+
 \begin{center}
 \includegraphics{geometry.pdf}
 \end{center}
@@ -161,13 +163,19 @@ For a given $(\theta,\alpha)$, the initial coordinates are
 \begin{equation}
 \left\lbrace
 \begin{array}{rcl}
-	x_0    & = & R(\alpha) \sin(\alpha)\\
-	y_0    & = & (h + R_0) - R(\alpha) \cos(\alpha)\\
+	r_0    & = & R(\alpha) \sin(\alpha)\\
+	z_0    & = & (h + R_0) - R(\alpha) \cos(\alpha)\\
 	\phi_0 & = & \pi - \left(\omega + \theta\right)\\
 \end{array}
 \right.
 \end{equation}
-where $\omega$ is given by Eq\eqref{eq:omega}.
+where $\omega$ is given by Eq\eqref{eq:omega}.\\
+
+During the simulation, we stop when:
+\begin{itemize}
+\item $r\leq0$ (which excludes starting at $\alpha=0$)
+\item $z\leq0$
+\end{itemize}
 
 
 

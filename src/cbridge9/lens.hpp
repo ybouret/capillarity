@@ -14,6 +14,12 @@ typedef numeric<double>::function Function;
 typedef derivative<double>        Derivative;
 typedef shared_ptr<Derivative>    SharedDerivative;
 
+
+#define BRIDGE_R   1
+#define BRIDGE_Z   2
+#define BRIDGE_A   3
+
+
 class Lens : public object
 {
 public:
@@ -42,8 +48,12 @@ public:
     double compute_extend(const double alpha);
     double compute_omega(const double alpha);
 
-    static Lens * load( ios::istream &fp, const SharedDerivative &user_drvs );
-    
+    static Lens * load( ios::istream &fp,       const SharedDerivative &user_drvs );
+    static Lens * load( const string &filename, const SharedDerivative &user_drvs );
+
+    void starting_point( array<double> &param, const double alpha, const double theta, const double height);
+
+
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Lens);
 };

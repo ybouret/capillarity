@@ -87,15 +87,12 @@ The   tangent vector is
 \end{equation}
 so that
 \begin{equation}
+	\label{eq:omega}
 	\omega = \alpha - \arcsin\left(\dfrac{\rho'}{\sqrt{\rho^2+\rho'^2}}\right)
 \end{equation}
 Remark: the curvature is
 \begin{equation}
 	\gamma_\alpha = \dfrac{\rho^2 + 2\rho'^2 - \rho\rho''}{\left(\rho^2+\rho'^2\right)^{3/2}}
-\end{equation}
-So that the initial angle is
-\begin{equation}
-	\phi_0 = \omega - \theta \;\; \text{\textcolor{red}{CHECK!!!}}
 \end{equation}
 
 
@@ -154,167 +151,23 @@ With an even description,
 	\rho(\alpha) = R_0 + P(\alpha^2),\;\; P(X) = \sum_{j=1}^{M} c_j X^j.
 \end{equation}
 
-\end{document}
+\section{Integration}
 
-\section{Curvature of a revolution surface}
+\begin{center}
+\includegraphics{geometry.pdf}
+\end{center}
 
-If we have
+For a given $(\theta,\alpha)$, the initial coordinates are
 \begin{equation}
-	r = \phi(t),\;\; z = \psi(t)
+\left\lbrace
+\begin{array}{rcl}
+	x_0    & = & R(\alpha) \sin(\alpha)\\
+	y_0    & = & (h + R_0) - R(\alpha) \cos(\alpha)\\
+	\phi_0 & = & \pi - \left(\omega + \theta\right)\\
+\end{array}
+\right.
 \end{equation}
-then the mean curvature is equal to
-\begin{equation}
-	\mathcal{H} =  
-	\dfrac{\phi\left(\phi''\psi'-\phi'\psi''\right) - \psi'\left({\phi'}^2+{\psi'}^2\right)}
-	{2\vert\phi\vert\left({\phi'}^2+{\psi'}^2\right)^{3/2}}
-\end{equation}
-or
-\begin{equation}
-	\mathcal{H} =  \dfrac{
-		r \left(r''z'-r'z''\right)  - z' \left(r'^2+z'^2\right)
-	}
-	{
-		2r\left(r'^2+z'^2\right)^{3/2}
-	}
-\end{equation}
-
-Using a $z$-major description, namely $z(t)=t$, we get $\Psi'=1$ and $\Psi''=0$
-\begin{equation}
-	\mathcal{H} =  \dfrac{r r'' - \left(1+{r'}^2\right)}{2r\left(1+{r'}^2\right)^{3/2}}
-\end{equation}
-
-\section{Surface equation}
-Since the capillary pressure is supporting the liquid
-\begin{equation}
-	\gamma \mathcal{H} = \rho g z
-\end{equation}
-and finally
-\begin{equation}
-	\dfrac{r''}{\left(1+{r'}^2\right)^{3/2}} - \dfrac{1}{r\left(1+{r'}^2\right)^{1/2}} = \kappa^2 z 
-\end{equation}
-
-The contact point $(r_c,z_c)$ is picked up by the angle $\alpha$ so that
-\begin{equation}
-	r_c = R\sin\alpha,\;z_c = h+R\left(1-\cos\alpha\right)
-\end{equation}
-If the contact angle is $\theta$, then
-\begin{equation}
-	\dot{r}_c = \cot\left(\alpha+\theta\right).
-\end{equation}
-
-What is $\alpha$ such that
-\begin{equation}
-	\lim_{z\to0}\dot{r} = \infty
-\end{equation}
-
-\section{Normalisation}
-We use
-\begin{equation}
-	r = R\cdot u,\; z = R \cdot y
-\end{equation}
-to get
-\begin{equation}
-	\dfrac{u''}{\left(1+{u'}^2\right)^{\frac{3}{2}}} - \dfrac{1}{u\left(1+{u'}^2\right)^{\frac{1}{2}}} = \underbrace{\left(R\kappa\right)^2}_{K^2} y,
-\end{equation}
-to be solved with
-\begin{equation}
-	u_c = \sin\alpha, \; u'_c = \cot\left(\alpha+\theta\right), \; y_c = \underbrace{\dfrac{h}{R}}_{\beta} + \left(1-\cos\alpha\right)
-\end{equation}
-
-We notice that
-\begin{equation}
-	- \partial_y \left(\dfrac{u}{\sqrt{1+{u'}^2}}\right) = u u' \left[ \dfrac{u''}{\left(1+{u'}^2\right)^{\frac{3}{2}}} - \dfrac{1}{u\left(1+{u'}^2\right)^{\frac{1}{2}}} \right]
-\end{equation}
-
-
-\section{Using other parametric stuff}
-We use
-\begin{equation}
-	\mathcal{H} =  \dfrac{
-		r \left(r''z'-r'z''\right)  - z' \left(r'^2+z'^2\right)
-	}
-	{
-		r\left(r'^2+z'^2\right)^{3/2}
-	} = \kappa^2 z
-\end{equation}
-We now use the intrinsic angular description 
-\begin{equation}
-	r' = \cos \phi,\; z' = \sin \phi
-\end{equation}
-so that
-\begin{equation}
-	r'' = -\sin \phi\, \phi',\; z'' = \cos \phi \, \phi'
-\end{equation}
-
-
-
-\section{Parametric Description}
-\subsection{New Equations}
-Let $\rho(\alpha)$ be a polar description of the lens, so that the lens coordinates in the $xy$ plane are
-\begin{equation}
-	\left\lbrace
-	\begin{array}{rcl}
-	x(\alpha) & = & \rho(\alpha)\sin\alpha\\
-	y(\alpha) & = & h + R - \rho(\alpha)\cos\alpha\\
-	\end{array}
-	\right.
-\end{equation}
-The   tangent vector is
-\begin{equation}
-	\vec{\tau}_\alpha = 
-	\dfrac{1}{\sqrt{\rho^2+\rho'^2}}
-	\begin{pmatrix}
-		\rho'\sin\alpha+\rho\cos\alpha\\
-		\rho\sin\alpha - \rho'\cos\alpha\\
-	\end{pmatrix}
- = 
- 	\begin{pmatrix}
-	\cos\omega\\
-	\sin\omega
-	\end{pmatrix}
-\end{equation}
-so that
-\begin{equation}
-	\omega = \alpha - \arcsin\left(\dfrac{\rho'}{\sqrt{\rho^2+\rho'^2}}\right)
-\end{equation}
-Remark: the curvature is
-\begin{equation}
-	\gamma_\alpha = \dfrac{\rho^2 + 2\rho'^2 - \rho\rho''}{\left(\rho^2+\rho'^2\right)^{3/2}}
-\end{equation}
-
-The new contact conditions are
-\begin{equation}
-	\left\lbrace
-		\begin{array}{rcl}
-		r_c & = & \rho(\alpha)\sin(\alpha)\\
-		y_c & = & h + R - \rho(\alpha)\cos(\alpha)\\
-		r_c' & = & \cot\left(\omega+\theta\right)\\
-		\end{array}
-	\right.
-\end{equation}
-
-\subsection{Finding the Lens Representation}
-We assume that we get a set of points representing the lens, namely $\lbrace x_i,y_i \rbrace_{i\in[1:N]}$ that must
-fit
-\begin{equation}
-	\left\lbrace
-		\begin{array}{rcl}
-	x(\alpha_i) & = & X_c + \rho_i\sin\alpha_i\\
-	y(\alpha_i) & = & Y_c - \rho_i\cos\alpha_i\\
-		\end{array}
-	\right.
-\end{equation}
-If we choose $X_c,Y_c$, then
-\begin{equation}
-	\left\lbrace
-	\begin{array}{rcl}	
-	\rho_i   &=&\sqrt{\left(x_i-X_c\right)^2+\left(Y_c-y_i\right)^2}\\
-	\alpha_i &=& 2 \arctan\left[ \dfrac{\left(x_i-X_c\right)}{\left(Y_c-y_i\right)+\rho_i}\right]\\
-	\end{array}
-	\right.
-\end{equation}
-The $X_c,Y_c$ values are determined by the minimization of $\sigma^2_\rho$.
-
+where $\omega$ is given by Eq\eqref{eq:omega}.
 
 
 

@@ -1,4 +1,5 @@
 #include "bridge.hpp"
+#include "yocto/math/core/tao.hpp"
 
 Bridge:: Bridge() :
 nvar(3),
@@ -21,18 +22,24 @@ Bridge:: ~Bridge() throw()
 void Bridge:: __Eq(Array &dQds, const double s, const Array &Q)
 {
     const double r   = Q[BRIDGE_R];
-    const double z   = Q[BRIDGE_Z];
-    const double phi = Q[BRIDGE_A];
-    
+    if(r>0)
+    {
+        const double z   = Q[BRIDGE_Z];
+        const double phi = Q[BRIDGE_A];
 
-    const double C = cos(phi);
-    const double S = sin(phi);
 
-    const double l2 = capillary_length*capillary_length;
-    dQds[BRIDGE_R] = C; // dr/ds
-    dQds[BRIDGE_Z] = S; // dz/ds
-    dQds[BRIDGE_A] = -(z/l2+S/r); // dphi/ds
+        const double C = cos(phi);
+        const double S = sin(phi);
 
+        const double L2 = capillary_length*capillary_length;
+        dQds[BRIDGE_R]  = C; // dr/ds
+        dQds[BRIDGE_Z]  = S; // dz/ds
+        dQds[BRIDGE_A]  = -(z/L2+S/r); // dphi/ds
+    }
+    else
+    {
+        tao::ld(dQds,0);
+    }
 }
 
 
@@ -45,6 +52,8 @@ void Bridge:: __Cb(Array &Qtmp,const double s)
         return;
     }
 }
+
+#include "yocto/ios/ocstream.hpp"
 
 bool Bridge:: compute_profile(Lens        &lens,
                               const double alpha,
@@ -59,14 +68,20 @@ bool Bridge:: compute_profile(Lens        &lens,
     double       ds_ctrl = ds/10.0;
     double       s       = 0;
     size_t       iter    = 1;
+
+    ios::wcstream fp("prof.dat");
+    fp("%g %g %g\n",param[1],param[2],s);
+
     while(true)
     {
         double s_next = iter * ds;
         odeint(Eq,param,s,s_next,ds_ctrl,NULL);
         s=s_next;
         ++iter;
-        break;
+        fp("%g %g %g\n",param[1],param[2],s);
+        if(s>=3*lens.R0)
+            break;
     }
-
+    
     return true;
 }

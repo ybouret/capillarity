@@ -132,6 +132,6 @@ void Lens:: starting_point(array<double> &param,
     const double rr = R(alpha);
     param[BRIDGE_R] = rr * sin(alpha);
     param[BRIDGE_Z] = height + R0 - rr * cos(alpha);
-    param[BRIDGE_A] = numeric<double>::pi-(omega(alpha)+theta);
+    param[BRIDGE_A] = (omega(alpha)+theta) - numeric<double>::pi;
 }
 

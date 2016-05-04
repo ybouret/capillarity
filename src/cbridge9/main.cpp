@@ -3,6 +3,7 @@
 #include "yocto/ios/ocstream.hpp"
 #include "yocto/ios/icstream.hpp"
 #include "yocto/sequence/lw-array.hpp"
+#include "yocto/string/conv.hpp"
 
 YOCTO_PROGRAM_START()
 {
@@ -41,8 +42,15 @@ YOCTO_PROGRAM_START()
         }
 
         Bridge bridge;
+        bridge.capillary_length = 1;
 
-        bridge.compute_profile(*lens, Deg2Rad(40.0), Deg2Rad(100.0), 0.0);
+        double alpha_deg = 20;
+        double theta_deg = 30;
+        if(argc>2) alpha_deg = strconv::to<double>(argv[2],"alpha");
+        if(argc>3) theta_deg = strconv::to<double>(argv[3],"theta");
+
+
+        bridge.compute_profile(*lens, Deg2Rad(alpha_deg), Deg2Rad(theta_deg), 0.0);
 
     }
 }

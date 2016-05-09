@@ -89,10 +89,15 @@ void Bridge:: __Cb(Array       &Q,
 #include "yocto/ios/ocstream.hpp"
 
 double Bridge:: compute_profile(Lens        &lens,
-                              const double alpha,
-                              const double theta,
-                              const double height)
+                                const double   alpha,
+                                const double   theta,
+                                const double   height,
+                                ios::ostream *fp)
 {
+    std::cerr << "alpha =" << Rad2Deg(alpha) << std::endl;
+    std::cerr << "theta =" << Rad2Deg(theta) << std::endl;
+    std::cerr << "height=" << height << std::endl;
+
     flag           = true;
     current_height = height;
     current_center = height+lens.R0;
@@ -105,8 +110,7 @@ double Bridge:: compute_profile(Lens        &lens,
     double       s       = 0;
     size_t       iter    = 1;
 
-    ios::wcstream fp("prof.dat");
-    fp("%g %g %g\n",param[1],param[2],s);
+    if(fp) (*fp)("%g %g %g %g\n",param[1],param[2],s,Rad2Deg(param[3]));
 
     while(true)
     {
@@ -114,7 +118,7 @@ double Bridge:: compute_profile(Lens        &lens,
         odeint(Eq,param,s,s_next,ds_ctrl,&Cb);
         s=s_next;
         ++iter;
-        fp("%g %g %g\n",param[1],param[2],s);
+        if(fp) (*fp)("%g %g %g %g\n",param[1],param[2],s,Rad2Deg(param[3]));
         if(!flag||s>=3*lens.R0)
             break;
     }

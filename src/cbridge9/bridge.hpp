@@ -3,6 +3,7 @@
 
 #include "yocto/math/ode/explicit/driver-ck.hpp"
 #include "lens.hpp"
+#include "yocto/ios/ostream.hpp"
 
 
 typedef ode::Field<double>::Array    Array;
@@ -30,7 +31,8 @@ public:
     double compute_profile(Lens        &lens,
                            const double alpha,
                            const double theta,
-                           const double height);
+                           const double height,
+                           ios::ostream *fp);
 
 
 

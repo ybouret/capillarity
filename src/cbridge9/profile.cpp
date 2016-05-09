@@ -57,8 +57,6 @@ public:
         dYds[2] =  dzds;
         dYds[3] =  dzds * f / speed_sq;
         dYds[4] = -drds * f / speed_sq;
-
-
     }
 
 private:

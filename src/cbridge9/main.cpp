@@ -18,11 +18,11 @@ YOCTO_PROGRAM_START()
     {
         shared_ptr<Lens> lens( Lens::load(argv[1],drvs) );
         double alpha_deg = 20;
-        double theta_deg = 30;
+        double theta_deg = 110;
         double h         = 0;
-        //if(argc>2) alpha_deg = strconv::to<double>(argv[2],"alpha");
-        if(argc>2) theta_deg = strconv::to<double>(argv[2],"theta");
-        if(argc>3) h         = strconv::to<double>(argv[3],"height");
+        if(argc>2) alpha_deg = strconv::to<double>(argv[2],"alpha");
+        if(argc>3) theta_deg = strconv::to<double>(argv[3],"theta");
+        if(argc>4) h         = strconv::to<double>(argv[4],"height");
 
 
         {
@@ -50,6 +50,16 @@ YOCTO_PROGRAM_START()
         Bridge bridge;
         bridge.capillary_length = 1;
 
+        ios::wcstream pp("prof.dat");
+        for(alpha_deg=5;alpha_deg<=60;alpha_deg+=2)
+        {
+            bridge.compute_profile(*lens, Deg2Rad(alpha_deg), Deg2Rad(theta_deg), h, &pp);
+            pp << "\n";
+        }
+
+
+
+#if 0
         ios::wcstream logfile("rmax.dat");
         double a_max = 1;
         double r_max = bridge.compute_profile(*lens, Deg2Rad(a_max), Deg2Rad(theta_deg), h);
@@ -64,6 +74,7 @@ YOCTO_PROGRAM_START()
             }
         }
         (void) bridge.compute_profile(*lens, Deg2Rad(a_max), Deg2Rad(theta_deg), h);
+#endif
 
     }
 }

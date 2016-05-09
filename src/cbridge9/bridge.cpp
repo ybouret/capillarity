@@ -88,7 +88,7 @@ void Bridge:: __Cb(Array       &Q,
 
 #include "yocto/ios/ocstream.hpp"
 
-bool Bridge:: compute_profile(Lens        &lens,
+double Bridge:: compute_profile(Lens        &lens,
                               const double alpha,
                               const double theta,
                               const double height)
@@ -119,5 +119,5 @@ bool Bridge:: compute_profile(Lens        &lens,
             break;
     }
     
-    return true;
+    return param[1];
 }

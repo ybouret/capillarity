@@ -22,15 +22,15 @@ public:
     ode::driverCK<double>::type  odeint;
     Equation                     Eq;
     Callback                     Cb;
-    
+
     explicit Bridge();
     virtual ~Bridge() throw();
 
 
-    bool compute_profile(Lens        &lens,
-                         const double alpha,
-                         const double theta,
-                         const double height);
+    double compute_profile(Lens        &lens,
+                           const double alpha,
+                           const double theta,
+                           const double height);
 
 
 
@@ -38,7 +38,7 @@ private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Bridge);
     void __Eq(Array &,const double,const Array&);
     void __Cb(Array &,const double);
-
+    
 };
 
 

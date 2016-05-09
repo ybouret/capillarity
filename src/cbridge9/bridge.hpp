@@ -15,6 +15,9 @@ public:
     const size_t                 nvar;
     bool                         flag;
     double                       capillary_length;
+    double                       current_height;   //!< for computations
+    double                       current_center;   //!< center position
+    Lens                        *current_lens;     //!< for computations
     vector<double>               param;
     ode::driverCK<double>::type  odeint;
     Equation                     Eq;

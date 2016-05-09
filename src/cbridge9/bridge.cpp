@@ -5,6 +5,9 @@ Bridge:: Bridge() :
 nvar(3),
 flag(true),
 capillary_length(1),
+current_height(0),
+current_center(0),
+current_lens(NULL),
 param(nvar),
 odeint(1e-7),
 Eq( this, &Bridge::__Eq ),
@@ -22,7 +25,7 @@ Bridge:: ~Bridge() throw()
 void Bridge:: __Eq(Array &dQds, const double s, const Array &Q)
 {
     const double r   = Q[BRIDGE_R];
-    if(r>0)
+    if(flag&&r>0)
     {
         const double z   = Q[BRIDGE_Z];
         const double phi = Q[BRIDGE_A];
@@ -43,13 +46,43 @@ void Bridge:: __Eq(Array &dQds, const double s, const Array &Q)
 }
 
 
-void Bridge:: __Cb(Array &Qtmp,const double s)
+void Bridge:: __Cb(Array       &Q,
+                   const double s)
 {
-    const double r = Qtmp[BRIDGE_R];
+    const double r = Q[BRIDGE_R];
     if(r<=0)
     {
+        // invalid radius
+        std::cerr << "invalid r position!" << std::endl;
         flag=false;
         return;
+    }
+    else
+    {
+        const double z = Q[BRIDGE_Z];
+        if(z<=0)
+        {
+            // invalid height
+            std::cerr << "invalid z position!" << std::endl;
+            flag = false;
+            return;
+        }
+        else
+        {
+
+            const double dx     = r;
+            const double dy     = current_center-z;
+            const double rr     = Hypotenuse(dx, dy);
+            const double alpha  = 2.0*atan(dx/(dy+rr));
+            const double lens_r = current_lens->R(alpha);
+            if(rr<lens_r)
+            {
+                // came back into bridge
+                std::cerr << "rr=" << rr << "<" << lens_r << std::endl;
+                flag = false;
+                return;
+            }
+        }
     }
 }
 
@@ -60,7 +93,10 @@ bool Bridge:: compute_profile(Lens        &lens,
                               const double theta,
                               const double height)
 {
-    flag = true;
+    flag           = true;
+    current_height = height;
+    current_center = height+lens.R0;
+    current_lens   = &lens;
 
     lens.starting_point(param, alpha, theta, height);
 
@@ -75,11 +111,11 @@ bool Bridge:: compute_profile(Lens        &lens,
     while(true)
     {
         double s_next = iter * ds;
-        odeint(Eq,param,s,s_next,ds_ctrl,NULL);
+        odeint(Eq,param,s,s_next,ds_ctrl,&Cb);
         s=s_next;
         ++iter;
         fp("%g %g %g\n",param[1],param[2],s);
-        if(s>=3*lens.R0)
+        if(!flag||s>=3*lens.R0)
             break;
     }
     

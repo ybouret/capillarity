@@ -85,9 +85,9 @@ YOCTO_PROGRAM_START()
     odeint.start(2);
 
     const double R     = 1;
-    const double h     = 0.00;
-    const double theta = Deg2Rad(50.0);
-    const double alpha = Deg2Rad(30.0);
+    const double h     = 0.02;
+    const double theta = Deg2Rad(100.0);
+    const double alpha = Deg2Rad(40.0);
     const double z0    = h + R*(1.0-cos(alpha));
     const double r0    = R*sin(alpha);
 
@@ -101,6 +101,7 @@ YOCTO_PROGRAM_START()
     const double dz   = 1e-3;
     double       dzz  = dz/10;
 
+    static const size_t NN = 500;
 
     std::cerr << "generating profile from Z equation..." << std::endl;
 
@@ -111,7 +112,7 @@ YOCTO_PROGRAM_START()
         ios::wcstream fp("zprofile.dat");
         fp("%g %g\n", r0, z0);
 
-        for(size_t i=0;i<=400;++i)
+        for(size_t i=0;i<=NN;++i)
         {
             const double zstart = z0 - i*dz;
             const double zfinal = z0 - (i+1)*dz;
@@ -140,7 +141,7 @@ YOCTO_PROGRAM_START()
     {
         ios::wcstream fp("sprofile.dat");
         fp("%g %g %g\n", r0, z0, Y[3]);
-        for(size_t i=0;i<=800;++i)
+        for(size_t i=0;i<=2*NN;++i)
         {
             const double start = i*ds;
             const double final = (i+1)*ds;
@@ -161,7 +162,7 @@ YOCTO_PROGRAM_START()
     {
         ios::wcstream fp("qprofile.dat");
         fp("%g %g\n", r0, z0);
-        for(size_t i=0;i<=800;++i)
+        for(size_t i=0;i<=2*NN;++i)
         {
             const double start = i*ds;
             const double final = (i+1)*ds;

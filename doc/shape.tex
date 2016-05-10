@@ -12,20 +12,90 @@
 
 \section{Curvature of a revolution surface}
 
-If we have
 \begin{equation}
-	r(t),\;\; z(t)
+	\vec{M}(u,v) = 
+	\begin{bmatrix}
+	r(u)\cos v\\
+	r(u)\sin v\\
+	z(u)
+	\end{bmatrix},
+	\;\;
+	\vec{M}_u = 
+	\begin{bmatrix}
+	\dot{r}\cos v\\
+	\dot{r}\sin v\\
+	\dot{z}
+	\end{bmatrix},
+	\;\;
+	\vec{M}_v = 
+	\begin{bmatrix}
+	-r \sin v\\
+	 r \cos v\\
+	 0
+	\end{bmatrix},
+	\;\;
+	\vec{M}_{uu} = 
+	\begin{bmatrix}
+	\ddot{r} \cos v\\
+	\ddot{r} \sin v\\
+	\ddot{z}
+	\end{bmatrix},
+	\;\;
+	\vec{M}_{vv} = 
+	\begin{bmatrix}
+	-r \cos v\\
+	-r \sin v\\
+	0
+	\end{bmatrix},
+	\;\;
+	\vec{M}_{uv} = 
+	\begin{bmatrix}
+	-\dot{r} \sin v\\
+	 \dot{r} \cos v\\
+	 0
+	\end{bmatrix}
 \end{equation}
-then the mean curvature is equal to
+
 \begin{equation}
-	\mathcal{H} =  \dfrac{
-		r \left(r''z'-r'z''\right)  - z' \left(r'^2+z'^2\right)
-	}
-	{
-		2r\left(r'^2+z'^2\right)^{3/2}
-	}
+	E = \vec{M}_u^2 = \dot{r}^2 + \dot{z}^2,\;\;
+	F = \vec{M}_u \cdot \vec{M}_v = 0,\;\;
+	G = \vec{M}_v^2 = r^2
 \end{equation}
-We know use an intrinsic representation of the $(r,z)$ profile using the
+
+\begin{equation}
+	\vec{n} = \vec{M}_u \wedge \vec{M}_v = 
+	\begin{bmatrix}
+	-r\dot{z}\cos v\\
+	-r\dot{z}\sin v\\
+	r\dot{r}
+	\end{bmatrix},\;\;
+	\left\vert\vec{M}_u \wedge \vec{M}_v\right\vert = r\left(\dot{r}^2 + \dot{z}^2\right)^{1/2}
+\end{equation}
+
+\begin{equation}
+	L = \vec{n}\cdot\vec{M}_{uu} = r\left(\dot{r}\ddot{z}-\dot{z}\ddot{r}\right),\;\;
+	M = \vec{n}\cdot\vec{M}_{uv} = 0,
+	\;\;
+	N = \vec{n}\cdot\vec{M}_{vv} = r^2\dot{z}
+\end{equation}
+
+Then
+\begin{equation}
+	EN + GL - 2FM = r^2 \dot{z} \left(\dot{r}^2 + \dot{z}^2\right) + r^3\left(\dot{r}\ddot{z}-\dot{z}\ddot{r}\right)
+\end{equation}
+and
+\begin{equation}
+	EG - F^2 = r^2 \left(\dot{r}^2 + \dot{z}^2\right).
+\end{equation}
+Finally, 
+\begin{equation}
+	\mathcal{H} = \dfrac{1}{2\left\vert\vec{n}\right\vert} \dfrac{EN + GL - 2FM}{EG - F^2} =
+	\dfrac{\dot{z} \left(\dot{r}^2 + \dot{z}^2\right) + r\left(\dot{r}\ddot{z}-\dot{z}\ddot{r}\right)}
+	{2r\left(\dot{r}^2 + \dot{z}^2\right)^{3/2}}
+\end{equation}
+
+\section{Using a curvilinear profile}
+We now use an intrinsic representation of the $(r,z)$ profile using the
 angle $\phi$ and the variable $s$ so that
 \begin{equation}
 \left\lbrace
@@ -39,7 +109,7 @@ angle $\phi$ and the variable $s$ so that
 \end{equation}
 and we get
 \begin{equation}
-	\mathcal{H} = -\frac{1}{2} \left(\phi'+\dfrac{\sin\phi}{r}\right)
+	\mathcal{H} = \frac{1}{2} \left(\phi'+\dfrac{\sin\phi}{r}\right)
 \end{equation}
 
 \section{Surface equation}

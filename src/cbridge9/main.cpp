@@ -51,7 +51,7 @@ YOCTO_PROGRAM_START()
         bridge.capillary_length = 1;
 
         ios::wcstream pp("prof.dat");
-        for(alpha_deg=5;alpha_deg<=60;alpha_deg+=2)
+        for(alpha_deg=5;alpha_deg<=90;alpha_deg+=2)
         {
             bridge.compute_profile(*lens, Deg2Rad(alpha_deg), Deg2Rad(theta_deg), h, &pp);
             pp << "\n";

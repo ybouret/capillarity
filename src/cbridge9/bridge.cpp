@@ -37,7 +37,7 @@ void Bridge:: __Eq(Array &dQds, const double s, const Array &Q)
         const double L2 = capillary_length*capillary_length;
         dQds[BRIDGE_R]  = C; // dr/ds
         dQds[BRIDGE_Z]  = S; // dz/ds
-        dQds[BRIDGE_A]  = 2.0*(z/L2-S/r); // dphi/ds
+        dQds[BRIDGE_A]  = (z/L2-S/r); // dphi/ds
     }
     else
     {
@@ -63,8 +63,8 @@ void Bridge:: __Cb(Array       &Q,
         if(z<=0)
         {
             // invalid height
-            std::cerr << "invalid z position!" << std::endl;
-            flag = false;
+            //std::cerr << "invalid z position!" << std::endl;
+            //flag = false;
             return;
         }
         else

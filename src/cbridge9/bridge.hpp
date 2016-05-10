@@ -39,7 +39,7 @@ public:
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Bridge);
     void __Eq(Array &,const double,const Array&);
-    void __Cb(Array &,const double);
+    void __Cb(Array &,const double); // testing valid position
     
 };
 

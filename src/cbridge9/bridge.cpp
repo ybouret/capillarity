@@ -38,6 +38,12 @@ void Bridge:: __Eq(Array &dQds, const double s, const Array &Q)
         dQds[BRIDGE_R]  = C; // dr/ds
         dQds[BRIDGE_Z]  = S; // dz/ds
         dQds[BRIDGE_A]  = (z/L2-S/r); // dphi/ds
+
+        if(C<=0)
+        {
+            std::cerr << "going back!" << std::endl;
+            flag = false;
+        }
     }
     else
     {
@@ -53,35 +59,24 @@ void Bridge:: __Cb(Array       &Q,
     if(r<=0)
     {
         // invalid radius
-        std::cerr << "invalid r position!" << std::endl;
+        std::cerr << "r<=0" << std::endl;
         flag=false;
         return;
     }
-    else
-    {
-        const double z = Q[BRIDGE_Z];
-        if(z<=0)
-        {
-            // invalid height
-            //std::cerr << "invalid z position!" << std::endl;
-            //flag = false;
-            return;
-        }
-        else
-        {
 
-            const double dx     = r;
-            const double dy     = current_center-z;
-            const double rr     = Hypotenuse(dx, dy);
-            const double alpha  = 2.0*atan(dx/(dy+rr));
-            const double lens_r = current_lens->R(alpha);
-            if(rr<lens_r)
-            {
-                // came back into bridge
-                std::cerr << "rr=" << rr << "<" << lens_r << std::endl;
-                flag = false;
-                return;
-            }
+    {
+        const double z      = Q[BRIDGE_Z];
+        const double dx     = r;
+        const double dy     = current_center-z;
+        const double rr     = Hypotenuse(dx, dy);
+        const double alpha  = 2.0*atan(dx/(dy+rr));
+        const double lens_r = current_lens->R(alpha);
+        if(rr<lens_r)
+        {
+            // came back into bridge
+            std::cerr << "rr=" << rr << "<" << lens_r << std::endl;
+            flag = false;
+            return;
         }
     }
 }
@@ -122,6 +117,6 @@ double Bridge:: compute_profile(Lens        &lens,
         if(!flag||s>=3*lens.R0)
             break;
     }
-    
+
     return param[1];
 }

@@ -51,30 +51,14 @@ YOCTO_PROGRAM_START()
         bridge.capillary_length = 1;
 
         ios::wcstream pp("prof.dat");
+        ios::wcstream pa("ans.dat");
         for(alpha_deg=5;alpha_deg<=90;alpha_deg+=2)
         {
-            bridge.compute_profile(*lens, Deg2Rad(alpha_deg), Deg2Rad(theta_deg), h, &pp);
+            const double ans = bridge.compute_profile(*lens, Deg2Rad(alpha_deg), Deg2Rad(theta_deg), h, &pp);
             pp << "\n";
+            pa("%g %g\n", alpha_deg, ans);
         }
 
-
-
-#if 0
-        ios::wcstream logfile("rmax.dat");
-        double a_max = 1;
-        double r_max = bridge.compute_profile(*lens, Deg2Rad(a_max), Deg2Rad(theta_deg), h);
-        for(alpha_deg=1;alpha_deg<180;++alpha_deg)
-        {
-            const double r_tmp= bridge.compute_profile(*lens, Deg2Rad(alpha_deg), Deg2Rad(theta_deg), h);
-            logfile("%g %g\n", alpha_deg, r_tmp);
-            if(r_tmp>r_max)
-            {
-                a_max = alpha_deg;
-                r_max = r_tmp;
-            }
-        }
-        (void) bridge.compute_profile(*lens, Deg2Rad(a_max), Deg2Rad(theta_deg), h);
-#endif
 
     }
 }

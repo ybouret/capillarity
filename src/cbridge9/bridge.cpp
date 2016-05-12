@@ -107,6 +107,7 @@ double Bridge:: compute_profile(Lens        &lens,
 
     if(fp) (*fp)("%g %g %g %g\n",param[1],param[2],s,Rad2Deg(param[3]));
 
+    double dzds_curr = sin( param[BRIDGE_A] );
     while(true)
     {
         double s_next = iter * ds;
@@ -114,8 +115,15 @@ double Bridge:: compute_profile(Lens        &lens,
         s=s_next;
         ++iter;
         if(fp) (*fp)("%g %g %g %g\n",param[1],param[2],s,Rad2Deg(param[3]));
-        if(!flag||s>=3*lens.R0)
+        //if(!flag||s>=2*lens.R0) break;
+        if(!flag) break;
+        const double dzds_next = sin( param[BRIDGE_A] );
+        if(dzds_curr*dzds_next<=0)
+        {
+            std::cerr << "\t\tdetected extremum" << std::endl;
             break;
+        }
+        dzds_curr = dzds_next;
     }
 
     return param[1];

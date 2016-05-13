@@ -125,6 +125,10 @@ or using the capillary length
 \begin{equation}
 	\mathcal{H} = \dfrac{z}{\lambda^2}
 \end{equation}
+leading to
+\begin{equation}
+	\partial_s \phi = \dfrac{z}{2\lambda^2} - \dfrac{\sin\phi}{r}
+\end{equation}
 
 \section{Bridge description}
 \subsection{Polar Equation}
@@ -225,6 +229,8 @@ With an even description,
 
 \subsection{Geometry and initial condition}
 
+\subsubsection{Initial conditions}
+
 \begin{center}
 \includegraphics{geometry.pdf}
 \end{center}
@@ -241,12 +247,24 @@ For a given $(\theta,\alpha)$, the initial coordinates are
 \end{equation}
 where $\omega$ is given by Eq\eqref{eq:omega}.\\
 
-During the simulation, we stop when:
+Valid initial conditions are defined by
 \begin{itemize}
-\item $r\leq0$ (which excludes starting at $\alpha=0$)
-\item $z\leq0$
+\item $r>0$, which excludes starting at $\alpha=0$ or $\alpha=\pi$.
+\item ...
 \end{itemize}
 
+\subsubsection{Numerical Integration}
+During integration, a guest $(r,z)$ is found.
+We have some 'failure' cases
+\begin{itemize}
+\item $r\leq0$
+\item $(r,z)$ re-entered the lens...
+\end{itemize}
 
+The we have some normal stop conditions
+\begin{itemize}
+\item $\partial_s r = \cos \phi$ is positive and become negative.
+\item $\partial_s z = \sin \phi$ changes its sign.
+\end{itemize}
 
 \end{document}

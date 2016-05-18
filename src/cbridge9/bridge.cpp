@@ -83,7 +83,7 @@ void Bridge:: __Cb(Array       &Q,
 
 #include "yocto/ios/ocstream.hpp"
 
-double Bridge:: compute_profile(Lens        &lens,
+double Bridge:: compute_profile(Lens          &lens,
                                 const double   alpha,
                                 const double   theta,
                                 const double   height,
@@ -107,7 +107,7 @@ double Bridge:: compute_profile(Lens        &lens,
 
     if(fp) (*fp)("%g %g %g %g\n",param[1],param[2],s,Rad2Deg(param[3]));
 
-    double dz0 = sin( param[BRIDGE_A] );
+    //double z0 = param[BRIDGE_Z];
 
     //double dzds_curr = sin( param[BRIDGE_A] );
     while(true)
@@ -120,14 +120,17 @@ double Bridge:: compute_profile(Lens        &lens,
         //if(!flag||s>=2*lens.R0) break;
         if(!flag) break;
 
-        const double dz1 = sin( param[BRIDGE_A] );
-        if(dz0*dz1<0)
+#if 0
+        const double z1 = param[BRIDGE_Z];
+        if(z0*z1<=0)
         {
-            std::cerr << "\t\textremum" << std::endl;
+            std::cerr << "\t\tcrossing" << std::endl;
+            z0=z1;
             break;
         }
-        dz0 = dz1;
+        z0 = z1;
+#endif
     }
 
-    return dz0;
+    return sin( param[BRIDGE_A] );
 }

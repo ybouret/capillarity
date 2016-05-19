@@ -48,7 +48,7 @@ YOCTO_PROGRAM_START()
         }
 
         Bridge bridge;
-        bridge.capillary_length = 1;
+        bridge.capillary_length = 2.7;
 
         ios::wcstream pp("prof.dat");
         ios::wcstream pa("ans.dat");

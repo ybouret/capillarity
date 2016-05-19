@@ -39,11 +39,6 @@ void Bridge:: __Eq(Array &dQds, const double s, const Array &Q)
         dQds[BRIDGE_Z]  = S; // dz/ds
         dQds[BRIDGE_A]  = (z/L2-S/r); // dphi/ds
 
-        if(C<=0)
-        {
-            std::cerr << "going back!" << std::endl;
-            flag = false;
-        }
     }
     else
     {
@@ -107,9 +102,11 @@ double Bridge:: compute_profile(Lens          &lens,
 
     if(fp) (*fp)("%g %g %g %g\n",param[1],param[2],s,Rad2Deg(param[3]));
 
-    //double z0 = param[BRIDGE_Z];
 
-    //double dzds_curr = sin( param[BRIDGE_A] );
+
+    vector<double>  pprev(nvar);
+    tao::set(pprev,param);
+
     while(true)
     {
         double s_next = iter * ds;
@@ -117,8 +114,38 @@ double Bridge:: compute_profile(Lens          &lens,
         s=s_next;
         ++iter;
         if(fp) (*fp)("%g %g %g %g\n",param[1],param[2],s,Rad2Deg(param[3]));
-        //if(!flag||s>=2*lens.R0) break;
         if(!flag) break;
+
+
+        //______________________________________________________________________
+        //
+        // finding stop conditions
+        //______________________________________________________________________
+
+        // going backwards
+        {
+            const double drds_prev = cos( pprev[BRIDGE_A] );
+            const double drds_curr = cos( param[BRIDGE_A] );
+            if(drds_prev>0 && drds_curr<=0)
+            {
+                std::cerr << "going back->stop" << std::endl;
+                break;
+            }
+        }
+
+        // dzds extremum
+        {
+            const double dzds_prev = sin( pprev[BRIDGE_A] );
+            const double dzds_curr = sin( param[BRIDGE_A] );
+            if(dzds_curr*dzds_prev<=0)
+            {
+                std::cerr << "z extremum->stop" << std::endl;
+                break;
+            }
+        }
+
+
+        tao::set(pprev, param);
 
 #if 0
         const double z1 = param[BRIDGE_Z];
@@ -131,6 +158,8 @@ double Bridge:: compute_profile(Lens          &lens,
         z0 = z1;
 #endif
     }
-
-    return sin( param[BRIDGE_A] );
+    
+    const double zz = param[BRIDGE_Z];
+    return (zz<=0?-1:1);
+    
 }

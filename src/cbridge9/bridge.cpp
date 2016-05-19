@@ -9,6 +9,7 @@ current_height(0),
 current_center(0),
 current_lens(NULL),
 param(nvar),
+pprev(nvar),
 odeint(1e-7),
 Eq( this, &Bridge::__Eq ),
 Cb( this, &Bridge::__Cb )
@@ -88,6 +89,10 @@ double Bridge:: compute_profile(Lens          &lens,
     std::cerr << "theta =" << Rad2Deg(theta) << std::endl;
     std::cerr << "height=" << height << std::endl;
 
+    //__________________________________________________________________________
+    //
+    // initializing startup point
+    //__________________________________________________________________________
     flag           = true;
     current_height = height;
     current_center = height+lens.R0;
@@ -95,7 +100,7 @@ double Bridge:: compute_profile(Lens          &lens,
 
     lens.starting_point(param, alpha, theta, height);
 
-    const double ds      = capillary_length/100.0;
+    const double ds      = capillary_length/1000.0;
     double       ds_ctrl = ds/10.0;
     double       s       = 0;
     size_t       iter    = 1;
@@ -103,9 +108,13 @@ double Bridge:: compute_profile(Lens          &lens,
     if(fp) (*fp)("%g %g %g %g\n",param[1],param[2],s,Rad2Deg(param[3]));
 
 
-
-    vector<double>  pprev(nvar);
+    //__________________________________________________________________________
+    //
+    // initialize loop
+    //__________________________________________________________________________
     tao::set(pprev,param);
+
+    const double z0 = param[BRIDGE_Z];
 
     while(true)
     {
@@ -119,8 +128,18 @@ double Bridge:: compute_profile(Lens          &lens,
 
         //______________________________________________________________________
         //
-        // finding stop conditions
+        // finding stop conditions pprev->param
         //______________________________________________________________________
+
+        // crossing the line
+        const double z_curr = param[BRIDGE_Z];
+
+        if(z_curr*z0<=0)
+        {
+            //std::cerr << "crossed->stop" << std::endl;
+            //return 0;
+        }
+
 
         // going backwards
         {
@@ -129,7 +148,7 @@ double Bridge:: compute_profile(Lens          &lens,
             if(drds_prev>0 && drds_curr<=0)
             {
                 std::cerr << "going back->stop" << std::endl;
-                break;
+                return z_curr;
             }
         }
 
@@ -160,6 +179,6 @@ double Bridge:: compute_profile(Lens          &lens,
     }
     
     const double zz = param[BRIDGE_Z];
-    return (zz<=0?-1:1);
-    
+    //return (zz<=0?-1:1);
+    return zz;
 }

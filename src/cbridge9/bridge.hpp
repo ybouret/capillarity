@@ -20,6 +20,7 @@ public:
     double                       current_center;   //!< center position
     Lens                        *current_lens;     //!< for computations
     vector<double>               param;
+    vector<double>               pprev;
     ode::driverCK<double>::type  odeint;
     Equation                     Eq;
     Callback                     Cb;

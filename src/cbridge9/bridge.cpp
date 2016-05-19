@@ -100,7 +100,10 @@ double Bridge:: compute_profile(Lens          &lens,
 
     lens.starting_point(param, alpha, theta, height);
 
-    const double ds      = capillary_length/1000.0;
+    const double s_max   = Fabs(param[BRIDGE_R]);
+    const double s_cap   = capillary_length;
+    double       ds      = min_of(s_max,s_cap)/100.0;
+    const double ds_max  = s_cap/10.0;
     double       ds_ctrl = ds/10.0;
     double       s       = 0;
     size_t       iter    = 1;
@@ -114,63 +117,63 @@ double Bridge:: compute_profile(Lens          &lens,
     //__________________________________________________________________________
     tao::set(pprev,param);
 
-    const double z0 = param[BRIDGE_Z];
-
-    while(true)
+    const double z0  = param[BRIDGE_Z];
+    const double dz0 = sin(param[BRIDGE_A]);
+    if(z0*dz0<=0)
     {
-        double s_next = iter * ds;
-        odeint(Eq,param,s,s_next,ds_ctrl,&Cb);
-        s=s_next;
-        ++iter;
-        if(fp) (*fp)("%g %g %g %g\n",param[1],param[2],s,Rad2Deg(param[3]));
-        if(!flag) break;
-
-
-        //______________________________________________________________________
-        //
-        // finding stop conditions pprev->param
-        //______________________________________________________________________
-
-        // crossing the line
-        const double z_curr = param[BRIDGE_Z];
-
-        if(z_curr*z0<=0)
+        while(true)
         {
-            //std::cerr << "crossed->stop" << std::endl;
-            //break;
-        }
+            double s_next = s+ds;
+            odeint(Eq,param,s,s_next,ds_ctrl,&Cb);
+            s=s_next;
+            ds = min_of(ds_ctrl,ds_max);
+            ++iter;
+            if(fp) (*fp)("%g %g %g %g\n",param[1],param[2],s,Rad2Deg(param[3]));
+            if(!flag) break;
 
 
-        // going backwards
-        {
-            const double drds_prev = cos( pprev[BRIDGE_A] );
-            const double drds_curr = cos( param[BRIDGE_A] );
-            if(drds_prev>0 && drds_curr<=0)
+            //______________________________________________________________________
+            //
+            // finding stop conditions pprev->param
+            //______________________________________________________________________
+
+            // crossing the line
+            const double z_curr = param[BRIDGE_Z];
+
+            if(z_curr*z0<=0)
             {
-                std::cerr << "going back->stop" << std::endl;
-                break;
+                //std::cerr << "crossed->stop" << std::endl;
+                return 0;
             }
-        }
 
-        // dzds extremum
-        {
-            const double dzds_prev = sin( pprev[BRIDGE_A] );
-            const double dzds_curr = sin( param[BRIDGE_A] );
-            if(dzds_curr*dzds_prev<=0)
+
+            // going backwards
             {
-                std::cerr << "z extremum->stop" << std::endl;
-                break;
+                const double drds_prev = cos( pprev[BRIDGE_A] );
+                const double drds_curr = cos( param[BRIDGE_A] );
+                if(drds_prev>0 && drds_curr<=0)
+                {
+                    std::cerr << "going back->stop" << std::endl;
+                    break;
+                }
             }
+
+            // dzds extremum
+            {
+                const double dzds_prev = sin( pprev[BRIDGE_A] );
+                const double dzds_curr = sin( param[BRIDGE_A] );
+                if(dzds_curr*dzds_prev<=0)
+                {
+                    std::cerr << "z extremum->stop" << std::endl;
+                    break;
+                }
+            }
+            
+            
+            tao::set(pprev, param);
         }
-
-
-        tao::set(pprev, param);
     }
     
-    //const double zz = param[BRIDGE_Z];
-    //return (zz<=0?-1:1);
-    //return zz;
-    //return sin( param[BRIDGE_A] );
     const double zz = param[BRIDGE_Z];
     return zz;
 }

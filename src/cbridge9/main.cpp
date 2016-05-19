@@ -52,7 +52,7 @@ YOCTO_PROGRAM_START()
 
         ios::wcstream pp("prof.dat");
         ios::wcstream pa("ans.dat");
-        for(alpha_deg=0.5;alpha_deg<=90;alpha_deg+=0.5)
+        for(alpha_deg=0.1;alpha_deg<=30;alpha_deg+=0.1)
         {
             const double ans = bridge.compute_profile(*lens, Deg2Rad(alpha_deg), Deg2Rad(theta_deg), h, &pp);
             pp << "\n";

@@ -137,7 +137,7 @@ double Bridge:: compute_profile(Lens          &lens,
         if(z_curr*z0<=0)
         {
             //std::cerr << "crossed->stop" << std::endl;
-            //return 0;
+            //break;
         }
 
 
@@ -148,7 +148,7 @@ double Bridge:: compute_profile(Lens          &lens,
             if(drds_prev>0 && drds_curr<=0)
             {
                 std::cerr << "going back->stop" << std::endl;
-                return z_curr;
+                break;
             }
         }
 
@@ -165,20 +165,12 @@ double Bridge:: compute_profile(Lens          &lens,
 
 
         tao::set(pprev, param);
-
-#if 0
-        const double z1 = param[BRIDGE_Z];
-        if(z0*z1<=0)
-        {
-            std::cerr << "\t\tcrossing" << std::endl;
-            z0=z1;
-            break;
-        }
-        z0 = z1;
-#endif
     }
     
-    const double zz = param[BRIDGE_Z];
+    //const double zz = param[BRIDGE_Z];
     //return (zz<=0?-1:1);
+    //return zz;
+    //return sin( param[BRIDGE_A] );
+    const double zz = param[BRIDGE_Z];
     return zz;
 }

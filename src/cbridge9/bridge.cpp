@@ -173,7 +173,8 @@ double Bridge:: compute_profile(Lens          &lens,
             tao::set(pprev, param);
         }
     }
+
     
     const double zz = param[BRIDGE_Z];
-    return zz;
+    return fabs(zz);
 }

@@ -7,12 +7,17 @@ flag(true),
 capillary_length(1),
 current_height(0),
 current_center(0),
+current_alpha(0),
+current_theta(0),
 current_lens(NULL),
+current_fp(0),
 param(nvar),
 pprev(nvar),
 odeint(1e-7),
 Eq( this, &Bridge::__Eq ),
-Cb( this, &Bridge::__Cb )
+Cb( this, &Bridge::__Cb ),
+FnOfAlpha(this, &Bridge::__profile_of_alpha),
+FnOfTheta(this, &Bridge::__profile_of_theta)
 {
     odeint.start(nvar);
 }
@@ -93,12 +98,25 @@ double Bridge:: compute_profile(Lens          &lens,
     //
     // initializing startup point
     //__________________________________________________________________________
-    flag           = true;
     current_height = height;
-    current_center = height+lens.R0;
+    current_alpha  = alpha;
+    current_theta  = theta;
     current_lens   = &lens;
+    current_fp     = fp;
 
-    lens.starting_point(param, alpha, theta, height);
+    //__________________________________________________________________________
+    //
+    // run
+    //__________________________________________________________________________
+    return __compute_profile();
+
+}
+
+double Bridge:: __compute_profile()
+{
+    flag = true;
+    current_center = current_height+current_lens->R0;
+    current_lens->starting_point(param, current_alpha, current_theta, current_height);
 
     const double s_max   = Fabs(param[BRIDGE_R]);
     const double s_cap   = capillary_length;
@@ -108,7 +126,7 @@ double Bridge:: compute_profile(Lens          &lens,
     double       s       = 0;
     size_t       iter    = 1;
 
-    if(fp) (*fp)("%g %g %g %g\n",param[1],param[2],s,Rad2Deg(param[3]));
+    if(current_fp) (*current_fp)("%g %g %g %g\n",param[1],param[2],s,Rad2Deg(param[3]));
 
 
     //__________________________________________________________________________
@@ -125,10 +143,9 @@ double Bridge:: compute_profile(Lens          &lens,
         {
             double s_next = s+ds;
             odeint(Eq,param,s,s_next,ds_ctrl,&Cb);
-            s=s_next;
             ds = min_of(ds_ctrl,ds_max);
             ++iter;
-            if(fp) (*fp)("%g %g %g %g\n",param[1],param[2],s,Rad2Deg(param[3]));
+            if(current_fp) (*current_fp)("%g %g %g %g\n",param[1],param[2],s,Rad2Deg(param[3]));
             if(!flag) break;
 
 
@@ -168,13 +185,43 @@ double Bridge:: compute_profile(Lens          &lens,
                     break;
                 }
             }
-            
-            
+
+
             tao::set(pprev, param);
+            s=s_next;
         }
     }
-
+    
     
     const double zz = param[BRIDGE_Z];
     return fabs(zz);
+
 }
+
+
+double Bridge:: __profile_of_alpha(const double alpha)
+{
+    current_alpha = alpha;
+    return __compute_profile();
+}
+
+double Bridge:: __profile_of_theta( const double theta )
+{
+    current_theta = theta;
+    return __compute_profile();
+}
+
+double Bridge:: FindAlpha( Lens &lens, const double theta, const double height )
+{
+    current_lens   = &lens;
+    current_height = height;
+    current_theta  = theta;
+    Function   &F  = FnOfAlpha;
+
+
+
+
+    return 0;
+}
+
+

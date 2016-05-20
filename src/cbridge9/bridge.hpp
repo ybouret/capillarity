@@ -18,13 +18,18 @@ public:
     double                       capillary_length;
     double                       current_height;   //!< for computations
     double                       current_center;   //!< center position
+    double                       current_alpha;    //!< for computation
+    double                       current_theta;    //!< for computation
     Lens                        *current_lens;     //!< for computations
+    ios::ostream                *current_fp;       //!< during computation
     vector<double>               param;
     vector<double>               pprev;
     ode::driverCK<double>::type  odeint;
     Equation                     Eq;
     Callback                     Cb;
-
+    Function                     FnOfAlpha;
+    Function                     FnOfTheta;
+    
     explicit Bridge();
     virtual ~Bridge() throw();
 
@@ -36,12 +41,18 @@ public:
                            ios::ostream *fp);
 
 
+    double FindAlpha( Lens &lens, const double theta, const double height );
+
 
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Bridge);
     void __Eq(Array &,const double,const Array&);
     void __Cb(Array &,const double); // testing valid position
-    
+    double __profile_of_alpha( const double alpha );
+    double __profile_of_theta( const double theta );
+
+    double __compute_profile();
+
 };
 
 

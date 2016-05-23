@@ -207,3 +207,10 @@ double Lens:: find_horizontal_alpha(const double theta)
     zfind<double> solve(1e-5);
     return solve.run(F.call,a,f);
 }
+
+double Lens:: find_horizontal_theta(const double alpha)
+{
+    // Phi=0=omega+theta-pi => theta = pi - omega(alpha)
+    return numeric<double>::pi - omega(alpha);
+}
+

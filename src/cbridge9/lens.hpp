@@ -56,6 +56,7 @@ public:
     double find_alpha(const double surf);
 
     double find_horizontal_alpha(const double theta);
+    double find_horizontal_theta(const double alpha);
 
 
 private:

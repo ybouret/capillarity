@@ -52,8 +52,15 @@ YOCTO_PROGRAM_START()
             std::cerr << "z_alpha_hor=" << z_alpha_hor << std::endl;
         }
 
-        return 0;
-
+        const double theta_hor = lens->find_horizontal_theta( Deg2Rad(alpha_deg) );
+        std::cerr << "theta_hor( " << alpha_deg << ")=" << Rad2Deg(theta_hor) << std::endl;
+        std::cerr << "alpha_hor(" << theta_deg << ")=" << Rad2Deg(alpha_hor) << std::endl;
+        {
+            ios::wcstream pp("prof_theta_hor.dat");
+            const double z_theta_hor = bridge.compute_profile(*lens, Deg2Rad(alpha_deg), (theta_hor), h, &pp);
+            std::cerr << "z_theta_hor=" << z_theta_hor << std::endl;
+        }
+        
         ios::wcstream pp("prof.dat");
         ios::wcstream pa("ans.dat");
 #if 0

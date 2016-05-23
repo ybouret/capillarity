@@ -44,18 +44,24 @@ public:
 
     virtual ~Lens() throw();
 
-    double compute_fitted(const double alpha);
-    double compute_extend(const double alpha);
-    double compute_omega(const double alpha);
+    double compute_fitted(const double alpha); //!< fitted radius
+    double compute_extend(const double alpha); //!< extended radius
+    double compute_omega(const double alpha);  //!< tangent angle
 
     static Lens * load( ios::istream &fp,       const SharedDerivative &user_drvs );
     static Lens * load( const string &filename, const SharedDerivative &user_drvs );
 
     void starting_point( array<double> &param, const double alpha, const double theta, const double height);
 
+    double find_alpha(const double surf);
 
 private:
+    double local_surface;
+    double z_surface(const double alpha);
+    
+    //double __minus_surface(const double alpha);
     YOCTO_DISABLE_COPY_AND_ASSIGN(Lens);
+    //void compute_max_surface();
 };
 
 #endif

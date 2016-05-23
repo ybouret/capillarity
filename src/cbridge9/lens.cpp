@@ -23,7 +23,8 @@ R_fitted(this, &Lens::compute_fitted),
 R(       this, &Lens::compute_extend),
 omega(   this, &Lens::compute_omega ),
 drvs(user_drvs),
-alpha_h(1e-4)
+alpha_h(1e-4),
+local_surface(0)
 {
     integrator<double> intg;
     // TODO: check values...
@@ -44,7 +45,7 @@ alpha_h(1e-4)
     (double &)U = sp - 4.0 * dR;
     (double &)V = 2.0*dR - sp;
     std::cerr << "U=" << U << "; V=" << V << std::endl;
-
+    //compute_max_surface();
 }
 
 
@@ -135,3 +136,60 @@ void Lens:: starting_point(array<double> &param,
     param[BRIDGE_A] = (omega(alpha)+theta) - numeric<double>::pi;
 }
 
+
+
+#if 0
+#include "yocto/math/opt/bracket.hpp"
+#include "yocto/math/opt/minimize.hpp"
+
+void Lens:: compute_max_surface()
+{
+    Function F(this, & Lens::__minus_surface );
+    triplet<double> Angle = { 0, 0, numeric<double>::pi };
+    triplet<double> mSurf = { F(Angle.a), F(Angle.b), F(Angle.c) };
+    if( ! bracket<double>::inside(F, Angle, mSurf) )
+    {
+        throw exception("couldn't bracket max surface !");
+    }
+    std::cerr << "Angle=" << Angle << std::endl;
+    std::cerr << "mSurf=" << mSurf << std::endl;
+    minimize(F,Angle, mSurf, 1e-5);
+    (double &)max_angle   =  Angle.b;
+    (double &)max_surface = -mSurf.b;
+    std::cerr << "max_angle=" << max_angle << std::endl;
+    std::cerr << "max_surface=" << max_surface << std::endl;
+    exit(1);
+}
+#endif
+
+double Lens:: z_surface(const double alpha)
+{
+    return numeric<double>::pi * Square( R(alpha) ) - local_surface;
+}
+
+#include "yocto/math/fcn/zfind.hpp"
+
+double Lens:: find_alpha(const double surface)
+{
+    local_surface = surface;
+    Function  F(this, & Lens::z_surface );
+    triplet<double> a = { 0,0,0 };
+    triplet<double> Z = { F(a.a),0,0};
+    bool   found = false;
+    for(int a_deg=1;a_deg<=180;++a_deg)
+    {
+        a.c = Deg2Rad(double(a_deg));
+        Z.c = F(a.c);
+        if(Z.a*Z.c<=0)
+        {
+            found = true;
+            break;
+        }
+    }
+    if(!found)
+    {
+        throw exception("couldn't find angle for surface=%g", surface);
+    }
+    zfind<double> solve(1e-5);
+    return solve.run(F,a,Z);
+}

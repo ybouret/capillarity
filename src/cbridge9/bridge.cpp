@@ -216,7 +216,7 @@ double Bridge:: FindAlpha( Lens &lens, const double theta, const double height )
     current_lens   = &lens;
     current_height = height;
     current_theta  = theta;
-    Function   &F  = FnOfAlpha;
+    //Function   &F  = FnOfAlpha;
 
 
 

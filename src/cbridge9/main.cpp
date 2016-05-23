@@ -7,12 +7,6 @@
 
 YOCTO_PROGRAM_START()
 {
-#if 0
-    double __coefs[] = {63.037518,-2.5192661,10.626694,4.5368727};
-    lw_array<double> coefs(__coefs,sizeof(__coefs)/sizeof(__coefs[0]));
-
-    Lens lens(0.58205858,coefs,drvs);
-#endif
     SharedDerivative drvs( new Derivative() );
     if(argc>1)
     {
@@ -49,6 +43,16 @@ YOCTO_PROGRAM_START()
 
         Bridge bridge;
         bridge.capillary_length = 2.7;
+
+        const double alpha_hor = lens->find_horizontal_alpha( Deg2Rad(theta_deg) );
+        std::cerr << "alpha_hor(" << theta_deg << ")=" << Rad2Deg(alpha_hor) << std::endl;
+        {
+            ios::wcstream pp("prof_alpha_hor.dat");
+            const double z_alpha_hor = bridge.compute_profile(*lens, alpha_hor, Deg2Rad(theta_deg), h, &pp);
+            std::cerr << "z_alpha_hor=" << z_alpha_hor << std::endl;
+        }
+
+        return 0;
 
         ios::wcstream pp("prof.dat");
         ios::wcstream pa("ans.dat");

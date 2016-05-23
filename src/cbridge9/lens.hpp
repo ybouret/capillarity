@@ -55,6 +55,9 @@ public:
 
     double find_alpha(const double surf);
 
+    double find_horizontal_alpha(const double theta);
+
+
 private:
     double local_surface;
     double z_surface(const double alpha);

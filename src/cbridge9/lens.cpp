@@ -193,3 +193,17 @@ double Lens:: find_alpha(const double surface)
     zfind<double> solve(1e-5);
     return solve.run(F,a,Z);
 }
+
+double Lens:: find_horizontal_alpha(const double theta)
+{
+    // Phi=0=omega+theta-pi => omega = pi - theta
+    zfunction<double> F(omega,numeric<double>::pi-theta);
+    triplet<double>   a = { 0,0,numeric<double>::pi };
+    triplet<double>   f = { F.call(a.a), 0, F.call(a.c) };
+    if( f.a * f.c > 0 )
+    {
+        throw exception("couldn't find horizontal alpha for theta=%g", theta);
+    }
+    zfind<double> solve(1e-5);
+    return solve.run(F.call,a,f);
+}

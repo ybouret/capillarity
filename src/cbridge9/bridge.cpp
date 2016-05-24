@@ -170,7 +170,7 @@ double Bridge:: __compute_profile()
                 const double drds_curr = cos( param[BRIDGE_A] );
                 if(drds_prev>0 && drds_curr<=0)
                 {
-                    std::cerr << "going back->stop" << std::endl;
+                    //std::cerr << "going back->stop" << std::endl;
                     break;
                 }
             }
@@ -181,7 +181,7 @@ double Bridge:: __compute_profile()
                 const double dzds_curr = sin( param[BRIDGE_A] );
                 if(dzds_curr*dzds_prev<=0)
                 {
-                    std::cerr << "z extremum->stop" << std::endl;
+                    //std::cerr << "z extremum->stop" << std::endl;
                     break;
                 }
             }
@@ -194,8 +194,8 @@ double Bridge:: __compute_profile()
     
     
     const double zz = param[BRIDGE_Z];
-    return fabs(zz);
-
+    //return fabs(zz);
+    return zz;
 }
 
 
@@ -207,21 +207,36 @@ double Bridge:: __profile_of_alpha(const double alpha)
 
 double Bridge:: __profile_of_theta( const double theta )
 {
+    std::cerr << "profile_of_theta=" << theta << std::endl;
     current_theta = theta;
     return __compute_profile();
 }
 
-double Bridge:: FindAlpha( Lens &lens, const double theta, const double height )
-{
-    current_lens   = &lens;
-    current_height = height;
-    current_theta  = theta;
-    //Function   &F  = FnOfAlpha;
 
+double Bridge:: FindTheta( Lens &lens, const double alpha, const double height )
+{
+    std::cerr << "alpha=" << Rad2Deg(alpha) << "; h=" << height << std::endl;
+    current_lens   = &lens;
+    current_alpha  = alpha;
+    current_height = height;
+    current_fp     = NULL;
+    Function &F    = FnOfTheta;
 
 
 
     return 0;
+
+#if 0
+    double theta_min = Deg2Rad(0.1);
+    if(F(theta_min)>0)
+    {
+        return Deg2Rad(double(-1));
+    }
+
+    return Deg2Rad(double(1));
+#endif
+
 }
+
 
 

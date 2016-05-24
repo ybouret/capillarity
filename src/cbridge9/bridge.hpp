@@ -41,7 +41,7 @@ public:
                            ios::ostream *fp);
 
 
-    double FindAlpha( Lens &lens, const double theta, const double height );
+    double FindTheta( Lens &lens, const double alpha, const double height );
 
 
 private:

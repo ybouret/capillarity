@@ -44,8 +44,12 @@ YOCTO_PROGRAM_START()
         Bridge bridge;
         bridge.capillary_length = 2.7;
 
-        bridge.FindTheta(*lens, Deg2Rad(alpha_deg), h);
-
+        const double th = bridge.FindTheta(*lens, Deg2Rad(alpha_deg), h);
+        std::cerr << "th=" << Rad2Deg(th) << std::endl;
+        {
+            ios::wcstream sp("prof-theta.dat");
+            (void)bridge.compute_profile(*lens, Deg2Rad(alpha_deg),th, h, &sp);
+        }
 
 #if 0
         ios::wcstream xp("theta.dat");
@@ -57,7 +61,7 @@ YOCTO_PROGRAM_START()
 #endif
 
         
-        return 0;
+        //return 0;
         
         ios::wcstream pp("prof.dat");
         ios::wcstream pa("ans.dat");
@@ -69,7 +73,7 @@ YOCTO_PROGRAM_START()
             pa("%g %g\n", alpha_deg, ans);
         }
 #else
-        for(theta_deg=0.1;theta_deg<=179.9;theta_deg+=0.1)
+        for(theta_deg=1;theta_deg<=179;theta_deg+=5)
         {
             const double ans = bridge.compute_profile(*lens, Deg2Rad(alpha_deg), Deg2Rad(theta_deg), h, &pp);
             pp << "\n";

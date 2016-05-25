@@ -191,8 +191,8 @@ double Bridge:: __compute_profile()
             s=s_next;
         }
     }
-    
-    
+
+
     const double zz = param[BRIDGE_Z];
     //return fabs(zz);
     return zz;
@@ -207,7 +207,6 @@ double Bridge:: __profile_of_alpha(const double alpha)
 
 double Bridge:: __profile_of_theta( const double theta )
 {
-    std::cerr << "profile_of_theta=" << Rad2Deg(theta) << std::endl;
     current_theta = theta;
     return __compute_profile();
 }
@@ -222,16 +221,65 @@ double Bridge:: FindTheta( Lens &lens, const double alpha, const double height )
     current_fp     = NULL;
     Function &F    = FnOfTheta;
 
-    ios::wcstream fp("find-theta.dat");
-    for(double theta_deg=0.1;theta_deg<=179.9;theta_deg+=0.1)
+    double theta_lo = Deg2Rad(0.1);
+    double theta_hi = Deg2Rad(179.9);
+
+    double F_lo  = F( theta_lo );
+    double F_hi  = F( theta_hi );
+
+#if 1
     {
-        fp("%g %g\n", theta_deg, F( Deg2Rad(theta_deg) ) );
+        ios::wcstream fp("find-theta.dat");
+        for(double theta_deg=1;theta_deg<=179;theta_deg+=0.5)
+        {
+            fp("%g %g\n", theta_deg, F( Deg2Rad(theta_deg) ) );
+        }
     }
+#endif
+
+    {
+        ios::wcstream fp("zprof.dat");
+        current_fp = &fp;
+        F(theta_lo);
+        fp << "\n";
+        F(theta_hi);
+        current_fp = NULL;
+    }
+
+    if( (F_lo<=0) && (F_hi>0) )
+    {
+        std::cerr << "intercept lo->hi possible" << std::endl;
+        while(Rad2Deg(theta_hi-theta_lo)>0.1)
+        {
+            const double theta_mid = clamp<double>(theta_lo,0.5*(theta_lo+theta_hi),theta_hi);
+            const double F_mid     = F(theta_mid);
+            std::cerr << "theta_mid=" << Rad2Deg(theta_mid) << " => " << F_mid << std::endl;
+            if(F_mid<=0)
+            {
+                theta_lo = theta_mid;
+                F_lo     = F_mid;
+            }
+            else
+            {
+                theta_hi = theta_mid;
+                F_hi     = F_mid;
+            }
+        }
+        return 0.5*(theta_lo+theta_hi);
+    }
+    else
+    {
+
+    }
+
+
+#if 0
+
 
     double theta_min = Deg2Rad(0.1);
     double F_min     = F(theta_min);
     std::cerr << "F(" << Rad2Deg(theta_min) << ")=" << F_min << std::endl;
-
+    
     if(F_min>0)
     {
         std::cerr << "No contact" << std::endl;
@@ -240,19 +288,12 @@ double Bridge:: FindTheta( Lens &lens, const double alpha, const double height )
     {
         std::cerr << "Possible contact" << std::endl;
     }
-
-    return 0;
-
-#if 0
-    double theta_min = Deg2Rad(0.1);
-    if(F(theta_min)>0)
-    {
-        return Deg2Rad(double(-1));
-    }
-
-    return Deg2Rad(double(1));
+    
 #endif
-
+    
+    return -1;
+    
+    
 }
 
 

@@ -1,7 +1,7 @@
 #include "bridge.hpp"
 #include "yocto/math/core/tao.hpp"
 
-Bridge:: Bridge() :
+Bridge:: Bridge(const double delta_deg) :
 nvar(3),
 flag(true),
 capillary_length(1),
@@ -17,7 +17,8 @@ odeint(1e-7),
 Eq( this, &Bridge::__Eq ),
 Cb( this, &Bridge::__Cb ),
 FnOfAlpha(this, &Bridge::__profile_of_alpha),
-FnOfTheta(this, &Bridge::__profile_of_theta)
+FnOfTheta(this, &Bridge::__profile_of_theta),
+delta( Deg2Rad(clamp<double>(1e-3,delta_deg,1)) )
 {
     odeint.start(nvar);
 }
@@ -90,9 +91,7 @@ double Bridge:: compute_profile(Lens          &lens,
                                 const double   height,
                                 ios::ostream *fp)
 {
-    std::cerr << "alpha =" << Rad2Deg(alpha) << std::endl;
-    std::cerr << "theta =" << Rad2Deg(theta) << std::endl;
-    std::cerr << "height=" << height << std::endl;
+    std::cerr << "alpha =" << Rad2Deg(alpha) << ", theta =" << Rad2Deg(theta) << ",  height=" << height << std::endl;
 
     //__________________________________________________________________________
     //
@@ -189,13 +188,15 @@ double Bridge:: __compute_profile()
 
             tao::set(pprev, param);
             s=s_next;
+            if(s>=10000*capillary_length)
+                break;
         }
     }
 
 
     const double zz = param[BRIDGE_Z];
-    //return fabs(zz);
-    return zz;
+    return fabs(zz);
+    //return zz;
 }
 
 
@@ -211,6 +212,8 @@ double Bridge:: __profile_of_theta( const double theta )
     return __compute_profile();
 }
 
+#include "yocto/math/opt/bracket.hpp"
+#include "yocto/math/opt/minimize.hpp"
 
 double Bridge:: FindTheta( Lens &lens, const double alpha, const double height )
 {
@@ -220,12 +223,6 @@ double Bridge:: FindTheta( Lens &lens, const double alpha, const double height )
     current_height = height;
     current_fp     = NULL;
     Function &F    = FnOfTheta;
-
-    double theta_lo = Deg2Rad(0.1);
-    double theta_hi = Deg2Rad(179.9);
-
-    double F_lo  = F( theta_lo );
-    double F_hi  = F( theta_hi );
 
 #if 1
     {
@@ -237,62 +234,69 @@ double Bridge:: FindTheta( Lens &lens, const double alpha, const double height )
     }
 #endif
 
+    double th_lo = delta;
+    double fn_lo = F(th_lo);
+    double th_hi = numeric<double>::pi-delta;
+    double fn_hi  = F(th_hi);
+
+    triplet<double> th = { th_lo, 0, th_hi };
+    triplet<double> fn = { fn_lo, 0, fn_hi };
+    bracket<double>::inside(F, th, fn);
+    minimize(F, th, fn, 1e-5);
+    std::cerr << "th=" << th << std::endl;
+    std::cerr << "fn=" << fn << std::endl;
+
+    double th_md = th.b;
+    double fn_md = fn.b;
+
+    if(fn_md>0)
     {
-        ios::wcstream fp("zprof.dat");
-        current_fp = &fp;
-        F(theta_lo);
-        fp << "\n";
-        F(theta_hi);
-        current_fp = NULL;
+        return -1; // no intersection
     }
 
-    if( (F_lo<=0) && (F_hi>0) )
+    if(fn_hi>0)
     {
-        std::cerr << "intercept lo->hi possible" << std::endl;
-        while(Rad2Deg(theta_hi-theta_lo)>0.1)
+
+        while(th_hi-th_md>delta)
         {
-            const double theta_mid = clamp<double>(theta_lo,0.5*(theta_lo+theta_hi),theta_hi);
-            const double F_mid     = F(theta_mid);
-            std::cerr << "theta_mid=" << Rad2Deg(theta_mid) << " => " << F_mid << std::endl;
-            if(F_mid<=0)
+            const double th_tmp = clamp(th_md,0.5*(th_md+th_hi),th_hi);
+            const double fn_tmp = F(th_tmp);
+            if(fn_tmp<=0)
             {
-                theta_lo = theta_mid;
-                F_lo     = F_mid;
+                th_md = th_tmp;
+                fn_md = fn_tmp;
             }
             else
             {
-                theta_hi = theta_mid;
-                F_hi     = F_mid;
+                th_hi = th_tmp;
+                fn_hi = fn_tmp;
             }
         }
-        return 0.5*(theta_lo+theta_hi);
+        //return 0.5*(th_md+th_hi);
+        return th_hi;
     }
     else
     {
+        while(th_hi-th_md>delta)
+        {
+            const double th_tmp = clamp(th_md,0.5*(th_md+th_hi),th_hi);
+            const double fn_tmp = F(th_tmp);
+            if(fn_tmp>0)
+            {
+                th_md = th_tmp;
+                fn_md = fn_tmp;
+            }
+            else
+            {
+                th_hi = th_tmp;
+                fn_hi = fn_tmp;
+            }
+        }
+        //return th_hi;
+        return 0.5*(th_md+th_hi);
 
     }
 
-
-#if 0
-
-
-    double theta_min = Deg2Rad(0.1);
-    double F_min     = F(theta_min);
-    std::cerr << "F(" << Rad2Deg(theta_min) << ")=" << F_min << std::endl;
-    
-    if(F_min>0)
-    {
-        std::cerr << "No contact" << std::endl;
-    }
-    else
-    {
-        std::cerr << "Possible contact" << std::endl;
-    }
-    
-#endif
-    
-    return -1;
-    
     
 }
 

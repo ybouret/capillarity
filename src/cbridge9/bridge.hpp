@@ -29,8 +29,9 @@ public:
     Callback                     Cb;
     Function                     FnOfAlpha;
     Function                     FnOfTheta;
-    
-    explicit Bridge();
+    const double                 delta; //!< angle delta, in radiants
+
+    explicit Bridge(const double delta_deg);
     virtual ~Bridge() throw();
 
 

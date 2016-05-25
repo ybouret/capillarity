@@ -54,6 +54,8 @@ YOCTO_PROGRAM_START()
         vfs::change_extension(output, "coords");
         std::cerr << "saving to " << output << std::endl;
         ios::wcstream fp(output);
+        vector<float>  I(w,as_capacity);
+        vector<unit_t> J(w,as_capacity);
         for(unit_t i=0;i<w;++i)
         {
             float   Imax = edge[0][i];
@@ -67,7 +69,9 @@ YOCTO_PROGRAM_START()
                     Imax = Itmp;
                 }
             }
-            std::cerr << "Imax" << i << "=" << Imax << std::endl;
+            std::cerr << "Imax" << i << "=" << Imax << "@" << jmax << std::endl;
+            I.push_back(Imax);
+            J.push_back(jmax);
         }
 
     }

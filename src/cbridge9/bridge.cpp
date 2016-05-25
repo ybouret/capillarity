@@ -234,10 +234,10 @@ double Bridge:: FindTheta( Lens &lens, const double alpha, const double height )
     }
 #endif
 
-    double th_lo = delta;
-    double fn_lo = F(th_lo);
-    double th_hi = numeric<double>::pi-delta;
-    double fn_hi  = F(th_hi);
+    const double th_lo = delta;
+    const double fn_lo = F(th_lo);
+    const double th_hi = numeric<double>::pi-delta;
+    const double fn_hi  = F(th_hi);
 
     triplet<double> th = { th_lo, 0, th_hi };
     triplet<double> fn = { fn_lo, 0, fn_hi };
@@ -246,8 +246,10 @@ double Bridge:: FindTheta( Lens &lens, const double alpha, const double height )
     std::cerr << "th=" << th << std::endl;
     std::cerr << "fn=" << fn << std::endl;
 
-    double th_md = th.b;
-    double fn_md = fn.b;
+    const double th_md = th.b;
+    const double fn_md = fn.b;
+    std::cerr << "th_md=" << Rad2Deg(th_md) << std::endl;
+    std::cerr << "fn_md=" << fn_md << std::endl;
 
     if(fn_md>0)
     {
@@ -257,47 +259,45 @@ double Bridge:: FindTheta( Lens &lens, const double alpha, const double height )
     if(fn_hi>0)
     {
 
-        while(th_hi-th_md>delta)
+        double th_left  = th_md;
+        double th_right = th_hi;
+        while(th_right-th_left>delta)
         {
-            const double th_tmp = clamp(th_md,0.5*(th_md+th_hi),th_hi);
-            const double fn_tmp = F(th_tmp);
-            if(fn_tmp<=0)
+            const double th_middle = clamp(th_left, 0.5*(th_left+th_right), th_right);
+            const double fn_middle = F(th_middle);
+            if(fn_middle<=0)
             {
-                th_md = th_tmp;
-                fn_md = fn_tmp;
+                th_left = th_middle;
             }
             else
             {
-                th_hi = th_tmp;
-                fn_hi = fn_tmp;
+                th_right = th_middle;
             }
         }
-        //return 0.5*(th_md+th_hi);
-        return th_hi;
+        return 0.5*(th_left+th_right);
+
     }
     else
     {
-        while(th_hi-th_md>delta)
+        double th_left  = th_lo;
+        double th_right = th_md;
+        while(th_right-th_left>delta)
         {
-            const double th_tmp = clamp(th_md,0.5*(th_md+th_hi),th_hi);
-            const double fn_tmp = F(th_tmp);
-            if(fn_tmp>0)
+            const double th_middle = clamp(th_left, 0.5*(th_left+th_right), th_right);
+            const double fn_middle = F(th_middle);
+            std::cerr << Rad2Deg(th_middle) << " => " << fn_middle << std::endl;
+            if(fn_middle<=0)
             {
-                th_md = th_tmp;
-                fn_md = fn_tmp;
+                th_right = th_middle;
             }
             else
             {
-                th_hi = th_tmp;
-                fn_hi = fn_tmp;
+                th_left = th_middle;
             }
         }
-        //return th_hi;
-        return 0.5*(th_md+th_hi);
-
+        return 0.5*(th_left+th_right);
     }
 
-    
 }
 
 

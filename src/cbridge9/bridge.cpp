@@ -207,7 +207,7 @@ double Bridge:: __profile_of_alpha(const double alpha)
 
 double Bridge:: __profile_of_theta( const double theta )
 {
-    std::cerr << "profile_of_theta=" << theta << std::endl;
+    std::cerr << "profile_of_theta=" << Rad2Deg(theta) << std::endl;
     current_theta = theta;
     return __compute_profile();
 }
@@ -222,7 +222,24 @@ double Bridge:: FindTheta( Lens &lens, const double alpha, const double height )
     current_fp     = NULL;
     Function &F    = FnOfTheta;
 
+    ios::wcstream fp("find-theta.dat");
+    for(double theta_deg=0.1;theta_deg<=179.9;theta_deg+=0.1)
+    {
+        fp("%g %g\n", theta_deg, F( Deg2Rad(theta_deg) ) );
+    }
 
+    double theta_min = Deg2Rad(0.1);
+    double F_min     = F(theta_min);
+    std::cerr << "F(" << Rad2Deg(theta_min) << ")=" << F_min << std::endl;
+
+    if(F_min>0)
+    {
+        std::cerr << "No contact" << std::endl;
+    }
+    else
+    {
+        std::cerr << "Possible contact" << std::endl;
+    }
 
     return 0;
 

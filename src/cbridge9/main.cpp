@@ -44,7 +44,10 @@ YOCTO_PROGRAM_START()
         Bridge bridge;
         bridge.capillary_length = 2.7;
 
-#if 1
+        bridge.FindTheta(*lens, Deg2Rad(alpha_deg), h);
+
+
+#if 0
         ios::wcstream xp("theta.dat");
         for(double _alpha_deg=1;_alpha_deg<180;_alpha_deg+=0.1)
         {
@@ -53,25 +56,7 @@ YOCTO_PROGRAM_START()
         }
 #endif
 
-#if 0
-        const double alpha_hor = lens->find_horizontal_alpha( Deg2Rad(theta_deg) );
-        std::cerr << "alpha_hor(" << theta_deg << ")=" << Rad2Deg(alpha_hor) << std::endl;
-        {
-            ios::wcstream pp("prof_alpha_hor.dat");
-            const double z_alpha_hor = bridge.compute_profile(*lens, alpha_hor, Deg2Rad(theta_deg), h, &pp);
-            std::cerr << "z_alpha_hor=" << z_alpha_hor << std::endl;
-        }
-
-        const double theta_hor = lens->find_horizontal_theta( Deg2Rad(alpha_deg) );
-        std::cerr << "theta_hor( " << alpha_deg << ")=" << Rad2Deg(theta_hor) << std::endl;
-        std::cerr << "alpha_hor(" << theta_deg << ")=" << Rad2Deg(alpha_hor) << std::endl;
-        {
-            ios::wcstream pp("prof_theta_hor.dat");
-            const double z_theta_hor = bridge.compute_profile(*lens, Deg2Rad(alpha_deg), (theta_hor), h, &pp);
-            std::cerr << "z_theta_hor=" << z_theta_hor << std::endl;
-        }
-#endif
-
+        
         return 0;
         
         ios::wcstream pp("prof.dat");

@@ -91,7 +91,7 @@ double Bridge:: compute_profile(Lens          &lens,
                                 const double   height,
                                 ios::ostream *fp)
 {
-    std::cerr << "alpha =" << Rad2Deg(alpha) << ", theta =" << Rad2Deg(theta) << ",  height=" << height << std::endl;
+    //std::cerr << "alpha =" << Rad2Deg(alpha) << ", theta =" << Rad2Deg(theta) << ",  height=" << height << std::endl;
 
     //__________________________________________________________________________
     //
@@ -243,8 +243,8 @@ double Bridge:: FindTheta( Lens &lens, const double alpha, const double height )
     triplet<double> fn = { fn_lo, 0, fn_hi };
     bracket<double>::inside(F, th, fn);
     minimize(F, th, fn, 1e-5);
-    std::cerr << "th=" << th << std::endl;
-    std::cerr << "fn=" << fn << std::endl;
+    //std::cerr << "th=" << th << std::endl;
+    //std::cerr << "fn=" << fn << std::endl;
 
     const double th_md = th.b;
     const double fn_md = fn.b;
@@ -298,6 +298,89 @@ double Bridge:: FindTheta( Lens &lens, const double alpha, const double height )
         return 0.5*(th_left+th_right);
     }
 
+}
+
+double Bridge:: FindAlpha( Lens &lens, const double theta, const double height )
+{
+    std::cerr << "theta=" << Rad2Deg(theta) << "; h=" << height << std::endl;
+    current_lens   = &lens;
+    current_theta  = theta;
+    current_height = height;
+    current_fp     = NULL;
+    Function &F    = FnOfAlpha;
+
+#if 1
+    {
+        ios::wcstream fp("find-alpha.dat");
+        for(double alpha_deg=0.1;alpha_deg<=179;alpha_deg+=0.1)
+        {
+            fp("%g %g\n", alpha_deg, F( Deg2Rad(alpha_deg) ) );
+        }
+    }
+#endif
+
+    const double al_lo = delta;
+    const double al_hi = numeric<double>::pi - delta;
+    const double fn_lo = F(al_lo);
+    const double fn_hi = F(al_hi);
+
+    triplet<double> al = { al_lo, 0, al_hi };
+    triplet<double> fn = { fn_lo, 0, fn_hi };
+    bracket<double>::inside(F, al, fn);
+    minimize(F, al, fn, 1e-5);
+    std::cerr << "al=" << al << std::endl;
+    std::cerr << "fn=" << fn << std::endl;
+    const double al_mn = al.b;
+    const double fn_mn = fn.b;
+
+    if(fn_mn>0)
+    {
+        return -1; // not possible
+    }
+
+
+    double al_left  = al_mn;
+    double al_right = al_hi;
+    while(al_right-al_left>delta)
+    {
+        const double al_middle = clamp(al_left,0.5*(al_left+al_right),al_right);
+        const double fn_middle = F(al_middle);
+        if(fn_middle<=0)
+        {
+            al_left = al_middle;
+        }
+        else
+        {
+            al_right = al_middle;
+        }
+    }
+
+    const double ans = 0.5*(al_left+al_right);
+    lens.starting_point(pprev, ans, theta, height);
+    const double z0 = pprev[BRIDGE_Z];
+    if(z0>=0)
+    {
+        return ans;
+    }
+    else
+    {
+        al_left  = al_lo;
+        al_right = al_mn;
+        while(al_right-al_left>delta)
+        {
+            const double al_middle = clamp(al_left,0.5*(al_left+al_right),al_right);
+            const double fn_middle = F(al_middle);
+            if(fn_middle<=0)
+            {
+                al_right = al_middle;
+            }
+            else
+            {
+                al_left = al_middle;
+            }
+        }
+        return 0.5*(al_left+al_right);
+    }
 }
 
 

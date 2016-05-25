@@ -45,35 +45,8 @@ YOCTO_PROGRAM_START()
         bridge.capillary_length = 2.7;
 
 
-#if 0
-        ios::wcstream xp("theta.dat");
-        for(double _alpha_deg=1;_alpha_deg<180;_alpha_deg+=0.1)
-        {
-            const double th = bridge.FindTheta(*lens, Deg2Rad(_alpha_deg), h);
-            xp("%g %g\n",_alpha_deg,Rad2Deg(th));
-        }
-#endif
-
         
         //return 0;
-        
-        ios::wcstream pp("prof.dat");
-        ios::wcstream pa("ans.dat");
-#if 0
-        for(alpha_deg=0.5;alpha_deg<=90;alpha_deg+=0.5)
-        {
-            const double ans = bridge.compute_profile(*lens, Deg2Rad(alpha_deg), Deg2Rad(theta_deg), h, &pp);
-            pp << "\n";
-            pa("%g %g\n", alpha_deg, ans);
-        }
-#else
-        for(theta_deg=5;theta_deg<=175;theta_deg+=2)
-        {
-            const double ans = bridge.compute_profile(*lens, Deg2Rad(alpha_deg), Deg2Rad(theta_deg), h, &pp);
-            pp << "\n";
-            pa("%g %g\n", theta_deg, ans);
-        }
-#endif
 
         const double th = bridge.FindTheta(*lens, Deg2Rad(alpha_deg), h);
         std::cerr << "th=" << Rad2Deg(th) << std::endl;
@@ -84,6 +57,38 @@ YOCTO_PROGRAM_START()
             {
                 (void)bridge.compute_profile(*lens, Deg2Rad(alpha_deg),th, h, &sp);
             }
+        }
+
+        const double al = bridge.FindAlpha(*lens,Deg2Rad(theta_deg),h);
+        std::cerr << "al=" << Rad2Deg(al) << std::endl;
+        {
+            ios::wcstream sp("prof-alpha.dat");
+            if(al>=0)
+            {
+                (void)bridge.compute_profile(*lens, al, Deg2Rad(theta_deg), h, &sp);
+            }
+        }
+
+
+        if(true)
+        {
+            ios::wcstream pp("prof.dat");
+            ios::wcstream pa("ans.dat");
+#if 1
+            for(alpha_deg=1;alpha_deg<=179;alpha_deg+=0.5)
+            {
+                const double ans = bridge.compute_profile(*lens, Deg2Rad(alpha_deg), Deg2Rad(theta_deg), h, &pp);
+                pp << "\n";
+                pa("%g %g\n", alpha_deg, ans);
+            }
+#else
+            for(theta_deg=5;theta_deg<=175;theta_deg+=2)
+            {
+                const double ans = bridge.compute_profile(*lens, Deg2Rad(alpha_deg), Deg2Rad(theta_deg), h, &pp);
+                pp << "\n";
+                pa("%g %g\n", theta_deg, ans);
+            }
+#endif
         }
 
 

@@ -43,7 +43,7 @@ public:
 
 
     double FindTheta( Lens &lens, const double alpha, const double height );
-
+    double FindAlpha( Lens &lens, const double theta, const double height );
 
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Bridge);

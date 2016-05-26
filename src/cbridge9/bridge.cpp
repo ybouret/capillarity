@@ -224,7 +224,7 @@ double Bridge:: FindTheta( Lens &lens, const double alpha, const double height )
     current_fp     = NULL;
     Function &F    = FnOfTheta;
 
-#if 1
+#if 0
     {
         ios::wcstream fp("find-theta.dat");
         for(double theta_deg=1;theta_deg<=179;theta_deg+=0.5)
@@ -248,8 +248,8 @@ double Bridge:: FindTheta( Lens &lens, const double alpha, const double height )
 
     const double th_md = th.b;
     const double fn_md = fn.b;
-    std::cerr << "th_md=" << Rad2Deg(th_md) << std::endl;
-    std::cerr << "fn_md=" << fn_md << std::endl;
+    //std::cerr << "th_md=" << Rad2Deg(th_md) << std::endl;
+    //std::cerr << "fn_md=" << fn_md << std::endl;
 
     if(fn_md>0)
     {
@@ -285,7 +285,7 @@ double Bridge:: FindTheta( Lens &lens, const double alpha, const double height )
         {
             const double th_middle = clamp(th_left, 0.5*(th_left+th_right), th_right);
             const double fn_middle = F(th_middle);
-            std::cerr << Rad2Deg(th_middle) << " => " << fn_middle << std::endl;
+            //std::cerr << Rad2Deg(th_middle) << " => " << fn_middle << std::endl;
             if(fn_middle<=0)
             {
                 th_right = th_middle;
@@ -309,7 +309,7 @@ double Bridge:: FindAlpha( Lens &lens, const double theta, const double height )
     current_fp     = NULL;
     Function &F    = FnOfAlpha;
 
-#if 1
+#if 0
     {
         ios::wcstream fp("find-alpha.dat");
         for(double alpha_deg=0.1;alpha_deg<=179;alpha_deg+=0.1)
@@ -328,8 +328,8 @@ double Bridge:: FindAlpha( Lens &lens, const double theta, const double height )
     triplet<double> fn = { fn_lo, 0, fn_hi };
     bracket<double>::inside(F, al, fn);
     minimize(F, al, fn, 1e-5);
-    std::cerr << "al=" << al << std::endl;
-    std::cerr << "fn=" << fn << std::endl;
+    //std::cerr << "al=" << al << std::endl;
+    //std::cerr << "fn=" << fn << std::endl;
     const double al_mn = al.b;
     const double fn_mn = fn.b;
 

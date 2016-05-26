@@ -164,7 +164,7 @@ void Lens:: compute_max_surface()
 
 double Lens:: z_surface(const double alpha)
 {
-    return numeric<double>::pi * Square( R(alpha) ) - local_surface;
+    return numeric<double>::pi * Square( R(alpha)*sin(alpha) ) - local_surface;
 }
 
 #include "yocto/math/fcn/zfind.hpp"

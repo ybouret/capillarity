@@ -7,4 +7,7 @@ TARGET_LINK_YOCTO(bridge mk)
 ADD_EXECUTABLE(fit_lens fit_lens.cpp)
 TARGET_LINK_YOCTO(fit_lens mk)
 
-INSTALL( TARGETS profile bridge fit_lens RUNTIME DESTINATION bin )
+ADD_EXECUTABLE(abaccus bridge.hpp bridge.cpp lens.cpp lens.hpp abaccus.cpp)
+TARGET_LINK_YOCTO(abaccus mk)
+
+INSTALL( TARGETS profile bridge fit_lens abaccus RUNTIME DESTINATION bin )

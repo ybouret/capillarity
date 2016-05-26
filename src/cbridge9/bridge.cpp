@@ -41,7 +41,9 @@ void Bridge:: __Eq(Array &dQds, const double s, const Array &Q)
         const double C = cos(phi);
         const double S = sin(phi);
 
-        const double L2 = capillary_length*capillary_length*2;
+#define LENGTH_FACTOR 2
+        const double L2 = capillary_length*capillary_length*LENGTH_FACTOR;
+
         dQds[BRIDGE_R]  = C; // dr/ds
         dQds[BRIDGE_Z]  = S; // dz/ds
         dQds[BRIDGE_A]  = (z/L2-S/r); // dphi/ds

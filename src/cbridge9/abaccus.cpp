@@ -10,7 +10,7 @@ YOCTO_PROGRAM_START()
 {
     if(argc<=2)
     {
-        throw exception("usage: %s lens_file.prm capillary_length",program);
+        throw exception("usage: %s lens_file.prm capillary_length [theta...]",program);
     }
 
     const string lens_name = argv[1];
@@ -58,8 +58,36 @@ YOCTO_PROGRAM_START()
     Bridge bridge(0.01);
     bridge.capillary_length = strconv::to<double>(argv[2],"capillary_length");
 
+    string output_abaccus  = base_name;
+    vfs::change_extension(output_abaccus, "abaccus.dat");
+    ios::ocstream::overwrite(output_abaccus);
+
+    for(int i=3;i<argc;++i)
+    {
+        const double theta_deg = strconv::to<double>(argv[i],"theta");
+        const double theta     = Deg2Rad(theta_deg);
+        double       dh        = 0.05;
+        int          count     = 0;
+        ios::acstream fp(output_abaccus);
+
+        while(true)
+        {
+
+            const double h     = count * dh;
+            const double alpha = bridge.FindAlpha(*lens, theta, h);
+            if(alpha<0)
+            {
+                break;
+            }
+            const double alpha_deg = Rad2Deg(alpha);
+            const double surf      = numeric<double>::pi * Square( lens->R(alpha) * sin(alpha) );
+            fp("%g %g %g\n", h, surf, alpha_deg);
+            ++count;
+        }
+        fp << "\n";
+    }
     
-
-
+    
+    
 }
 YOCTO_PROGRAM_END()

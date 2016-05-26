@@ -214,3 +214,11 @@ double Lens:: find_horizontal_theta(const double alpha)
     return numeric<double>::pi - omega(alpha);
 }
 
+Lens * Lens:: sphere(const double radius, const SharedDerivative &user_drvs )
+{
+    vector<double> user_coef(1);
+    user_coef[1] = fabs(radius);
+    return new Lens(1,user_coef,user_drvs);
+}
+
+

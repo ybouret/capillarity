@@ -50,6 +50,8 @@ public:
 
     static Lens * load( ios::istream &fp,       const SharedDerivative &user_drvs );
     static Lens * load( const string &filename, const SharedDerivative &user_drvs );
+    static Lens * sphere(const double radius, const SharedDerivative &user_drvs );
+
 
     void starting_point( array<double> &param, const double alpha, const double theta, const double height);
 
@@ -63,9 +65,7 @@ private:
     double local_surface;
     double z_surface(const double alpha);
     
-    //double __minus_surface(const double alpha);
     YOCTO_DISABLE_COPY_AND_ASSIGN(Lens);
-    //void compute_max_surface();
 };
 
 #endif

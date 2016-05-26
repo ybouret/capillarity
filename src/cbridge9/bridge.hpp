@@ -4,7 +4,7 @@
 #include "yocto/math/ode/explicit/driver-ck.hpp"
 #include "lens.hpp"
 #include "yocto/ios/ostream.hpp"
-
+#include "yocto/math/round.hpp"
 
 typedef ode::Field<double>::Array    Array;
 typedef ode::Field<double>::Equation Equation;
@@ -44,6 +44,7 @@ public:
 
     double FindTheta( Lens &lens, const double alpha, const double height );
     double FindAlpha( Lens &lens, const double theta, const double height );
+    double FindHMAX( Lens &lens, const double theta);
 
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Bridge);

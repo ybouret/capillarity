@@ -219,7 +219,7 @@ double Bridge:: __profile_of_theta( const double theta )
 
 double Bridge:: FindTheta( Lens &lens, const double alpha, const double height )
 {
-    std::cerr << "alpha=" << Rad2Deg(alpha) << "; h=" << height << std::endl;
+    //std::cerr << "alpha=" << Rad2Deg(alpha) << "; h=" << height << std::endl;
     current_lens   = &lens;
     current_alpha  = alpha;
     current_height = height;
@@ -304,7 +304,7 @@ double Bridge:: FindTheta( Lens &lens, const double alpha, const double height )
 
 double Bridge:: FindAlpha( Lens &lens, const double theta, const double height )
 {
-    std::cerr << "theta=" << Rad2Deg(theta) << "; h=" << height << std::endl;
+    //std::cerr << "theta=" << Rad2Deg(theta) << "; h=" << height << std::endl;
     current_lens   = &lens;
     current_theta  = theta;
     current_height = height;
@@ -384,6 +384,45 @@ double Bridge:: FindAlpha( Lens &lens, const double theta, const double height )
         return 0.5*(al_left+al_right);
     }
 }
+
+
+double Bridge:: FindHMAX( Lens &lens, const double theta)
+{
+    //current_lens   = &lens;
+    //current_theta  = theta;
+    //current_fp     = NULL;
+
+    double h_lo = 0;
+    if(FindAlpha(lens, theta, h_lo)<0)
+    {
+        throw exception("no solution for h=0!!");
+    }
+
+    double h_hi = 5*capillary_length;
+    while(FindAlpha(lens, theta, h_hi)>=0)
+    {
+        h_hi += capillary_length;
+    }
+    //std::cerr << "h_hi=" << h_hi << std::endl;
+
+    const double htol = log_round_floor(capillary_length/100.0);
+    while(h_hi-h_lo>htol)
+    {
+        const double hmid = clamp(h_lo,0.5*(h_hi+h_lo),h_hi);
+        if(FindAlpha(lens,theta,hmid)<0 )
+        {
+            h_hi = hmid;
+        }
+        else
+        {
+            h_lo = hmid;
+        }
+    }
+
+
+    return h_lo;
+}
+
 
 
 

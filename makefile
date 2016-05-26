@@ -3,7 +3,7 @@ CREATE := $(YROOT)/share/yocto/create.sh
 all:
 
 clean:
-	@echo "-- removing temporary files" && rm -f *.bin *.dat *.silo *.vtk *.xyz *.stl *.vtk *.log && rm -rf bin
+	@echo "-- removing temporary files" && rm -f *.bin *.dat *.silo *.vtk *.xyz *.stl *.vtk *.log *.png && rm -rf bin
 	@${MAKE} -C doc clean
 
 veryclean: clean

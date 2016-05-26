@@ -5,6 +5,7 @@
 #include "yocto/sequence/lw-array.hpp"
 #include "yocto/string/conv.hpp"
 #include "yocto/math/io/data-set.hpp"
+#include "yocto/math/round.hpp"
 
 YOCTO_PROGRAM_START()
 {
@@ -59,14 +60,17 @@ YOCTO_PROGRAM_START()
     bridge.capillary_length = strconv::to<double>(argv[2],"capillary_length");
 
     string output_abaccus  = base_name;
-    vfs::change_extension(output_abaccus, "abaccus.dat");
+    const string out_id = vformat("abaccus%g.dat",bridge.capillary_length);
+    vfs::change_extension(output_abaccus, out_id);
     ios::ocstream::overwrite(output_abaccus);
 
+
+    
     for(int i=3;i<argc;++i)
     {
         const double theta_deg = strconv::to<double>(argv[i],"theta");
         const double theta     = Deg2Rad(theta_deg);
-        double       dh        = 0.05;
+        double       dh        = log_round_floor(bridge.capillary_length/50);
         int          count     = 0;
         ios::acstream fp(output_abaccus);
 

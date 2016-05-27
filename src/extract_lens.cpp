@@ -8,9 +8,12 @@
 #include "yocto/graphics/image/tiff.hpp"
 #include "yocto/ios/ocstream.hpp"
 
+#include "yocto/math/alg/shapes.hpp"
+
 
 using namespace yocto;
 using namespace graphics;
+using namespace math;
 
 YOCTO_PROGRAM_START()
 {
@@ -71,6 +74,9 @@ YOCTO_PROGRAM_START()
         vfs::change_extension(output, "coords");
         std::cerr << "saving to " << output << std::endl;
         ios::wcstream fp(output);
+        fit_conic<double>  FitConic;
+        fit_circle<double> FitCircle;
+
         for(unit_t i=0;i<w;++i)
         {
 
@@ -80,6 +86,8 @@ YOCTO_PROGRAM_START()
                 {
                     fp("%g %g\n", double(i), double(j));
                     edge[j][i] = 1.0;
+                    FitConic.append(double(i), double(j));
+                    FitCircle.append(double(i), double(j));
                     break;
                 }
             }
@@ -87,6 +95,13 @@ YOCTO_PROGRAM_START()
         }
 
         PNG.save("edge1.png",edge,NULL);
+
+        double          circle_radius = 0;
+        point2d<double> circle_center;
+        FitCircle.solve(circle_radius, circle_center);
+        std::cerr << "circle_radius=" << circle_radius << std::endl;
+        std::cerr << "circle_center=" << circle_center << std::endl;
+
 
 
 

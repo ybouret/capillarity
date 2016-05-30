@@ -39,7 +39,7 @@ public:
 
 private:
     double v_center;
-
+    double mu2;
     YOCTO_DISABLE_COPY_AND_ASSIGN(Bridge);
     void __Eq( array<double> &dYdt, double, const array<double> &Y);
     void __Cb( array<double> &Y, double );

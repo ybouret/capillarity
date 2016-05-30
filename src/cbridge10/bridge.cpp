@@ -10,10 +10,11 @@ param(nvar),
 flag(false),
 eq( this, & Bridge::__Eq ),
 cb( this, & Bridge::__Cb ),
-v_center(0)
+v_center(0),
+mu2(0)
 {
     odeint.start(nvar);
-    
+
 }
 
 Bridge:: ~Bridge() throw()
@@ -33,7 +34,7 @@ void Bridge:: __Eq( array<double> &dYdt, double, const array<double> &Y)
     {
         dYdt[BRIDGE_U] = C;
         dYdt[BRIDGE_V] = S;
-        dYdt[BRIDGE_A] = v/(mu*mu) - S/u;
+        dYdt[BRIDGE_A] = mu2 * v - S/u;
     }
     else
     {
@@ -77,6 +78,7 @@ double Bridge:: profile( const double alpha, const double theta, const double ze
     assert(alpha<numeric<double>::pi);
     flag = true;
     v_center = 1.0+zeta;
+    mu2      = mu*mu;
     param[BRIDGE_U] = sin(alpha);
     param[BRIDGE_V] = v_center - cos(alpha);
     param[BRIDGE_A] = alpha+theta-numeric<double>::pi;
@@ -107,12 +109,27 @@ double Bridge:: profile( const double alpha, const double theta, const double ze
         //
         // would break...
         //______________________________________________________________________
-        const double dr_prev = cos( pprev[BRIDGE_A] );
-        const double dr_curr = cos( param[BRIDGE_A] );
-        if(dr_prev>=0&&dr_curr<0)
+
+        // if u was increasing then decreases
         {
-            std::cerr << "returning!" << std::endl;
-            break;
+            const double du_prev = cos( pprev[BRIDGE_A] );
+            const double du_curr = cos( param[BRIDGE_A] );
+            if(du_prev>=0&&du_curr<0)
+            {
+                std::cerr << "u-returning!" << std::endl;
+                break;
+            }
+        }
+
+        {
+            // if dz is zero
+            const double dv_prev = sin( pprev[BRIDGE_A] );
+            const double dv_curr = sin( param[BRIDGE_A] );
+            if(dv_prev*dv_curr<=0)
+            {
+                std::cerr << "z-extremum" << std::endl;
+                break;
+            }
         }
 
         tau = tau_next;
@@ -122,6 +139,7 @@ double Bridge:: profile( const double alpha, const double theta, const double ze
         if(tau>10)
             break;
     }
-
-    return 0;
+    
+    return param[BRIDGE_V];
+    
 }

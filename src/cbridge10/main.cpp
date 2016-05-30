@@ -43,7 +43,7 @@ YOCTO_PROGRAM_START()
         }
     }
 
-#if 0
+#if 1
     {
         ios::wcstream ap("ans.dat");
         ios::wcstream fp("prof.dat");

@@ -5,7 +5,7 @@
 
 YOCTO_PROGRAM_START()
 {
-    Bridge B(1e-5);
+    Bridge B(0.01,1e-5);
 
     double alpha_deg = 20;
     double theta_deg = 100;
@@ -59,10 +59,10 @@ YOCTO_PROGRAM_START()
     {
         ios::wcstream ap("ans.dat");
         ios::wcstream fp("prof.dat");
-        for(alpha_deg=0.1;alpha_deg<90;alpha_deg+=0.2)
+        for(alpha_deg=0.1;alpha_deg<90;alpha_deg+=0.1)
         {
             const double ans = B.profile( Deg2Rad(alpha_deg), Deg2Rad(theta_deg), zeta, &fp);
-            ap("%g %g\n", alpha_deg, ans);
+            ap("%g %g %g %g\n", alpha_deg, ans, B.param[BRIDGE_U], sin(B.param[BRIDGE_A]));
             fp << "\n";
         }
 

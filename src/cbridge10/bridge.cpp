@@ -163,7 +163,7 @@ double Bridge:: profile( const double alpha, const double theta, const double ze
                 const double c   = max_of(Hypotenuse(I.x, I.y),1.0)-1;
                 const double DeltaPrime = max_of(b*b-a*c,0.0);
                 const double X = clamp<double>(0, -(b+sqrt(DeltaPrime))/a, 1);
-                std::cerr << "return in lens" << std::endl;
+                //std::cerr << "return in lens" << std::endl;
                 const double v   = pprev[BRIDGE_V] + X * (param[BRIDGE_V]-pprev[BRIDGE_V]);
                 const double u   = pprev[BRIDGE_U] + X * (param[BRIDGE_U]-pprev[BRIDGE_U]);
                 const double phi = pprev[BRIDGE_A] + X * (param[BRIDGE_A]-pprev[BRIDGE_A]);
@@ -181,7 +181,7 @@ double Bridge:: profile( const double alpha, const double theta, const double ze
             const double du_curr = cos( param[BRIDGE_A] );
             if(du_prev>=0&&du_curr<0)
             {
-                std::cerr << "u-returning!" << std::endl;
+                //std::cerr << "u-returning!" << std::endl;
                 const double X = clamp<double>(0.0,-du_prev/(du_curr-du_prev),1.0);
                 const double v   = pprev[BRIDGE_V] + X * (param[BRIDGE_V]-pprev[BRIDGE_V]);
                 const double u   = pprev[BRIDGE_U] + X * (param[BRIDGE_U]-pprev[BRIDGE_U]);
@@ -198,7 +198,7 @@ double Bridge:: profile( const double alpha, const double theta, const double ze
             const double dv_curr = sin( param[BRIDGE_A] );
             if(dv_prev*dv_curr<=0)
             {
-                std::cerr << "z-extremum" << std::endl;
+                //std::cerr << "z-extremum" << std::endl;
                 assert(Fabs(dv_prev)>0||Fabs(dv_curr)>0);
                 const double X = clamp<double>(0.0,-dv_prev/(dv_curr-dv_prev),1.0);
                 const double v   = pprev[BRIDGE_V] + X * (param[BRIDGE_V]-pprev[BRIDGE_V]);
@@ -216,7 +216,7 @@ double Bridge:: profile( const double alpha, const double theta, const double ze
             const double v_curr = param[BRIDGE_V];
             if(v_prev*v_curr<=0)
             {
-                std::cerr << "z-crossing" << std::endl;
+                //std::cerr << "z-crossing" << std::endl;
                 assert(Fabs(v_prev)>0||Fabs(v_curr)>0);
                 const double X = clamp<double>(0,-v_prev/(v_curr-v_prev),1.0);
                 const double v   = 0;//pprev[BRIDGE_V] + X * (param[BRIDGE_V]-pprev[BRIDGE_V]);
@@ -245,13 +245,27 @@ double Bridge:: __profile_of_alpha(const double alpha)
 }
 
 #include "yocto/math/opt/bracket.hpp"
+#include "yocto/ios/ocstream.hpp"
 
 double Bridge:: find_alpha(const double theta, const double zeta)
 {
+    // prepare functions
     current_theta = theta;
     current_zeta  = zeta;
-    
-    
+    //Function &F  = fn_of_alpha;
+
+#if 1
+    {
+        ios::wcstream fp("find-alpha.dat");
+        ios::wcstream pp("prof-alpha.dat");
+        for(double a_deg = 0.5; a_deg <= 90; a_deg += 0.5 )
+        {
+            fp("%.15g %.15g\n", a_deg, profile(Deg2Rad(a_deg), theta, zeta, &pp) );
+            pp << "\n";
+        }
+    }
+#endif
+
     
     return 0;
 }

@@ -7,6 +7,7 @@ mu(1),
 odeint(ftol),
 pprev(nvar),
 param(nvar),
+prate(nvar),
 flag(false),
 eq( this, & Bridge::__Eq ),
 cb( this, & Bridge::__Cb ),
@@ -25,8 +26,7 @@ Bridge:: ~Bridge() throw()
 {
 }
 
-
-void Bridge:: __Eq( array<double> &dYdt, double, const array<double> &Y)
+void   Bridge:: compute_rates(array<double> &dYdt, const array<double> &Y)  throw()
 {
     const double u   = Y[BRIDGE_U];
     const double v   = Y[BRIDGE_V];
@@ -46,6 +46,18 @@ void Bridge:: __Eq( array<double> &dYdt, double, const array<double> &Y)
         tao::ld(dYdt,0);
     }
 
+}
+
+/*
+double Bridge:: angular_rate(const vector<double> &Y) const throw()
+{
+    return mu2 * Y[BRIDGE_V] - sin( Y[BRIDGE_A] ) / Y[BRIDGE_U];
+}
+*/
+
+void Bridge:: __Eq( array<double> &dYdt, double, const array<double> &Y)
+{
+    compute_rates(dYdt,Y);
 }
 
 
@@ -72,6 +84,7 @@ double Bridge:: goodness(const double u, const double v, const double phi) const
 }
 
 #include "yocto/math/point2d.hpp"
+#include "yocto/math/round.hpp"
 
 double Bridge:: profile( const double alpha, const double theta, const double zeta, ios::ostream *fp )
 {
@@ -96,17 +109,26 @@ double Bridge:: profile( const double alpha, const double theta, const double ze
     //
     // initialize step: TODO set as arguments!
     //__________________________________________________________________________
-    const size_t RESOLUTION = 1000;
-    const double dtau_lower = param[BRIDGE_U]/RESOLUTION;
-    const double dtau_scale = 1.0/RESOLUTION;
-    double dtau = min_of(dtau_lower,dtau_scale);
-    double tctl = dtau;
+    const double max_delta_a = Deg2Rad(0.1);
+    const double max_delta_l = 1.0/100.0;
+
+    
 
     double tau = 0;
-    if(fp) (*fp)("%g %g %g\n", param[BRIDGE_U],param[BRIDGE_V], param[BRIDGE_A]);
+    if(fp) (*fp)("%.15g %.15g %.15g\n", param[BRIDGE_U],param[BRIDGE_V], param[BRIDGE_A]);
     while(true)
     {
+        // initialize to max delta_l
+        double       dtau = min_of(max_delta_l,param[BRIDGE_U]/10);
+
+        const double angular_rate = Fabs(mu2 *param[BRIDGE_V] - sin( param[BRIDGE_A] ) / param[BRIDGE_U]);
+        if( angular_rate * dtau > max_delta_a )
+        {
+            dtau = log_round_floor(max_delta_a/angular_rate);
+        }
+
         const double tau_next = tau + dtau;
+        double tctl = dtau/10.0;
         odeint(eq,param,tau,tau_next,tctl,&cb);
 
         if(!flag)
@@ -115,7 +137,7 @@ double Bridge:: profile( const double alpha, const double theta, const double ze
             const double u   = pprev[BRIDGE_U];
             const double v   = pprev[BRIDGE_V];
             const double phi = pprev[BRIDGE_V];
-            if(fp) (*fp)("%g %g %g\n", u,v,phi);
+            if(fp) (*fp)("%.15g %.15g %.15g\n", u,v,phi);
             return goodness(u, v, phi);
         }
 
@@ -125,7 +147,7 @@ double Bridge:: profile( const double alpha, const double theta, const double ze
         // would break...
         //______________________________________________________________________
 
-        if(false)
+        if(true)
         {
             // if returning into lens
             const point2d<double> J(param[BRIDGE_U],param[BRIDGE_V]-v_center);
@@ -145,7 +167,7 @@ double Bridge:: profile( const double alpha, const double theta, const double ze
                 const double v   = pprev[BRIDGE_V] + X * (param[BRIDGE_V]-pprev[BRIDGE_V]);
                 const double u   = pprev[BRIDGE_U] + X * (param[BRIDGE_U]-pprev[BRIDGE_U]);
                 const double phi = pprev[BRIDGE_A] + X * (param[BRIDGE_A]-pprev[BRIDGE_A]);
-                if(fp) (*fp)("%g %g %g\n", u,v,phi);
+                if(fp) (*fp)("%.15g %.15g %.15g\n", u,v,phi);
                 return goodness(u, v, phi);
             }
 
@@ -164,12 +186,12 @@ double Bridge:: profile( const double alpha, const double theta, const double ze
                 const double v   = pprev[BRIDGE_V] + X * (param[BRIDGE_V]-pprev[BRIDGE_V]);
                 const double u   = pprev[BRIDGE_U] + X * (param[BRIDGE_U]-pprev[BRIDGE_U]);
                 const double phi = pprev[BRIDGE_A] + X * (param[BRIDGE_A]-pprev[BRIDGE_A]);
-                if(fp) (*fp)("%g %g %g\n", u,v,phi);
+                if(fp) (*fp)("%.15g %.15g %.15g\n", u,v,phi);
                 return goodness(u, v, phi);
             }
         }
 
-        if(false)
+        if(true)
         {
             // if dv is zero
             const double dv_prev = sin( pprev[BRIDGE_A] );
@@ -182,7 +204,7 @@ double Bridge:: profile( const double alpha, const double theta, const double ze
                 const double v   = pprev[BRIDGE_V] + X * (param[BRIDGE_V]-pprev[BRIDGE_V]);
                 const double u   = pprev[BRIDGE_U] + X * (param[BRIDGE_U]-pprev[BRIDGE_U]);
                 const double phi = pprev[BRIDGE_A] + X * (param[BRIDGE_A]-pprev[BRIDGE_A]);
-                if(fp) (*fp)("%g %g %g\n", u,v,phi);
+                if(fp) (*fp)("%.15g %.15g %.15g\n", u,v,phi);
                 return goodness(u, v, phi);
             }
         }
@@ -200,7 +222,7 @@ double Bridge:: profile( const double alpha, const double theta, const double ze
                 const double v   = 0;//pprev[BRIDGE_V] + X * (param[BRIDGE_V]-pprev[BRIDGE_V]);
                 const double u   = pprev[BRIDGE_U] + X * (param[BRIDGE_U]-pprev[BRIDGE_U]);
                 const double phi = pprev[BRIDGE_A] + X * (param[BRIDGE_A]-pprev[BRIDGE_A]);
-                if(fp) (*fp)("%g %g %g\n", u,v,phi);
+                if(fp) (*fp)("%.15g %.15g %.15g\n", u,v,phi);
                 return goodness(u, v, phi);
             }
         }
@@ -208,8 +230,7 @@ double Bridge:: profile( const double alpha, const double theta, const double ze
 
         tau = tau_next;
         tao::set(pprev,param);
-        dtau = min_of(tctl,dtau_scale);
-        if(fp) (*fp)("%g %g %g\n", param[BRIDGE_U],param[BRIDGE_V],param[BRIDGE_A]);
+        if(fp) (*fp)("%.15g %.15g %.15g\n", param[BRIDGE_U],param[BRIDGE_V], param[BRIDGE_A]);
         if(tau>10)
             break;
     }

@@ -30,6 +30,7 @@ public:
     ode::driverCK<double>::type odeint;
     vector<double>              pprev;
     vector<double>              param;
+    vector<double>              prate;
     bool                        flag;
     Equation                    eq;
     Callback                    cb;
@@ -42,6 +43,8 @@ public:
     double find_alpha( const double theta, const double zeta );
 
     double goodness(const double u, const double v, const double phi) const throw();
+
+    void   compute_rates(array<double> &dY, const array<double> &Y) throw();
 
 private:
     double   v_center;

@@ -96,10 +96,11 @@ double Bridge:: profile( const double alpha, const double theta, const double ze
     //
     // initialize step: TODO set as arguments!
     //__________________________________________________________________________
-    const double dtau_lower = param[BRIDGE_U]/100.0;
-    const double dtau_scale = 1.0/100;
+    const size_t RESOLUTION = 1000;
+    const double dtau_lower = param[BRIDGE_U]/RESOLUTION;
+    const double dtau_scale = 1.0/RESOLUTION;
     double dtau = min_of(dtau_lower,dtau_scale);
-    double tctl = dtau/10.0;
+    double tctl = dtau;
 
     double tau = 0;
     if(fp) (*fp)("%g %g %g\n", param[BRIDGE_U],param[BRIDGE_V], param[BRIDGE_A]);
@@ -124,7 +125,7 @@ double Bridge:: profile( const double alpha, const double theta, const double ze
         // would break...
         //______________________________________________________________________
 
-
+        if(false)
         {
             // if returning into lens
             const point2d<double> J(param[BRIDGE_U],param[BRIDGE_V]-v_center);
@@ -168,6 +169,7 @@ double Bridge:: profile( const double alpha, const double theta, const double ze
             }
         }
 
+        if(false)
         {
             // if dv is zero
             const double dv_prev = sin( pprev[BRIDGE_A] );

@@ -80,7 +80,7 @@ void Bridge:: __Cb( array<double> &Y, double )
 double Bridge:: goodness(const double u, const double v, const double phi) const throw()
 {
     //return sign_of(v);
-    return v;
+    return Fabs(v);
     //return ((mu2*v-sin(phi)/u)/mu2);
     //return v < 0 ? -1 : (0<v ? 1 : 0);
 }
@@ -280,7 +280,7 @@ double Bridge:: find_alpha(const double theta, const double zeta)
     {
         ios::wcstream fp("find-alpha.dat");
         ios::wcstream pp("prof-alpha.dat");
-        const double a_deg_max = 90;//floor(Rad2Deg(alpha_max));
+        const double a_deg_max = 170;//floor(Rad2Deg(alpha_max));
         for(double a_deg = 0.2; a_deg <= a_deg_max; a_deg += 0.2 )
         {
             fp("%.15g %.15g\n", a_deg, profile(Deg2Rad(a_deg), theta, zeta, &pp) );
@@ -291,7 +291,8 @@ double Bridge:: find_alpha(const double theta, const double zeta)
 #endif
 
     
-
+    return 0;
+    
 
     double          alpha_hi = numeric<double>::pi/2;
     triplet<double> X        = { delta,  0,  alpha_hi};

@@ -79,8 +79,9 @@ void Bridge:: __Cb( array<double> &Y, double )
 
 double Bridge:: goodness(const double u, const double v, const double phi) const throw()
 {
+    //return sign_of(v);
     return v;
-    //return ((mu2*v-sin(phi)/u)/mu2);
+    return ((mu2*v-sin(phi)/u)/mu2);
     //return v < 0 ? -1 : (0<v ? 1 : 0);
 }
 
@@ -176,6 +177,7 @@ double Bridge:: profile( const double alpha, const double theta, const double ze
                 const double u   = pprev[BRIDGE_U] + X * (param[BRIDGE_U]-pprev[BRIDGE_U]);
                 const double phi = pprev[BRIDGE_A] + X * (param[BRIDGE_A]-pprev[BRIDGE_A]);
                 if(fp) (*fp)("%.15g %.15g %.15g\n", u,v,phi);
+
                 return goodness(u, v, phi);
             }
 
@@ -184,6 +186,7 @@ double Bridge:: profile( const double alpha, const double theta, const double ze
         }
 
         // if u was increasing then decreases
+        if(true)
         {
             const double du_prev = cos( pprev[BRIDGE_A] );
             const double du_curr = cos( param[BRIDGE_A] );
@@ -231,7 +234,8 @@ double Bridge:: profile( const double alpha, const double theta, const double ze
                 const double u   = pprev[BRIDGE_U] + X * (param[BRIDGE_U]-pprev[BRIDGE_U]);
                 const double phi = pprev[BRIDGE_A] + X * (param[BRIDGE_A]-pprev[BRIDGE_A]);
                 if(fp) (*fp)("%.15g %.15g %.15g\n", u,v,phi);
-                return goodness(u, v, phi);
+                return 0;
+                //return goodness(u, v, phi);
             }
         }
 

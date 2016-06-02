@@ -260,7 +260,7 @@ double Bridge:: __profile_of_alpha(const double alpha)
 
 double Bridge:: find_alpha(const double theta, const double zeta)
 {
-    std::cerr << "theta=" << theta << ", zeta=" << zeta << std::endl;
+    std::cerr << "theta=" << Rad2Deg(theta) << ", zeta=" << zeta << std::endl;
     // prepare functions
     current_theta = theta;
     current_zeta  = zeta;
@@ -292,20 +292,20 @@ double Bridge:: find_alpha(const double theta, const double zeta)
         // special case ?
         if(F.b>0)
         {
-            std::cerr << "-- minimizing..." << std::endl;
+            //std::cerr << "-- minimizing..." << std::endl;
             minimize(f, X, F,1e-4);
         }
         
         // what do we got
         if(F.b>0)
         {
-            std::cerr << "-- not possible..." << std::endl;
+            //std::cerr << "-- not possible..." << std::endl;
             return -1;
         }
         
         
         double alpha_lo = X.b;
-        std::cerr << "between " << Rad2Deg(alpha_lo) << " and " << Rad2Deg(alpha_hi) << std::endl;
+        //std::cerr << "between " << Rad2Deg(alpha_lo) << " and " << Rad2Deg(alpha_hi) << std::endl;
         while( (alpha_hi-alpha_lo)>delta )
         {
             const double alpha_mid = clamp(alpha_lo,0.5*(alpha_lo+alpha_hi),alpha_hi);
@@ -321,6 +321,17 @@ double Bridge:: find_alpha(const double theta, const double zeta)
         }
         const double alpha = 0.5 * ( alpha_lo+alpha_hi );
         std::cerr << "alpha=" << Rad2Deg(alpha) << std::endl;
+
+#if 1
+        {
+            ios::wcstream ap("good-alpha.txt");
+            if(alpha>0)
+            {
+                profile(alpha, theta, zeta, &ap);
+            }
+        }
+#endif
+
         return alpha;
         
     }
@@ -333,4 +344,19 @@ double Bridge:: find_alpha(const double theta, const double zeta)
     return 0;
 }
 
+double Bridge:: compute_zeta_max(const double theta)
+{
+    double zeta_lo = 0.0;
+    if( find_alpha(theta, zeta_lo) <= 0 )
+    {
+        throw exception("couldn't find bridge for zeta=%g", zeta_lo);
+    }
 
+    double zeta_hi = 1;
+    while( find_alpha(theta,zeta_lo) > 0 )
+    {
+        zeta_hi += 0.5;
+    }
+
+    return 0;
+}

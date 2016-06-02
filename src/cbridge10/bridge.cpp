@@ -81,10 +81,22 @@ double Bridge:: goodness(const double u, const double v, const double phi) const
 {
     return v;
     //return ((mu2*v-sin(phi)/u)/mu2);
+    //return v < 0 ? -1 : (0<v ? 1 : 0);
+}
+
+
+void Bridge:: compute_start(const double alpha, const double theta, const double zeta)
+{
+    v_center = 1.0+zeta;
+    mu2      = mu*mu;
+    param[BRIDGE_U] = sin(alpha);
+    param[BRIDGE_V] = v_center - cos(alpha);
+    param[BRIDGE_A] = alpha+theta-numeric<double>::pi;
 }
 
 #include "yocto/math/point2d.hpp"
 #include "yocto/math/round.hpp"
+
 
 double Bridge:: profile( const double alpha, const double theta, const double zeta, ios::ostream *fp )
 {
@@ -96,11 +108,7 @@ double Bridge:: profile( const double alpha, const double theta, const double ze
     assert(alpha>0);
     assert(alpha<numeric<double>::pi);
     flag     = true;
-    v_center = 1.0+zeta;
-    mu2      = mu*mu;
-    param[BRIDGE_U] = sin(alpha);
-    param[BRIDGE_V] = v_center - cos(alpha);
-    param[BRIDGE_A] = alpha+theta-numeric<double>::pi;
+    compute_start(alpha, theta, zeta);
 
 
     tao::set(pprev, param);
@@ -247,18 +255,22 @@ double Bridge:: __profile_of_alpha(const double alpha)
 #include "yocto/math/opt/bracket.hpp"
 #include "yocto/ios/ocstream.hpp"
 
+#include "yocto/math/opt/bracket.hpp"
+#include "yocto/math/opt/minimize.hpp"
+
 double Bridge:: find_alpha(const double theta, const double zeta)
 {
+    std::cerr << "theta=" << theta << ", zeta=" << zeta << std::endl;
     // prepare functions
     current_theta = theta;
     current_zeta  = zeta;
-    //Function &F  = fn_of_alpha;
-
+    Function &f  = fn_of_alpha;
+    
 #if 1
     {
         ios::wcstream fp("find-alpha.dat");
         ios::wcstream pp("prof-alpha.dat");
-        for(double a_deg = 0.5; a_deg <= 90; a_deg += 0.5 )
+        for(double a_deg = 0.2; a_deg <= 90; a_deg += 0.2 )
         {
             fp("%.15g %.15g\n", a_deg, profile(Deg2Rad(a_deg), theta, zeta, &pp) );
             pp << "\n";
@@ -266,6 +278,57 @@ double Bridge:: find_alpha(const double theta, const double zeta)
     }
 #endif
 
+    double          alpha_hi = numeric<double>::pi/2;
+    triplet<double> X        = { delta,  0,  alpha_hi};
+    triplet<double> F        = { f(X.a), 0,  f(X.c)  };
+    
+    if(F.c>0)
+    {
+        // bracket the minimum
+        bracket<double>::inside(f, X, F);
+        std::cerr << "bracket_X=" << X << std::endl;
+        std::cerr << "bracket_F=" << F << std::endl;
+        
+        // special case ?
+        if(F.b>0)
+        {
+            std::cerr << "-- minimizing..." << std::endl;
+            minimize(f, X, F,1e-4);
+        }
+        
+        // what do we got
+        if(F.b>0)
+        {
+            std::cerr << "-- not possible..." << std::endl;
+            return -1;
+        }
+        
+        
+        double alpha_lo = X.b;
+        std::cerr << "between " << Rad2Deg(alpha_lo) << " and " << Rad2Deg(alpha_hi) << std::endl;
+        while( (alpha_hi-alpha_lo)>delta )
+        {
+            const double alpha_mid = clamp(alpha_lo,0.5*(alpha_lo+alpha_hi),alpha_hi);
+            const double value_mid = f(alpha_mid);
+            if(value_mid<=0)
+            {
+                alpha_lo = alpha_mid;
+            }
+            else
+            {
+                alpha_hi = alpha_mid;
+            }
+        }
+        const double alpha = 0.5 * ( alpha_lo+alpha_hi );
+        std::cerr << "alpha=" << Rad2Deg(alpha) << std::endl;
+        return alpha;
+        
+    }
+    else
+    {
+        throw exception("Didn't handle F(pi/2)<=0");
+    }
+    
     
     return 0;
 }

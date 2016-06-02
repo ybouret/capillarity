@@ -16,6 +16,8 @@ YOCTO_PROGRAM_START()
     {
         mu   = strconv::to<double>(argv[iarg],"mu");
     }
+    
+    B.mu = mu;
 
     if(argc>++iarg)
     {
@@ -30,7 +32,7 @@ YOCTO_PROGRAM_START()
     }
     const double theta = Deg2Rad(theta_deg);
 
-
+    
 
     {
         ios::wcstream fp("lens.dat");

@@ -45,7 +45,8 @@ public:
     double goodness(const double u, const double v, const double phi) const throw();
 
     void   compute_rates(array<double> &dY, const array<double> &Y) throw();
-
+    void   compute_start(const double alpha, const double theta, const double zeta);
+    
 private:
     double   v_center;
     double   mu2;

@@ -290,76 +290,95 @@ double Bridge:: find_alpha(const double theta, const double zeta)
 
 #endif
 
-    
-    return 0;
-    
+    double alpha_lo = delta;
+    double value_lo = f(alpha_lo);
+    double alpha_hi = numeric<double>::pi/2;
+    double value_hi = f(alpha_hi);
 
-    double          alpha_hi = numeric<double>::pi/2;
-    triplet<double> X        = { delta,  0,  alpha_hi};
-    triplet<double> F        = { f(X.a), 0,  f(X.c)  };
-    
-    if(F.c>0)
+    if(value_hi<=0) throw exception("invalid value@90deg");
+
+    triplet<double> X = { alpha_lo, 0, alpha_hi };
+    triplet<double> F = { value_lo, 0, value_hi };
+
+    bracket<double>::inside(f, X, F);
+    optimize(f, X, F, delta);
+    double alpha_opt = X.b;
+    double value_opt = F.b;
+
+    std::cerr << "alpha_opt=" << Rad2Deg(alpha_opt) << std::endl;
+    std::cerr << "value_opt=" << value_opt          << std::endl;
+
+    if(value_opt>0)
     {
-        // bracket the minimum
-        bracket<double>::inside(f, X, F);
-        std::cerr << "bracket_X=" << X << std::endl;
-        std::cerr << "bracket_F=" << F << std::endl;
-        
-        // special case ?
-        if(F.b>0)
+        std::cerr << "no intersection!" << std::endl;
+        return -1;
+    }
+
+    // right value, for any zeta
+    double alpha_r = alpha_opt;
+    double diff_r  = value_hi;
+    {
+        double alpha_top = alpha_hi;
+        while((alpha_top-alpha_r)>delta)
         {
-            //std::cerr << "-- minimizing..." << std::endl;
-            minimize(f, X, F,1e-4);
-        }
-        
-        // what do we got
-        if(F.b>0)
-        {
-            //std::cerr << "-- not possible..." << std::endl;
-            return -1;
-        }
-        
-        
-        double alpha_lo = X.b;
-        //std::cerr << "between " << Rad2Deg(alpha_lo) << " and " << Rad2Deg(alpha_hi) << std::endl;
-        while( (alpha_hi-alpha_lo)>delta )
-        {
-            const double alpha_mid = clamp(alpha_lo,0.5*(alpha_lo+alpha_hi),alpha_hi);
+            const double alpha_mid = clamp(alpha_r,0.5*(alpha_r+alpha_top),alpha_top);
             const double value_mid = f(alpha_mid);
             if(value_mid<=0)
             {
-                alpha_lo = alpha_mid;
+                alpha_r = alpha_mid;
             }
             else
             {
-                alpha_hi = alpha_mid;
+                alpha_top = alpha_mid;
+                diff_r    = value_mid;
             }
         }
-        //const double alpha = 0.5 * ( alpha_lo+alpha_hi );
-        const double alpha = alpha_lo;
-
-        std::cerr << "alpha=" << Rad2Deg(alpha) << std::endl;
-
-#if 1
-        {
-            ios::wcstream ap("good-alpha.txt");
-            if(alpha>0)
-            {
-                profile(alpha, theta, zeta, &ap);
-            }
-        }
-#endif
-
-        return alpha;
-        
     }
-    else
+
+    std::cerr << "alpha_r=" << Rad2Deg(alpha_r) << std::endl;
+    std::cerr << "diff_r =" << diff_r           << std::endl;
+
+    double alpha = alpha_r;
+
+    if(zeta<0&&value_lo>0)
     {
-        throw exception("Didn't handle F(pi/2)<=0");
+        std::cerr << "looking for alpha_l..." << std::endl;
+        double alpha_l = alpha_opt;
+        double diff_l  = value_lo;
+        {
+            double alpha_bot = alpha_lo;
+            while( (alpha_l-alpha_bot)>delta )
+            {
+                const double alpha_mid = clamp(alpha_bot,0.5*(alpha_l+alpha_bot),alpha_l);
+                const double value_mid = f(alpha_mid);
+                if(value_mid<=0)
+                {
+                    alpha_l = alpha_mid;
+                }
+                else
+                {
+                    alpha_bot = alpha_mid;
+                    diff_l    = value_mid;
+                }
+            }
+        }
+        std::cerr << "alpha_l=" << Rad2Deg(alpha_l) << std::endl;
+        std::cerr << "diff_l =" << diff_l           << std::endl;
+        if(diff_l<diff_r)
+        {
+            alpha=alpha_l;
+        }
     }
+
+
+    {
+        ios::wcstream ap("good-alpha.dat");
+        (void)profile(alpha, theta, zeta, &ap);
+
+    }
+
+    return alpha;
     
-    
-    return 0;
 }
 
 double Bridge:: compute_zeta_max(const double theta)

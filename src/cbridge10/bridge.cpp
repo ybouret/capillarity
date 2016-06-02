@@ -81,7 +81,7 @@ double Bridge:: goodness(const double u, const double v, const double phi) const
 {
     //return sign_of(v);
     return v;
-    return ((mu2*v-sin(phi)/u)/mu2);
+    //return ((mu2*v-sin(phi)/u)/mu2);
     //return v < 0 ? -1 : (0<v ? 1 : 0);
 }
 
@@ -265,22 +265,33 @@ double Bridge:: __profile_of_alpha(const double alpha)
 double Bridge:: find_alpha(const double theta, const double zeta)
 {
     std::cerr << "theta=" << Rad2Deg(theta) << ", zeta=" << zeta << std::endl;
+
+    //__________________________________________________________________________
+    //
     // prepare functions
+    //__________________________________________________________________________
     current_theta = theta;
     current_zeta  = zeta;
-    Function &f  = fn_of_alpha;
-    
+    Function &f   = fn_of_alpha;
+    //const double alpha_max = numeric<double>::pi-theta;
+
+
 #if 1
     {
         ios::wcstream fp("find-alpha.dat");
         ios::wcstream pp("prof-alpha.dat");
-        for(double a_deg = 0.2; a_deg <= 90; a_deg += 0.2 )
+        const double a_deg_max = 90;//floor(Rad2Deg(alpha_max));
+        for(double a_deg = 0.2; a_deg <= a_deg_max; a_deg += 0.2 )
         {
             fp("%.15g %.15g\n", a_deg, profile(Deg2Rad(a_deg), theta, zeta, &pp) );
             pp << "\n";
         }
     }
+
 #endif
+
+    
+
 
     double          alpha_hi = numeric<double>::pi/2;
     triplet<double> X        = { delta,  0,  alpha_hi};
@@ -324,7 +335,7 @@ double Bridge:: find_alpha(const double theta, const double zeta)
             }
         }
         //const double alpha = 0.5 * ( alpha_lo+alpha_hi );
-        const double alpha = alpha_hi;
+        const double alpha = alpha_lo;
 
         std::cerr << "alpha=" << Rad2Deg(alpha) << std::endl;
 

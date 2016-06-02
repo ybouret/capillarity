@@ -319,7 +319,9 @@ double Bridge:: find_alpha(const double theta, const double zeta)
                 alpha_hi = alpha_mid;
             }
         }
-        const double alpha = 0.5 * ( alpha_lo+alpha_hi );
+        //const double alpha = 0.5 * ( alpha_lo+alpha_hi );
+        const double alpha = alpha_hi;
+
         std::cerr << "alpha=" << Rad2Deg(alpha) << std::endl;
 
 #if 1

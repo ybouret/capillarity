@@ -48,19 +48,10 @@ void   Bridge:: compute_rates(array<double> &dYdt, const array<double> &Y)  thro
 
 }
 
-/*
-double Bridge:: angular_rate(const vector<double> &Y) const throw()
-{
-    return mu2 * Y[BRIDGE_V] - sin( Y[BRIDGE_A] ) / Y[BRIDGE_U];
-}
-*/
-
 void Bridge:: __Eq( array<double> &dYdt, double, const array<double> &Y)
 {
     compute_rates(dYdt,Y);
 }
-
-
 
 void Bridge:: __Cb( array<double> &Y, double )
 {
@@ -128,7 +119,7 @@ double Bridge:: profile( const double alpha, const double theta, const double ze
     while(true)
     {
         // initialize to max delta_l
-        double       dtau = min_of(max_delta_l,param[BRIDGE_U]/10);
+        double       dtau = min_of(max_delta_l,param[BRIDGE_U]/10.0);
 
         const double angular_rate = Fabs(mu2 *param[BRIDGE_V] - sin( param[BRIDGE_A] ) / param[BRIDGE_U]);
         if( angular_rate * dtau > max_delta_a )
@@ -264,7 +255,7 @@ double Bridge:: __profile_of_alpha(const double alpha)
 
 double Bridge:: find_alpha(const double theta, const double zeta)
 {
-    std::cerr << "theta=" << Rad2Deg(theta) << ", zeta=" << zeta << std::endl;
+    //std::cerr << "theta=" << Rad2Deg(theta) << ", zeta=" << zeta << std::endl;
 
     //__________________________________________________________________________
     //
@@ -276,7 +267,7 @@ double Bridge:: find_alpha(const double theta, const double zeta)
     //const double alpha_max = numeric<double>::pi-theta;
 
 
-#if 1
+#if 0
     {
         ios::wcstream fp("find-alpha.dat");
         ios::wcstream pp("prof-alpha.dat");
@@ -287,7 +278,6 @@ double Bridge:: find_alpha(const double theta, const double zeta)
             pp << "\n";
         }
     }
-
 #endif
 
     double alpha_lo = delta;
@@ -305,12 +295,12 @@ double Bridge:: find_alpha(const double theta, const double zeta)
     double alpha_opt = X.b;
     double value_opt = F.b;
 
-    std::cerr << "alpha_opt=" << Rad2Deg(alpha_opt) << std::endl;
-    std::cerr << "value_opt=" << value_opt          << std::endl;
+    //std::cerr << "alpha_opt=" << Rad2Deg(alpha_opt) << std::endl;
+    //std::cerr << "value_opt=" << value_opt          << std::endl;
 
     if(value_opt>0)
     {
-        std::cerr << "no intersection!" << std::endl;
+        //std::cerr << "no intersection!" << std::endl;
         return -1;
     }
 
@@ -335,14 +325,14 @@ double Bridge:: find_alpha(const double theta, const double zeta)
         }
     }
 
-    std::cerr << "alpha_r=" << Rad2Deg(alpha_r) << std::endl;
-    std::cerr << "diff_r =" << diff_r           << std::endl;
+    //std::cerr << "alpha_r=" << Rad2Deg(alpha_r) << std::endl;
+    //std::cerr << "diff_r =" << diff_r           << std::endl;
 
     double alpha = alpha_r;
 
     if(zeta<0&&value_lo>0)
     {
-        std::cerr << "looking for alpha_l..." << std::endl;
+        //std::cerr << "looking for alpha_l..." << std::endl;
         double alpha_l = alpha_opt;
         double diff_l  = value_lo;
         {
@@ -362,8 +352,8 @@ double Bridge:: find_alpha(const double theta, const double zeta)
                 }
             }
         }
-        std::cerr << "alpha_l=" << Rad2Deg(alpha_l) << std::endl;
-        std::cerr << "diff_l =" << diff_l           << std::endl;
+        //std::cerr << "alpha_l=" << Rad2Deg(alpha_l) << std::endl;
+        //std::cerr << "diff_l =" << diff_l           << std::endl;
         if(diff_l<diff_r)
         {
             alpha=alpha_l;
@@ -371,12 +361,14 @@ double Bridge:: find_alpha(const double theta, const double zeta)
     }
 
 
+#if 0
     {
         ios::wcstream ap("good-alpha.dat");
         (void)profile(alpha, theta, zeta, &ap);
 
     }
-
+#endif
+    
     return alpha;
     
 }
@@ -390,10 +382,24 @@ double Bridge:: compute_zeta_max(const double theta)
     }
 
     double zeta_hi = 1;
-    while( find_alpha(theta,zeta_lo) > 0 )
+    while( find_alpha(theta,zeta_hi) > 0 )
     {
         zeta_hi += 0.5;
     }
-
-    return 0;
+    
+    while( zeta_hi - zeta_lo > odeint.eps )
+    {
+        const double zeta_mid  = clamp(zeta_lo,0.5*(zeta_lo+zeta_hi),zeta_hi);
+        const double alpha_mid = find_alpha(theta,zeta_mid);
+        if(alpha_mid<0)
+        {
+            zeta_hi = zeta_mid;
+        }
+        else
+        {
+            zeta_lo = zeta_mid;
+        }
+    }
+    
+    return zeta_lo;
 }

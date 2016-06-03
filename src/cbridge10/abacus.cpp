@@ -6,49 +6,36 @@
 YOCTO_PROGRAM_START()
 {
     Bridge B(0.01,1e-5);
-
-    double zeta = 0;
+    
     int    iarg = 0;
-
-
+    
+    
     if(argc>++iarg)
     {
         B.mu   = strconv::to<double>(argv[iarg],"mu");
     }
     std::cerr << "mu=" << B.mu << std::endl;
-
-#if 0
-    if(argc>++iarg)
+    
+    
+    
+    const string zeta_file = vformat("zeta_max%g.dat",B.mu);
+    ios::ocstream::overwrite(zeta_file);
+    
+    //__________________________________________________________________________
+    //
+    // find zeta_max
+    //__________________________________________________________________________
+    for(int t_deg = 40; t_deg <= 170; t_deg+=10)
     {
-        zeta = strconv::to<double>(argv[iarg],"zeta");
-    }
-    std::cerr << "zeta=" << zeta << std::endl;
-#endif
-
-
-    double theta_deg = 100;
-    if(argc>++iarg)
-    {
-        theta_deg = strconv::to<double>(argv[iarg],"theta");
-    }
-    const double theta = Deg2Rad(theta_deg);
-    std::cerr << "theta=" << theta << std::endl;
-
-#if 0
-    {
-        ios::wcstream fp("lens.dat");
-        for(double ad=-180;ad<=180;ad+=0.1)
+        std::cerr << "theta=" << t_deg << std::endl; std::cerr.flush();
+        const double theta = Deg2Rad( double(t_deg) );
+        const double zeta_max = B.compute_zeta_max( theta);
+        std::cerr << "zeta_max=" << zeta_max << std::endl;
         {
-            const double a = Deg2Rad(ad);
-            fp("%g %g\n",sin(a),zeta+(1.0-cos(a)));
+            ios::acstream zp(zeta_file);
+            zp("%.15g %.15g\n", double(t_deg), zeta_max);
         }
     }
-#endif
-    
-
-    (void) B.find_alpha(theta,zeta);
-    
-    
     
 }
 YOCTO_PROGRAM_END()

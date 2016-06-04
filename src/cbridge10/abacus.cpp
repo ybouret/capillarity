@@ -51,7 +51,7 @@ YOCTO_PROGRAM_START()
             const double surf  = numeric<double>::pi * Square( sin(alpha) );
             std::cerr << "\tzeta=" << zeta << " => " << alpha << " rad => " << Rad2Deg(alpha) << " deg" << std::endl;
             ios::acstream fp(abac_file);
-            fp("%.15g %.15g %.15g\n",zeta,surf,Rad2Deg(alpha));
+            fp("%.15g %.15g %.15g %.15g\n",zeta,surf,Rad2Deg(alpha),alpha);
         }
         {
             ios::acstream fp(abac_file);

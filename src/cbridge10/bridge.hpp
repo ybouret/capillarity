@@ -25,7 +25,7 @@ public:
     explicit Bridge(const double delta_degrees,
                     const double ftol,
                     const double actrl_degrees,
-                    const double speed_control);
+                    const double sctrl);
     virtual ~Bridge() throw();
     
     const size_t                nvar;
@@ -37,8 +37,8 @@ public:
     Equation                    eq;
     Callback                    cb;
     const double                delta; //!< search resolution in radians
-    const double                actrl; //!< angle control in radians
-    const double                speed; //!< max speed = tau max
+    const double                angle_control;  //!< angle control in radians
+    const double                shift_control; //!< max speed = tau max
 
     double profile_old( const double alpha, const double theta, const double zeta, ios::ostream *fp );
 

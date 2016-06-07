@@ -4,7 +4,7 @@
 Bridge:: Bridge(const double delta_degrees,
                 const double ftol,
                 const double actrl_degrees,
-                const double speed_control) :
+                const double sctrl) :
 nvar( BRIDGE_N ),
 mu(1),
 odeint(ftol),
@@ -14,8 +14,8 @@ flag(false),
 eq( this, & Bridge::__Eq ),
 cb( this, & Bridge::__Cb ),
 delta( Deg2Rad(delta_degrees) ),
-actrl( Deg2Rad(actrl_degrees) ),
-speed( speed_control ),
+angle_control( Deg2Rad(actrl_degrees) ),
+shift_control( sctrl ),
 v_center(0),
 mu2(0),
 current_theta(0),
@@ -25,8 +25,8 @@ fn_of_alpha( this, & Bridge:: __profile_of_alpha )
     odeint.start(nvar);
     std::cerr << "odeint.eps=" << odeint.eps << std::endl;
     std::cerr << "angular_search=" << Rad2Deg(delta) << std::endl;
-    std::cerr << "max_angular_step=" << Rad2Deg(actrl) << std::endl;
-    std::cerr << "max_linear_step =" << speed          << std::endl;
+    std::cerr << "angle_control="  << Rad2Deg(angle_control) << std::endl;
+    std::cerr << "shift_control="  << shift_control          << std::endl;
 }
 
 Bridge:: ~Bridge() throw()
@@ -119,8 +119,8 @@ double Bridge:: profile_old(const double  alpha,
     //
     // initialize step
     //__________________________________________________________________________
-    const double max_delta_a = actrl;
-    const double max_delta_l = speed;
+    const double max_delta_a = angle_control;
+    const double max_delta_l = shift_control;
 
 
 
@@ -287,8 +287,8 @@ double Bridge:: profile(const double  alpha,
     //
     // initialize step
     //__________________________________________________________________________
-    const double max_delta_a = actrl;
-    const double max_delta_l = speed;
+    const double max_delta_a = angle_control;
+    const double max_delta_l = shift_control;
     const double v0          = param[BRIDGE_V];
 
 

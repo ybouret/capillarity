@@ -1,17 +1,21 @@
 #include "bridge.hpp"
 #include "yocto/math/core/tao.hpp"
 
-Bridge:: Bridge(const double delta_degrees, const double ftol) :
+Bridge:: Bridge(const double delta_degrees,
+                const double ftol,
+                const double actrl_degrees,
+                const double speed_control) :
 nvar( BRIDGE_N ),
 mu(1),
 odeint(ftol),
 pprev(nvar),
 param(nvar),
-prate(nvar),
 flag(false),
 eq( this, & Bridge::__Eq ),
 cb( this, & Bridge::__Cb ),
 delta( Deg2Rad(delta_degrees) ),
+actrl( Deg2Rad(actrl_degrees) ),
+speed( speed_control ),
 v_center(0),
 mu2(0),
 current_theta(0),
@@ -90,7 +94,10 @@ void Bridge:: compute_start(const double alpha, const double theta, const double
 #include "yocto/math/round.hpp"
 
 
-double Bridge:: profile( const double alpha, const double theta, const double zeta, ios::ostream *fp )
+double Bridge:: profile_old(const double  alpha,
+                            const double  theta,
+                            const double  zeta,
+                            ios::ostream *fp )
 {
     //__________________________________________________________________________
     //
@@ -107,12 +114,12 @@ double Bridge:: profile( const double alpha, const double theta, const double ze
 
     //__________________________________________________________________________
     //
-    // initialize step: TODO set as arguments!
+    // initialize step
     //__________________________________________________________________________
-    const double max_delta_a = Deg2Rad(0.1);
-    const double max_delta_l = 1.0/100.0;
+    const double max_delta_a = actrl;
+    const double max_delta_l = speed;
 
-    
+
 
     double tau = 0;
     if(fp) (*fp)("%.15g %.15g %.15g\n", param[BRIDGE_U],param[BRIDGE_V], param[BRIDGE_A]);
@@ -242,6 +249,164 @@ double Bridge:: profile( const double alpha, const double theta, const double ze
 
 }
 
+
+
+double Bridge:: profile(const double  alpha,
+                        const double  theta,
+                        const double  zeta,
+                        ios::ostream *fp )
+{
+    //__________________________________________________________________________
+    //
+    // initialize geometry
+    //__________________________________________________________________________
+
+    assert(alpha>0);
+    assert(alpha<numeric<double>::pi);
+    flag     = true;
+    compute_start(alpha, theta, zeta);
+
+
+    tao::set(pprev, param);
+
+    //__________________________________________________________________________
+    //
+    // initialize step
+    //__________________________________________________________________________
+    const double max_delta_a = actrl;
+    const double max_delta_l = speed;
+
+
+
+    double tau = 0;
+    if(fp) (*fp)("%.15g %.15g %.15g\n", param[BRIDGE_U],param[BRIDGE_V], param[BRIDGE_A]);
+    while(true)
+    {
+        // initialize to max delta_l
+        double       dtau = min_of(max_delta_l,param[BRIDGE_U]/10.0);
+
+        const double angular_rate = Fabs(mu2 *param[BRIDGE_V] - sin( param[BRIDGE_A] ) / param[BRIDGE_U]);
+        if( angular_rate * dtau > max_delta_a )
+        {
+            dtau = log_round_floor(max_delta_a/angular_rate);
+        }
+
+        const double tau_next = tau + dtau;
+        double tctl = dtau/10.0;
+        odeint(eq,param,tau,tau_next,tctl,&cb);
+
+        if(!flag)
+        {
+
+            const double u   = pprev[BRIDGE_U];
+            const double v   = pprev[BRIDGE_V];
+            const double phi = pprev[BRIDGE_V];
+            if(fp) (*fp)("%.15g %.15g %.15g\n", u,v,phi);
+            return goodness(u, v, phi);
+        }
+
+
+        //______________________________________________________________________
+        //
+        // would break...
+        //______________________________________________________________________
+
+        if(true)
+        {
+            // if returning into lens
+            const point2d<double> J(param[BRIDGE_U],param[BRIDGE_V]-v_center);
+            const double Jnorm = Hypotenuse(J.x,J.y);
+
+            if( Jnorm < 1.0 )
+            {
+                // assuming pprev is outside
+                const point2d<double> I(pprev[BRIDGE_U],pprev[BRIDGE_V]-v_center);
+                const point2d<double> IJ(J.x-I.x,param[BRIDGE_V]-pprev[BRIDGE_V]);
+                const double a   = IJ.norm2();
+                const double b   = I*IJ;
+                const double c   = max_of(Hypotenuse(I.x, I.y),1.0)-1;
+                const double DeltaPrime = max_of(b*b-a*c,0.0);
+                const double X = clamp<double>(0, -(b+sqrt(DeltaPrime))/a, 1);
+                //std::cerr << "return in lens" << std::endl;
+                const double v   = pprev[BRIDGE_V] + X * (param[BRIDGE_V]-pprev[BRIDGE_V]);
+                const double u   = pprev[BRIDGE_U] + X * (param[BRIDGE_U]-pprev[BRIDGE_U]);
+                const double phi = pprev[BRIDGE_A] + X * (param[BRIDGE_A]-pprev[BRIDGE_A]);
+                if(fp) (*fp)("%.15g %.15g %.15g\n", u,v,phi);
+
+                return goodness(u, v, phi);
+            }
+
+
+
+        }
+
+        // if u was increasing then decreases
+        if(true)
+        {
+            const double du_prev = cos( pprev[BRIDGE_A] );
+            const double du_curr = cos( param[BRIDGE_A] );
+            if(du_prev>=0&&du_curr<0)
+            {
+                //std::cerr << "u-returning!" << std::endl;
+                const double X = clamp<double>(0.0,-du_prev/(du_curr-du_prev),1.0);
+                const double v   = pprev[BRIDGE_V] + X * (param[BRIDGE_V]-pprev[BRIDGE_V]);
+                const double u   = pprev[BRIDGE_U] + X * (param[BRIDGE_U]-pprev[BRIDGE_U]);
+                const double phi = pprev[BRIDGE_A] + X * (param[BRIDGE_A]-pprev[BRIDGE_A]);
+                if(fp) (*fp)("%.15g %.15g %.15g\n", u,v,phi);
+                return goodness(u, v, phi);
+            }
+        }
+
+        if(true)
+        {
+            // if dv is zero
+            const double dv_prev = sin( pprev[BRIDGE_A] );
+            const double dv_curr = sin( param[BRIDGE_A] );
+            if(dv_prev*dv_curr<=0)
+            {
+                //std::cerr << "z-extremum" << std::endl;
+                assert(Fabs(dv_prev)>0||Fabs(dv_curr)>0);
+                const double X = clamp<double>(0.0,-dv_prev/(dv_curr-dv_prev),1.0);
+                const double v   = pprev[BRIDGE_V] + X * (param[BRIDGE_V]-pprev[BRIDGE_V]);
+                const double u   = pprev[BRIDGE_U] + X * (param[BRIDGE_U]-pprev[BRIDGE_U]);
+                const double phi = pprev[BRIDGE_A] + X * (param[BRIDGE_A]-pprev[BRIDGE_A]);
+                if(fp) (*fp)("%.15g %.15g %.15g\n", u,v,phi);
+                return goodness(u, v, phi);
+            }
+        }
+
+        if(true)
+        {
+            // if v crosses 0
+            const double v_prev = pprev[BRIDGE_V];
+            const double v_curr = param[BRIDGE_V];
+            if(v_prev*v_curr<=0)
+            {
+                //std::cerr << "z-crossing" << std::endl;
+                assert(Fabs(v_prev)>0||Fabs(v_curr)>0);
+                const double X = clamp<double>(0,-v_prev/(v_curr-v_prev),1.0);
+                const double v   = 0;//pprev[BRIDGE_V] + X * (param[BRIDGE_V]-pprev[BRIDGE_V]);
+                const double u   = pprev[BRIDGE_U] + X * (param[BRIDGE_U]-pprev[BRIDGE_U]);
+                const double phi = pprev[BRIDGE_A] + X * (param[BRIDGE_A]-pprev[BRIDGE_A]);
+                if(fp) (*fp)("%.15g %.15g %.15g\n", u,v,phi);
+                return 0;
+                //return goodness(u, v, phi);
+            }
+        }
+
+
+        tau = tau_next;
+        tao::set(pprev,param);
+        if(fp) (*fp)("%.15g %.15g %.15g\n", param[BRIDGE_U],param[BRIDGE_V], param[BRIDGE_A]);
+        if(tau>10)
+            break;
+    }
+
+    return goodness(param[BRIDGE_U], param[BRIDGE_V], param[BRIDGE_A]);
+
+}
+
+
 double Bridge:: __profile_of_alpha(const double alpha)
 {
     return profile(alpha, current_theta, current_zeta, NULL);
@@ -368,9 +533,9 @@ double Bridge:: find_alpha(const double theta, const double zeta)
 
     }
 #endif
-    
+
     return alpha;
-    
+
 }
 
 double Bridge:: compute_zeta_max(const double theta)
@@ -380,7 +545,7 @@ double Bridge:: compute_zeta_max(const double theta)
     {
         throw exception("couldn't find bridge for zeta=%g", zeta_lo);
     }
-
+    
     double zeta_hi = 1;
     while( find_alpha(theta,zeta_hi) > 0 )
     {

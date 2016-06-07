@@ -5,7 +5,7 @@
 
 YOCTO_PROGRAM_START()
 {
-    Bridge B(0.01,1e-5);
+    Bridge B(0.01,1e-5,0.1,1.0/100);
     
     int    iarg = 0;
     

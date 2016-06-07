@@ -22,19 +22,25 @@ class Bridge
 {
 public:
 
-    explicit Bridge(const double delta_degrees, const double ftol);
+    explicit Bridge(const double delta_degrees,
+                    const double ftol,
+                    const double actrl_degrees,
+                    const double speed_control);
     virtual ~Bridge() throw();
     
     const size_t                nvar;
     double                      mu;
-    ode::driverCK<double>::type odeint;
+    ode::driverCK<double>::type odeint; //!< use ftol as parameter
     vector<double>              pprev;
     vector<double>              param;
-    vector<double>              prate;
     bool                        flag;
     Equation                    eq;
     Callback                    cb;
-    const double                delta;
+    const double                delta; //!< search resolution in radians
+    const double                actrl; //!< angle control in radians
+    const double                speed; //!< max speed = tau max
+
+    double profile_old( const double alpha, const double theta, const double zeta, ios::ostream *fp );
 
     double profile( const double alpha, const double theta, const double zeta, ios::ostream *fp );
 

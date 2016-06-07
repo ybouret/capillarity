@@ -23,7 +23,10 @@ current_zeta(0),
 fn_of_alpha( this, & Bridge:: __profile_of_alpha )
 {
     odeint.start(nvar);
-
+    std::cerr << "odeint.eps=" << odeint.eps << std::endl;
+    std::cerr << "angular_search=" << Rad2Deg(delta) << std::endl;
+    std::cerr << "max_angular_step=" << Rad2Deg(actrl) << std::endl;
+    std::cerr << "max_linear_step =" << speed          << std::endl;
 }
 
 Bridge:: ~Bridge() throw()
@@ -249,7 +252,18 @@ double Bridge:: profile_old(const double  alpha,
 
 }
 
-
+static inline
+double GetValue(const double v0, const double v)
+{
+    if(v0>=0)
+    {
+        return min_of(v0, v);
+    }
+    else
+    {
+        return -1;
+    }
+}
 
 double Bridge:: profile(const double  alpha,
                         const double  theta,
@@ -265,7 +279,7 @@ double Bridge:: profile(const double  alpha,
     assert(alpha<numeric<double>::pi);
     flag     = true;
     compute_start(alpha, theta, zeta);
-
+    std::cerr << "Bridge.mu=" << mu << "|profile(alpha=" << Rad2Deg(alpha) << ",theta=" << Rad2Deg(theta) << ",zeta=" << zeta << ")" << std::endl;
 
     tao::set(pprev, param);
 
@@ -275,7 +289,7 @@ double Bridge:: profile(const double  alpha,
     //__________________________________________________________________________
     const double max_delta_a = actrl;
     const double max_delta_l = speed;
-
+    const double v0          = param[BRIDGE_V];
 
 
     double tau = 0;
@@ -302,7 +316,7 @@ double Bridge:: profile(const double  alpha,
             const double v   = pprev[BRIDGE_V];
             const double phi = pprev[BRIDGE_V];
             if(fp) (*fp)("%.15g %.15g %.15g\n", u,v,phi);
-            return goodness(u, v, phi);
+            return GetValue(v0,v);
         }
 
 
@@ -310,7 +324,6 @@ double Bridge:: profile(const double  alpha,
         //
         // would break...
         //______________________________________________________________________
-
         if(true)
         {
             // if returning into lens
@@ -333,7 +346,8 @@ double Bridge:: profile(const double  alpha,
                 const double phi = pprev[BRIDGE_A] + X * (param[BRIDGE_A]-pprev[BRIDGE_A]);
                 if(fp) (*fp)("%.15g %.15g %.15g\n", u,v,phi);
 
-                return goodness(u, v, phi);
+                return GetValue(v0,v);
+
             }
 
 
@@ -353,7 +367,7 @@ double Bridge:: profile(const double  alpha,
                 const double u   = pprev[BRIDGE_U] + X * (param[BRIDGE_U]-pprev[BRIDGE_U]);
                 const double phi = pprev[BRIDGE_A] + X * (param[BRIDGE_A]-pprev[BRIDGE_A]);
                 if(fp) (*fp)("%.15g %.15g %.15g\n", u,v,phi);
-                return goodness(u, v, phi);
+                return GetValue(v0,v);
             }
         }
 
@@ -371,7 +385,7 @@ double Bridge:: profile(const double  alpha,
                 const double u   = pprev[BRIDGE_U] + X * (param[BRIDGE_U]-pprev[BRIDGE_U]);
                 const double phi = pprev[BRIDGE_A] + X * (param[BRIDGE_A]-pprev[BRIDGE_A]);
                 if(fp) (*fp)("%.15g %.15g %.15g\n", u,v,phi);
-                return goodness(u, v, phi);
+                return GetValue(v0,v);
             }
         }
 
@@ -389,8 +403,7 @@ double Bridge:: profile(const double  alpha,
                 const double u   = pprev[BRIDGE_U] + X * (param[BRIDGE_U]-pprev[BRIDGE_U]);
                 const double phi = pprev[BRIDGE_A] + X * (param[BRIDGE_A]-pprev[BRIDGE_A]);
                 if(fp) (*fp)("%.15g %.15g %.15g\n", u,v,phi);
-                return 0;
-                //return goodness(u, v, phi);
+                return GetValue(v0,v);
             }
         }
 
@@ -402,7 +415,7 @@ double Bridge:: profile(const double  alpha,
             break;
     }
 
-    return goodness(param[BRIDGE_U], param[BRIDGE_V], param[BRIDGE_A]);
+    return GetValue(v0,param[BRIDGE_V]);
 
 }
 

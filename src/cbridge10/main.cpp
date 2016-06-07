@@ -44,11 +44,11 @@ YOCTO_PROGRAM_START()
         }
     }
 
-#if 0
+#if 1
     {
         ios::wcstream pp("prof.dat");
         ios::wcstream ap("ans.dat");
-        for(double a_deg=0.1;a_deg<=179;a_deg += 0.2)
+        for(double a_deg=0.1;a_deg<=179;a_deg += 0.5)
         {
             const double alpha = Deg2Rad(a_deg);
             const double ans = B.profile(alpha, theta, zeta, &pp);
@@ -58,7 +58,7 @@ YOCTO_PROGRAM_START()
     }
 #endif
 
-    (void) B.find_alpha(theta,zeta);
+    //(void) B.find_alpha(theta,zeta);
     
     
     

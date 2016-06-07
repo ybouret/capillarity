@@ -257,11 +257,11 @@ double GetValue(const double v0, const double v)
 {
     if(v0>=0)
     {
-        return min_of(v0, v);
+        return min_of(v0,v);
     }
     else
     {
-        return -1;
+        return -max_of(v0,v);
     }
 }
 
@@ -315,6 +315,10 @@ double Bridge:: profile(const double  alpha,
             const double u   = pprev[BRIDGE_U];
             const double v   = pprev[BRIDGE_V];
             const double phi = pprev[BRIDGE_V];
+            param[BRIDGE_V] = v;
+            param[BRIDGE_U] = u;
+            param[BRIDGE_A] = phi;
+
             if(fp) (*fp)("%.15g %.15g %.15g\n", u,v,phi);
             return GetValue(v0,v);
         }
@@ -344,6 +348,11 @@ double Bridge:: profile(const double  alpha,
                 const double v   = pprev[BRIDGE_V] + X * (param[BRIDGE_V]-pprev[BRIDGE_V]);
                 const double u   = pprev[BRIDGE_U] + X * (param[BRIDGE_U]-pprev[BRIDGE_U]);
                 const double phi = pprev[BRIDGE_A] + X * (param[BRIDGE_A]-pprev[BRIDGE_A]);
+
+                param[BRIDGE_V] = v;
+                param[BRIDGE_U] = u;
+                param[BRIDGE_A] = phi;
+
                 if(fp) (*fp)("%.15g %.15g %.15g\n", u,v,phi);
 
                 return GetValue(v0,v);
@@ -366,6 +375,9 @@ double Bridge:: profile(const double  alpha,
                 const double v   = pprev[BRIDGE_V] + X * (param[BRIDGE_V]-pprev[BRIDGE_V]);
                 const double u   = pprev[BRIDGE_U] + X * (param[BRIDGE_U]-pprev[BRIDGE_U]);
                 const double phi = pprev[BRIDGE_A] + X * (param[BRIDGE_A]-pprev[BRIDGE_A]);
+                param[BRIDGE_V] = v;
+                param[BRIDGE_U] = u;
+                param[BRIDGE_A] = phi;
                 if(fp) (*fp)("%.15g %.15g %.15g\n", u,v,phi);
                 return GetValue(v0,v);
             }
@@ -384,6 +396,9 @@ double Bridge:: profile(const double  alpha,
                 const double v   = pprev[BRIDGE_V] + X * (param[BRIDGE_V]-pprev[BRIDGE_V]);
                 const double u   = pprev[BRIDGE_U] + X * (param[BRIDGE_U]-pprev[BRIDGE_U]);
                 const double phi = pprev[BRIDGE_A] + X * (param[BRIDGE_A]-pprev[BRIDGE_A]);
+                param[BRIDGE_V] = v;
+                param[BRIDGE_U] = u;
+                param[BRIDGE_A] = phi;
                 if(fp) (*fp)("%.15g %.15g %.15g\n", u,v,phi);
                 return GetValue(v0,v);
             }
@@ -402,6 +417,10 @@ double Bridge:: profile(const double  alpha,
                 const double v   = 0;//pprev[BRIDGE_V] + X * (param[BRIDGE_V]-pprev[BRIDGE_V]);
                 const double u   = pprev[BRIDGE_U] + X * (param[BRIDGE_U]-pprev[BRIDGE_U]);
                 const double phi = pprev[BRIDGE_A] + X * (param[BRIDGE_A]-pprev[BRIDGE_A]);
+                param[BRIDGE_V] = v;
+                param[BRIDGE_U] = u;
+                param[BRIDGE_A] = phi;
+
                 if(fp) (*fp)("%.15g %.15g %.15g\n", u,v,phi);
                 return GetValue(v0,v);
             }

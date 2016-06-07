@@ -499,9 +499,13 @@ double Bridge:: find_alpha(const double theta, const double zeta)
     triplet<double> X = { alpha_lower, 0, alpha_upper };
     triplet<double> F = { value_lower, 0, value_upper };
     bracket<double>::inside(f,X,F);
-    const double xtol = log_round_floor(numeric<double>::sqrt_epsilon*numeric<double>::pi);
-    //std::cerr << "xtol=" << xtol << std::endl;
-    optimize<double>(f, X, F, xtol);
+
+    if(F.b>0)
+    {
+        //std::cerr << "Need to optimize..." << std::endl;
+        static const double xtol = log_round_floor(numeric<double>::sqrt_epsilon*numeric<double>::pi);
+        optimize<double>(f, X, F, xtol);
+    }
 
     const double alpha_optim = X.b;
     const double value_optim = F.b;
@@ -575,13 +579,13 @@ double Bridge:: find_alpha(const double theta, const double zeta)
         (void) profile(alpha, theta, zeta, &fp);
     }
 #endif
-    
+
     return alpha;
 }
 
 double Bridge:: compute_zeta_max(const double theta)
 {
-    std::cerr << "find zeta_max(theta=" << Rad2Deg(theta) << ")" << std::endl;
+    //std::cerr << "find zeta_max(theta=" << Rad2Deg(theta) << ")" << std::endl;
     double zeta_lo = 0.0;
     if( find_alpha(theta, zeta_lo) <= 0 )
     {
@@ -591,14 +595,14 @@ double Bridge:: compute_zeta_max(const double theta)
     while( find_alpha(theta,zeta_hi) > 0 )
     {
         zeta_hi += 0.5;
-        std::cerr << "zeta_hi=" << zeta_hi << std::endl;
+        //std::cerr << "zeta_hi=" << zeta_hi << std::endl;
     }
     
     while( zeta_hi - zeta_lo > odeint.eps )
     {
         const double zeta_mid  = clamp(zeta_lo,0.5*(zeta_lo+zeta_hi),zeta_hi);
         const double alpha_mid = find_alpha(theta,zeta_mid);
-        std::cerr << "alpha(" << zeta_mid << ")=" << alpha_mid << std::endl;
+        //std::cerr << "alpha(" << zeta_mid << ")=" << alpha_mid << std::endl;
         if(alpha_mid<0)
         {
             zeta_hi = zeta_mid;

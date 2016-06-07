@@ -30,7 +30,7 @@ YOCTO_PROGRAM_START()
     //
     // find zeta_max
     //__________________________________________________________________________
-    const double d_zeta = 0.002;
+    const double d_zeta = 0.005;
     for(int t_deg = 40; t_deg <= 170; t_deg+=10)
     {
         std::cerr << "theta=" << t_deg << std::endl; std::cerr.flush();

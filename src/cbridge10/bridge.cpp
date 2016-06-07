@@ -561,13 +561,16 @@ double Bridge:: find_alpha(const double theta, const double zeta)
         }
         //std::cerr << "alpha_bot=" << Rad2Deg(alpha_bot) << std::endl;
 
+        // TODO: comparison between good and bad angle, must be done DURING
+        // bissection
+        
         (void)f(alpha_top);
         const double s_top = Fabs(sin(param[BRIDGE_A]));
         (void)f(alpha_bot);
         const double s_bot = Fabs(sin(param[BRIDGE_A]));
         //std::cerr << "s_top=" << s_top << std::endl;
         //std::cerr << "s_bot=" << s_bot << std::endl;
-        if(s_bot<=s_top)
+        if(s_bot<s_top)
         {
             alpha = alpha_bot;
         }

@@ -44,7 +44,7 @@ YOCTO_PROGRAM_START()
         }
     }
 
-#if 1
+#if 0
     {
         ios::wcstream pp("prof.dat");
         ios::wcstream ap("ans.dat");
@@ -58,7 +58,7 @@ YOCTO_PROGRAM_START()
     }
 #endif
 
-    //(void) B.find_alpha(theta,zeta);
+    B.find_alpha(theta,zeta);
     
     
     

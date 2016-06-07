@@ -257,11 +257,11 @@ double GetValue(const double v0, const double v)
 {
     if(v0>=0)
     {
-        return min_of(v0,v);
+        return Fabs(min_of(v0,v));
     }
     else
     {
-        return -max_of(v0,v);
+        return Fabs(max_of(v0,v));
     }
 }
 
@@ -274,7 +274,7 @@ double Bridge:: profile(const double  alpha,
     //
     // initialize geometry
     //__________________________________________________________________________
-
+    static const double SAFETY = 10.0;
     assert(alpha>0);
     assert(alpha<numeric<double>::pi);
     flag     = true;
@@ -287,8 +287,6 @@ double Bridge:: profile(const double  alpha,
     //
     // initialize step
     //__________________________________________________________________________
-    const double max_delta_a = angle_control;
-    const double max_delta_l = shift_control;
     const double v0          = param[BRIDGE_V];
 
 
@@ -296,17 +294,29 @@ double Bridge:: profile(const double  alpha,
     if(fp) (*fp)("%.15g %.15g %.15g\n", param[BRIDGE_U],param[BRIDGE_V], param[BRIDGE_A]);
     while(true)
     {
-        // initialize to max delta_l
-        double       dtau = min_of(max_delta_l,param[BRIDGE_U]/10.0);
+        //______________________________________________________________________
+        //
+        // initialize dtau according to position
+        //______________________________________________________________________
+        double       dtau         = min_of(shift_control,param[BRIDGE_U]/SAFETY);
 
+
+        //______________________________________________________________________
+        //
+        // compute the angular rate and correct dtau
+        //______________________________________________________________________
         const double angular_rate = Fabs(mu2 *param[BRIDGE_V] - sin( param[BRIDGE_A] ) / param[BRIDGE_U]);
-        if( angular_rate * dtau > max_delta_a )
+        if( angular_rate * dtau > angle_control )
         {
-            dtau = log_round_floor(max_delta_a/angular_rate);
+            dtau = log_round_floor(angle_control/angular_rate);
         }
 
+        //______________________________________________________________________
+        //
+        // take the step
+        //______________________________________________________________________
         const double tau_next = tau + dtau;
-        double tctl = dtau/10.0;
+        double       tctl     = dtau/SAFETY;
         odeint(eq,param,tau,tau_next,tctl,&cb);
 
         if(!flag)
@@ -344,7 +354,7 @@ double Bridge:: profile(const double  alpha,
                 const double c   = max_of(Hypotenuse(I.x, I.y),1.0)-1;
                 const double DeltaPrime = max_of(b*b-a*c,0.0);
                 const double X = clamp<double>(0, -(b+sqrt(DeltaPrime))/a, 1);
-                //std::cerr << "return in lens" << std::endl;
+
                 const double v   = pprev[BRIDGE_V] + X * (param[BRIDGE_V]-pprev[BRIDGE_V]);
                 const double u   = pprev[BRIDGE_U] + X * (param[BRIDGE_U]-pprev[BRIDGE_U]);
                 const double phi = pprev[BRIDGE_A] + X * (param[BRIDGE_A]-pprev[BRIDGE_A]);
@@ -392,7 +402,7 @@ double Bridge:: profile(const double  alpha,
             {
                 //std::cerr << "z-extremum" << std::endl;
                 assert(Fabs(dv_prev)>0||Fabs(dv_curr)>0);
-                const double X = clamp<double>(0.0,-dv_prev/(dv_curr-dv_prev),1.0);
+                const double X   = clamp<double>(0.0,-dv_prev/(dv_curr-dv_prev),1.0);
                 const double v   = pprev[BRIDGE_V] + X * (param[BRIDGE_V]-pprev[BRIDGE_V]);
                 const double u   = pprev[BRIDGE_U] + X * (param[BRIDGE_U]-pprev[BRIDGE_U]);
                 const double phi = pprev[BRIDGE_A] + X * (param[BRIDGE_A]-pprev[BRIDGE_A]);
@@ -461,112 +471,110 @@ double Bridge:: find_alpha(const double theta, const double zeta)
     current_theta = theta;
     current_zeta  = zeta;
     Function &f   = fn_of_alpha;
-    //const double alpha_max = numeric<double>::pi-theta;
 
-
-#if 0
+#if 1
     {
         ios::wcstream fp("find-alpha.dat");
         ios::wcstream pp("prof-alpha.dat");
-        const double a_deg_max = 170;//floor(Rad2Deg(alpha_max));
-        for(double a_deg = 0.2; a_deg <= a_deg_max; a_deg += 0.2 )
+        for(double a_deg = 0.1; a_deg <= 179; a_deg += 0.2 )
         {
-            fp("%.15g %.15g\n", a_deg, profile(Deg2Rad(a_deg), theta, zeta, &pp) );
+            const double alpha =  Deg2Rad(a_deg);
+            const double ans   = profile(alpha, theta, zeta, &pp);
+            fp("%g %g %g\n", a_deg, ans, sin(param[BRIDGE_A]));
             pp << "\n";
         }
     }
 #endif
 
-    double alpha_lo = delta;
-    double value_lo = f(alpha_lo);
-    double alpha_hi = numeric<double>::pi/2;
-    double value_hi = f(alpha_hi);
+    //-- take full interval
+    const double alpha_lower = delta;
+    const double alpha_upper = numeric<double>::pi - delta;
+    const double value_lower = f(alpha_lower);
+    const double value_upper = f(alpha_upper);
 
-    if(value_hi<=0) throw exception("invalid value@90deg");
+    if(value_upper<=0)
+        throw exception("upper angle has negative value!");
 
-    triplet<double> X = { alpha_lo, 0, alpha_hi };
-    triplet<double> F = { value_lo, 0, value_hi };
+    //-- best effort minimum
+    triplet<double> X = { alpha_lower, 0, alpha_upper };
+    triplet<double> F = { value_lower, 0, value_upper };
+    bracket<double>::inside(f,X,F);
+    optimize<double>(f, X, F, 0.0);
 
-    bracket<double>::inside(f, X, F);
-    optimize(f, X, F, delta);
-    double alpha_opt = X.b;
-    double value_opt = F.b;
+    const double alpha_optim = X.b;
+    const double value_optim = F.b;
+    std::cerr << "alpha_optim=" << Rad2Deg(alpha_optim) << std::endl;
+    std::cerr << "value_optim=" << value_optim << std::endl;
 
-    //std::cerr << "alpha_opt=" << Rad2Deg(alpha_opt) << std::endl;
-    //std::cerr << "value_opt=" << value_opt          << std::endl;
-
-    if(value_opt>0)
+    if(value_optim>0)
     {
-        //std::cerr << "no intersection!" << std::endl;
+        // no possible intersection
         return -1;
     }
 
-    // right value, for any zeta
-    double alpha_r = alpha_opt;
-    double diff_r  = value_hi;
+    // find alpha_top: smallest not zero value
+    double alpha_top = alpha_upper;
     {
-        double alpha_top = alpha_hi;
-        while((alpha_top-alpha_r)>delta)
+        double alpha_tmp = alpha_optim;
+        while(alpha_top-alpha_tmp>delta)
         {
-            const double alpha_mid = clamp(alpha_r,0.5*(alpha_r+alpha_top),alpha_top);
+            const double alpha_mid = clamp(alpha_tmp,0.5*(alpha_tmp+alpha_top),alpha_top);
             const double value_mid = f(alpha_mid);
-            if(value_mid<=0)
+            if(value_mid>0)
             {
-                alpha_r = alpha_mid;
+                alpha_top = alpha_mid;
             }
             else
             {
-                alpha_top = alpha_mid;
-                diff_r    = value_mid;
+                alpha_tmp = alpha_mid;
             }
         }
     }
 
-    //std::cerr << "alpha_r=" << Rad2Deg(alpha_r) << std::endl;
-    //std::cerr << "diff_r =" << diff_r           << std::endl;
+    double alpha = alpha_top;
 
-    double alpha = alpha_r;
 
-    if(zeta<0&&value_lo>0)
+    std::cerr << "alpha=" << Rad2Deg(alpha) << std::endl;
+    if(value_lower>0)
     {
-        //std::cerr << "looking for alpha_l..." << std::endl;
-        double alpha_l = alpha_opt;
-        double diff_l  = value_lo;
+        std::cerr << "There exists a secondary value!" << std::endl;
+        double alpha_bot = alpha_lower;
+        double alpha_tmp = alpha_optim;
+        while(alpha_tmp-alpha_bot>delta)
         {
-            double alpha_bot = alpha_lo;
-            while( (alpha_l-alpha_bot)>delta )
+            const double alpha_mid = clamp(alpha_bot,0.5*(alpha_bot+alpha_tmp),alpha_tmp);
+            const double value_mid = f(alpha_mid);
+            if(value_mid>0)
             {
-                const double alpha_mid = clamp(alpha_bot,0.5*(alpha_l+alpha_bot),alpha_l);
-                const double value_mid = f(alpha_mid);
-                if(value_mid<=0)
-                {
-                    alpha_l = alpha_mid;
-                }
-                else
-                {
-                    alpha_bot = alpha_mid;
-                    diff_l    = value_mid;
-                }
+                alpha_bot = alpha_mid;
+            }
+            else
+            {
+                alpha_tmp = alpha_mid;
             }
         }
-        //std::cerr << "alpha_l=" << Rad2Deg(alpha_l) << std::endl;
-        //std::cerr << "diff_l =" << diff_l           << std::endl;
-        if(diff_l<diff_r)
+        std::cerr << "alpha_bot=" << Rad2Deg(alpha_bot) << std::endl;
+
+        (void)f(alpha_top);
+        const double s_top = Fabs(sin(param[BRIDGE_A]));
+        (void)f(alpha_bot);
+        const double s_bot = Fabs(sin(param[BRIDGE_A]));
+        std::cerr << "s_top=" << s_top << std::endl;
+        std::cerr << "s_bot=" << s_bot << std::endl;
+        if(s_bot<=s_top)
         {
-            alpha=alpha_l;
+            alpha = alpha_bot;
         }
     }
 
-
-#if 0
+#if 1
     {
-        ios::wcstream ap("good-alpha.dat");
-        (void)profile(alpha, theta, zeta, &ap);
-
+        ios::wcstream fp("good-alpha.txt");
+        (void) profile(alpha, theta, zeta, &fp);
     }
 #endif
+    return alpha_top;
 
-    return alpha;
 
 }
 

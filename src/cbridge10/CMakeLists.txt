@@ -7,5 +7,5 @@ TARGET_LINK_YOCTO(abacus mk)
 #ADD_EXECUTABLE(limits limits.cpp bridge.hpp bridge.cpp)
 #TARGET_LINK_YOCTO(limits mk)
 
-INSTALL( TARGETS cbridge RUNTIME DESTINATION bin )
+INSTALL( TARGETS cbridge abacus RUNTIME DESTINATION bin )
 

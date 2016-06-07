@@ -5,7 +5,11 @@
 
 YOCTO_PROGRAM_START()
 {
-    Bridge B(0.01,1e-5,0.1,1.0/100);
+    Bridge B(0.001,  // angular search
+             1e-5,   // integrator ftol
+             0.1,    // max angular turn in degrees
+             1.0/100 // max speed rate in degrees
+             );
     
     int    iarg = 0;
     
@@ -37,6 +41,8 @@ YOCTO_PROGRAM_START()
             ios::acstream zp(zeta_file);
             zp("%.15g %.15g\n", double(t_deg), zeta_max);
         }
+        //continue;
+        
         {
             ios::acstream fp(abac_file);
             fp("#theta=%g\n", double(t_deg));

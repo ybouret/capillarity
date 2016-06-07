@@ -279,7 +279,7 @@ double Bridge:: profile(const double  alpha,
     assert(alpha<numeric<double>::pi);
     flag     = true;
     compute_start(alpha, theta, zeta);
-    std::cerr << "Bridge.mu=" << mu << "|profile(alpha=" << Rad2Deg(alpha) << ",theta=" << Rad2Deg(theta) << ",zeta=" << zeta << ")" << std::endl;
+    //std::cerr << "Bridge.mu=" << mu << "|profile(alpha=" << Rad2Deg(alpha) << ",theta=" << Rad2Deg(theta) << ",zeta=" << zeta << ")" << std::endl;
 
     tao::set(pprev, param);
 
@@ -472,7 +472,7 @@ double Bridge:: find_alpha(const double theta, const double zeta)
     current_zeta  = zeta;
     Function &f   = fn_of_alpha;
 
-#if 1
+#if 0
     {
         ios::wcstream fp("find-alpha.dat");
         ios::wcstream pp("prof-alpha.dat");
@@ -499,12 +499,14 @@ double Bridge:: find_alpha(const double theta, const double zeta)
     triplet<double> X = { alpha_lower, 0, alpha_upper };
     triplet<double> F = { value_lower, 0, value_upper };
     bracket<double>::inside(f,X,F);
-    optimize<double>(f, X, F, 0.0);
+    const double xtol = log_round_floor(numeric<double>::sqrt_epsilon*numeric<double>::pi);
+    //std::cerr << "xtol=" << xtol << std::endl;
+    optimize<double>(f, X, F, xtol);
 
     const double alpha_optim = X.b;
     const double value_optim = F.b;
-    std::cerr << "alpha_optim=" << Rad2Deg(alpha_optim) << std::endl;
-    std::cerr << "value_optim=" << value_optim << std::endl;
+    //std::cerr << "alpha_optim=" << Rad2Deg(alpha_optim) << std::endl;
+    //std::cerr << "value_optim=" << value_optim << std::endl;
 
     if(value_optim>0)
     {
@@ -534,10 +536,10 @@ double Bridge:: find_alpha(const double theta, const double zeta)
     double alpha = alpha_top;
 
 
-    std::cerr << "alpha=" << Rad2Deg(alpha) << std::endl;
-    if(value_lower>0)
+    //std::cerr << "alpha=" << Rad2Deg(alpha) << std::endl;
+    if(zeta<0&&value_lower>0)
     {
-        std::cerr << "There exists a secondary value!" << std::endl;
+        //std::cerr << "There exists a secondary value!" << std::endl;
         double alpha_bot = alpha_lower;
         double alpha_tmp = alpha_optim;
         while(alpha_tmp-alpha_bot>delta)
@@ -553,49 +555,50 @@ double Bridge:: find_alpha(const double theta, const double zeta)
                 alpha_tmp = alpha_mid;
             }
         }
-        std::cerr << "alpha_bot=" << Rad2Deg(alpha_bot) << std::endl;
+        //std::cerr << "alpha_bot=" << Rad2Deg(alpha_bot) << std::endl;
 
         (void)f(alpha_top);
         const double s_top = Fabs(sin(param[BRIDGE_A]));
         (void)f(alpha_bot);
         const double s_bot = Fabs(sin(param[BRIDGE_A]));
-        std::cerr << "s_top=" << s_top << std::endl;
-        std::cerr << "s_bot=" << s_bot << std::endl;
+        //std::cerr << "s_top=" << s_top << std::endl;
+        //std::cerr << "s_bot=" << s_bot << std::endl;
         if(s_bot<=s_top)
         {
             alpha = alpha_bot;
         }
     }
 
-#if 1
+#if 0
     {
-        ios::wcstream fp("good-alpha.txt");
+        ios::wcstream fp("good-alpha.dat");
         (void) profile(alpha, theta, zeta, &fp);
     }
 #endif
-    return alpha_top;
-
-
+    
+    return alpha;
 }
 
 double Bridge:: compute_zeta_max(const double theta)
 {
+    std::cerr << "find zeta_max(theta=" << Rad2Deg(theta) << ")" << std::endl;
     double zeta_lo = 0.0;
     if( find_alpha(theta, zeta_lo) <= 0 )
     {
         throw exception("couldn't find bridge for zeta=%g", zeta_lo);
     }
-    
     double zeta_hi = 1;
     while( find_alpha(theta,zeta_hi) > 0 )
     {
         zeta_hi += 0.5;
+        std::cerr << "zeta_hi=" << zeta_hi << std::endl;
     }
     
     while( zeta_hi - zeta_lo > odeint.eps )
     {
         const double zeta_mid  = clamp(zeta_lo,0.5*(zeta_lo+zeta_hi),zeta_hi);
         const double alpha_mid = find_alpha(theta,zeta_mid);
+        std::cerr << "alpha(" << zeta_mid << ")=" << alpha_mid << std::endl;
         if(alpha_mid<0)
         {
             zeta_hi = zeta_mid;

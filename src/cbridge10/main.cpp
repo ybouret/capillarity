@@ -32,7 +32,7 @@ YOCTO_PROGRAM_START()
         theta_deg = strconv::to<double>(argv[iarg],"theta");
     }
     const double theta = Deg2Rad(theta_deg);
-    std::cerr << "theta=" << theta << std::endl;
+    std::cerr << "theta=" << theta_deg << std::endl;
 
 
     {
@@ -44,22 +44,22 @@ YOCTO_PROGRAM_START()
         }
     }
 
-#if 0
+#if 1
     {
         ios::wcstream pp("prof.dat");
         ios::wcstream ap("ans.dat");
         for(double a_deg=0.1;a_deg<=179;a_deg += 0.1)
         {
             const double alpha = Deg2Rad(a_deg);
-            const double ans = B.profile(alpha, theta, zeta, &pp);
+            const double ans   = B.profile(alpha, theta, zeta, &pp);
             pp << "\n";
             ap("%g %g %g\n", a_deg, ans, sin(B.param[BRIDGE_A]) );
         }
     }
 #endif
 
-    B.find_alpha(theta,zeta);
-    
+    const double alpha = B.find_alpha(theta,zeta);
+    std::cerr << "alpha=" << Rad2Deg(alpha) << std::endl;
     
     
 }

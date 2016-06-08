@@ -20,7 +20,8 @@ v_center(0),
 mu2(0),
 current_theta(0),
 current_zeta(0),
-fn_of_alpha( this, & Bridge:: __profile_of_alpha )
+fn_of_alpha( this, & Bridge:: __profile_of_alpha ),
+check0(this, & Bridge:: __check0)
 {
     odeint.start(nvar);
     std::cerr << "odeint.eps=" << odeint.eps << std::endl;
@@ -29,9 +30,12 @@ fn_of_alpha( this, & Bridge:: __profile_of_alpha )
     std::cerr << "shift_control="  << shift_control          << std::endl;
 }
 
+
 Bridge:: ~Bridge() throw()
 {
 }
+
+
 
 void   Bridge:: compute_rates(array<double> &dYdt, const array<double> &Y)  throw()
 {
@@ -96,161 +100,6 @@ void Bridge:: compute_start(const double alpha, const double theta, const double
 #include "yocto/math/point2d.hpp"
 #include "yocto/math/round.hpp"
 
-
-double Bridge:: profile_old(const double  alpha,
-                            const double  theta,
-                            const double  zeta,
-                            ios::ostream *fp )
-{
-    //__________________________________________________________________________
-    //
-    // initialize geometry
-    //__________________________________________________________________________
-
-    assert(alpha>0);
-    assert(alpha<numeric<double>::pi);
-    flag     = true;
-    compute_start(alpha, theta, zeta);
-
-
-    tao::set(pprev, param);
-
-    //__________________________________________________________________________
-    //
-    // initialize step
-    //__________________________________________________________________________
-    const double max_delta_a = angle_control;
-    const double max_delta_l = shift_control;
-
-
-
-    double tau = 0;
-    if(fp) (*fp)("%.15g %.15g %.15g\n", param[BRIDGE_U],param[BRIDGE_V], param[BRIDGE_A]);
-    while(true)
-    {
-        // initialize to max delta_l
-        double       dtau = min_of(max_delta_l,param[BRIDGE_U]/10.0);
-
-        const double angular_rate = Fabs(mu2 *param[BRIDGE_V] - sin( param[BRIDGE_A] ) / param[BRIDGE_U]);
-        if( angular_rate * dtau > max_delta_a )
-        {
-            dtau = log_round_floor(max_delta_a/angular_rate);
-        }
-
-        const double tau_next = tau + dtau;
-        double tctl = dtau/10.0;
-        odeint(eq,param,tau,tau_next,tctl,&cb);
-
-        if(!flag)
-        {
-
-            const double u   = pprev[BRIDGE_U];
-            const double v   = pprev[BRIDGE_V];
-            const double phi = pprev[BRIDGE_V];
-            if(fp) (*fp)("%.15g %.15g %.15g\n", u,v,phi);
-            return goodness(u, v, phi);
-        }
-
-
-        //______________________________________________________________________
-        //
-        // would break...
-        //______________________________________________________________________
-
-        if(true)
-        {
-            // if returning into lens
-            const point2d<double> J(param[BRIDGE_U],param[BRIDGE_V]-v_center);
-            const double Jnorm = Hypotenuse(J.x,J.y);
-
-            if( Jnorm < 1.0 )
-            {
-                // assuming pprev is outside
-                const point2d<double> I(pprev[BRIDGE_U],pprev[BRIDGE_V]-v_center);
-                const point2d<double> IJ(J.x-I.x,param[BRIDGE_V]-pprev[BRIDGE_V]);
-                const double a   = IJ.norm2();
-                const double b   = I*IJ;
-                const double c   = max_of(Hypotenuse(I.x, I.y),1.0)-1;
-                const double DeltaPrime = max_of(b*b-a*c,0.0);
-                const double X = clamp<double>(0, -(b+sqrt(DeltaPrime))/a, 1);
-                //std::cerr << "return in lens" << std::endl;
-                const double v   = pprev[BRIDGE_V] + X * (param[BRIDGE_V]-pprev[BRIDGE_V]);
-                const double u   = pprev[BRIDGE_U] + X * (param[BRIDGE_U]-pprev[BRIDGE_U]);
-                const double phi = pprev[BRIDGE_A] + X * (param[BRIDGE_A]-pprev[BRIDGE_A]);
-                if(fp) (*fp)("%.15g %.15g %.15g\n", u,v,phi);
-
-                return goodness(u, v, phi);
-            }
-
-
-
-        }
-
-        // if u was increasing then decreases
-        if(true)
-        {
-            const double du_prev = cos( pprev[BRIDGE_A] );
-            const double du_curr = cos( param[BRIDGE_A] );
-            if(du_prev>=0&&du_curr<0)
-            {
-                //std::cerr << "u-returning!" << std::endl;
-                const double X = clamp<double>(0.0,-du_prev/(du_curr-du_prev),1.0);
-                const double v   = pprev[BRIDGE_V] + X * (param[BRIDGE_V]-pprev[BRIDGE_V]);
-                const double u   = pprev[BRIDGE_U] + X * (param[BRIDGE_U]-pprev[BRIDGE_U]);
-                const double phi = pprev[BRIDGE_A] + X * (param[BRIDGE_A]-pprev[BRIDGE_A]);
-                if(fp) (*fp)("%.15g %.15g %.15g\n", u,v,phi);
-                return goodness(u, v, phi);
-            }
-        }
-
-        if(true)
-        {
-            // if dv is zero
-            const double dv_prev = sin( pprev[BRIDGE_A] );
-            const double dv_curr = sin( param[BRIDGE_A] );
-            if(dv_prev*dv_curr<=0)
-            {
-                //std::cerr << "z-extremum" << std::endl;
-                assert(Fabs(dv_prev)>0||Fabs(dv_curr)>0);
-                const double X = clamp<double>(0.0,-dv_prev/(dv_curr-dv_prev),1.0);
-                const double v   = pprev[BRIDGE_V] + X * (param[BRIDGE_V]-pprev[BRIDGE_V]);
-                const double u   = pprev[BRIDGE_U] + X * (param[BRIDGE_U]-pprev[BRIDGE_U]);
-                const double phi = pprev[BRIDGE_A] + X * (param[BRIDGE_A]-pprev[BRIDGE_A]);
-                if(fp) (*fp)("%.15g %.15g %.15g\n", u,v,phi);
-                return goodness(u, v, phi);
-            }
-        }
-
-        if(true)
-        {
-            // if v crosses 0
-            const double v_prev = pprev[BRIDGE_V];
-            const double v_curr = param[BRIDGE_V];
-            if(v_prev*v_curr<=0)
-            {
-                //std::cerr << "z-crossing" << std::endl;
-                assert(Fabs(v_prev)>0||Fabs(v_curr)>0);
-                const double X = clamp<double>(0,-v_prev/(v_curr-v_prev),1.0);
-                const double v   = 0;//pprev[BRIDGE_V] + X * (param[BRIDGE_V]-pprev[BRIDGE_V]);
-                const double u   = pprev[BRIDGE_U] + X * (param[BRIDGE_U]-pprev[BRIDGE_U]);
-                const double phi = pprev[BRIDGE_A] + X * (param[BRIDGE_A]-pprev[BRIDGE_A]);
-                if(fp) (*fp)("%.15g %.15g %.15g\n", u,v,phi);
-                return 0;
-                //return goodness(u, v, phi);
-            }
-        }
-
-
-        tau = tau_next;
-        tao::set(pprev,param);
-        if(fp) (*fp)("%.15g %.15g %.15g\n", param[BRIDGE_U],param[BRIDGE_V], param[BRIDGE_A]);
-        if(tau>10)
-            break;
-    }
-
-    return goodness(param[BRIDGE_U], param[BRIDGE_V], param[BRIDGE_A]);
-
-}
 
 static inline
 double GetValue(const double v0, const double v)
@@ -381,7 +230,7 @@ double Bridge:: profile(const double  alpha,
             if(du_prev>=0&&du_curr<0)
             {
                 //std::cerr << "u-returning!" << std::endl;
-                const double X = clamp<double>(0.0,-du_prev/(du_curr-du_prev),1.0);
+                const double X   = clamp<double>(0.0,-du_prev/(du_curr-du_prev),1.0);
                 const double v   = pprev[BRIDGE_V] + X * (param[BRIDGE_V]-pprev[BRIDGE_V]);
                 const double u   = pprev[BRIDGE_U] + X * (param[BRIDGE_U]-pprev[BRIDGE_U]);
                 const double phi = pprev[BRIDGE_A] + X * (param[BRIDGE_A]-pprev[BRIDGE_A]);
@@ -445,7 +294,6 @@ double Bridge:: profile(const double  alpha,
     }
 
     return GetValue(v0,param[BRIDGE_V]);
-
 }
 
 
@@ -458,7 +306,11 @@ double Bridge:: __profile_of_alpha(const double alpha)
 #include "yocto/ios/ocstream.hpp"
 
 #include "yocto/math/opt/bracket.hpp"
-#include "yocto/math/opt/minimize.hpp"
+
+bool Bridge:: __check0(const triplet<double> &X, const triplet<double> &F)
+{
+    return F.b<=0;
+}
 
 double Bridge:: find_alpha(const double theta, const double zeta)
 {
@@ -478,7 +330,7 @@ double Bridge:: find_alpha(const double theta, const double zeta)
         ios::wcstream pp("prof-alpha.dat");
         for(double a_deg = 0.1; a_deg <= 179; a_deg += 0.2 )
         {
-            const double alpha =  Deg2Rad(a_deg);
+            const double alpha = Deg2Rad(a_deg);
             const double ans   = profile(alpha, theta, zeta, &pp);
             fp("%g %g %g\n", a_deg, ans, sin(param[BRIDGE_A]));
             pp << "\n";
@@ -504,7 +356,8 @@ double Bridge:: find_alpha(const double theta, const double zeta)
     {
         //std::cerr << "Need to optimize..." << std::endl;
         static const double xtol = log_round_floor(numeric<double>::sqrt_epsilon*numeric<double>::pi);
-        optimize<double>(f, X, F, xtol);
+        optimize1D<double>::run_until(check0,f, X, F, xtol);
+        //TODO: check on result !
     }
 
     const double alpha_optim = X.b;
@@ -518,8 +371,12 @@ double Bridge:: find_alpha(const double theta, const double zeta)
         return -1;
     }
 
+    (void)f(alpha_optim);
+    double slope_optim = sin( param[BRIDGE_A] ); // slope at intercept
+
     // find alpha_top: smallest not zero value
     double alpha_top = alpha_upper;
+    double slope_top = slope_optim;
     {
         double alpha_tmp = alpha_optim;
         while(alpha_top-alpha_tmp>delta)
@@ -533,6 +390,7 @@ double Bridge:: find_alpha(const double theta, const double zeta)
             else
             {
                 alpha_tmp = alpha_mid;
+                slope_top = sin( param[BRIDGE_A] );
             }
         }
     }
@@ -546,6 +404,7 @@ double Bridge:: find_alpha(const double theta, const double zeta)
         //std::cerr << "There exists a secondary value!" << std::endl;
         double alpha_bot = alpha_lower;
         double alpha_tmp = alpha_optim;
+        double slope_bot = slope_optim;
         while(alpha_tmp-alpha_bot>delta)
         {
             const double alpha_mid = clamp(alpha_bot,0.5*(alpha_bot+alpha_tmp),alpha_tmp);
@@ -557,23 +416,17 @@ double Bridge:: find_alpha(const double theta, const double zeta)
             else
             {
                 alpha_tmp = alpha_mid;
+                slope_bot = sin( param[BRIDGE_A] );
             }
         }
-        //std::cerr << "alpha_bot=" << Rad2Deg(alpha_bot) << std::endl;
 
-        // TODO: comparison between good and bad angle, must be done DURING
-        // bissection
-        
-        (void)f(alpha_top);
-        const double s_top = Fabs(sin(param[BRIDGE_A]));
-        (void)f(alpha_bot);
-        const double s_bot = Fabs(sin(param[BRIDGE_A]));
-        //std::cerr << "s_top=" << s_top << std::endl;
-        //std::cerr << "s_bot=" << s_bot << std::endl;
-        if(s_bot<s_top)
+        //std::cerr << "slope_bot=" << slope_bot << std::endl;
+        //std::cerr << "slope_top=" << slope_top << std::endl;
+        if(Fabs(slope_bot)<Fabs(slope_top))
         {
             alpha = alpha_bot;
         }
+
     }
 
 #if 0

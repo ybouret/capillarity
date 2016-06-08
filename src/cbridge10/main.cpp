@@ -53,14 +53,21 @@ YOCTO_PROGRAM_START()
             const double alpha = Deg2Rad(a_deg);
             const double ans   = B.profile(alpha, theta, zeta, &pp);
             pp << "\n";
-            ap("%g %g %g\n", a_deg, ans, sin(B.param[BRIDGE_A]) );
+            ap("%g %g %g %g\n", a_deg, ans, sin(B.param[BRIDGE_A]), B.param[BRIDGE_U] );
         }
     }
 #endif
 
     const double alpha = B.find_alpha(theta,zeta);
     std::cerr << "alpha=" << Rad2Deg(alpha) << std::endl;
-    
+#if 1
+    {
+        ios::wcstream pp("good.dat");
+        pp("%g %g\n", 0.0, 1.0+zeta);
+        pp("%g %g\n", sin(alpha), 1.0+zeta-cos(alpha));
+        B.profile(alpha, theta, zeta, &pp);
+    }
+#endif
     
 }
 YOCTO_PROGRAM_END()

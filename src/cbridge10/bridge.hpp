@@ -42,13 +42,8 @@ public:
     const double                shift_control; //!< max speed = tau max
     
     double profile( const double alpha, const double theta, const double zeta, ios::ostream *fp );
-
     double compute_zeta_max( const double theta );
-
     double find_alpha( const double theta, const double zeta );
-
-    double goodness(const double u, const double v, const double phi) const throw();
-
     void   compute_rates(array<double> &dY, const array<double> &Y) throw();
     void   compute_start(const double alpha, const double theta, const double zeta);
     

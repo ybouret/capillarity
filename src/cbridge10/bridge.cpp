@@ -79,6 +79,7 @@ void Bridge:: __Cb( array<double> &Y, double )
 
 }
 
+#if 0
 double Bridge:: goodness(const double u, const double v, const double phi) const throw()
 {
     //return sign_of(v);
@@ -86,7 +87,7 @@ double Bridge:: goodness(const double u, const double v, const double phi) const
     //return ((mu2*v-sin(phi)/u)/mu2);
     //return v < 0 ? -1 : (0<v ? 1 : 0);
 }
-
+#endif
 
 void Bridge:: compute_start(const double alpha, const double theta, const double zeta)
 {

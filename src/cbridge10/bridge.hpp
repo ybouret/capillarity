@@ -40,16 +40,19 @@ public:
     const double                delta; //!< search resolution in radians
     const double                angle_control;  //!< angle control in radians
     const double                shift_control; //!< max speed = tau max
-    
+    Function                    surface0;      //!< find_surface(theta,0.0)
+    Function                    surface_of_zeta; //!< for a current_theta
+
     double profile( const double alpha, const double theta, const double zeta, ios::ostream *fp );
     double compute_zeta_max( const double theta );
     double find_alpha( const double theta, const double zeta );
+    double find_surface( const double theta, const double zeta);
+
     void   compute_rates(array<double> &dY, const array<double> &Y) throw();
     void   compute_start(const double alpha, const double theta, const double zeta);
     double find_theta( const double alpha, const double zeta );
 
 
-private:
     double   v_center;
     double   mu2;
     double   current_theta;
@@ -58,12 +61,16 @@ private:
     Function fn_of_alpha;
     Function fn_of_theta;
     optimize1D<double>::event check0;
-    
+
+private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Bridge);
     void __Eq( array<double> &dYdt, double, const array<double> &Y);
     void __Cb( array<double> &Y, double );
     double __profile_of_alpha(const double alpha);
     double __profile_of_theta(const double theta);
+    double __surfac0_of_theta(const double theta);
+    double __surface_of_zeta(const double zeta);
+    
     bool   __check0(const triplet<double> &X, const triplet<double> &Y);
 };
 

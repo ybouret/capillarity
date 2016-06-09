@@ -16,6 +16,8 @@ cb( this, & Bridge::__Cb ),
 delta( Deg2Rad(delta_degrees) ),
 angle_control( Deg2Rad(actrl_degrees) ),
 shift_control( sctrl ),
+surface0(this, & Bridge:: __surfac0_of_theta ),
+surface_of_zeta(this, & Bridge:: __surface_of_zeta),
 v_center(0),
 mu2(0),
 current_theta(0),
@@ -302,6 +304,7 @@ double Bridge:: __profile_of_theta(const double theta)
     return profile(current_alpha, theta, current_zeta, NULL);
 }
 
+
 #include "yocto/math/opt/bracket.hpp"
 #include "yocto/ios/ocstream.hpp"
 
@@ -437,6 +440,23 @@ double Bridge:: find_alpha(const double theta, const double zeta)
 #endif
 
     return alpha;
+}
+
+
+double Bridge:: find_surface( const double theta, const double zeta)
+{
+    return numeric<double>::pi * Square( sin( find_alpha(theta, zeta) ) );
+}
+
+
+double Bridge:: __surfac0_of_theta(const double theta)
+{
+    return find_surface(theta, 0.0);
+}
+
+double Bridge:: __surface_of_zeta(const double zeta)
+{
+    return find_surface(current_theta,zeta);
 }
 
 double Bridge:: compute_zeta_max(const double theta)

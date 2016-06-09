@@ -3,6 +3,7 @@
 #include "yocto/ios/ocstream.hpp"
 #include "yocto/string/conv.hpp"
 #include "yocto/math/fit/glsf-spec.hpp"
+#include "yocto/math/fcn/drvs.hpp"
 
 YOCTO_PROGRAM_START()
 {
@@ -12,17 +13,81 @@ YOCTO_PROGRAM_START()
              1.0/100 // max speed rate in degrees
              );
 
-    int    iarg = 0;
+
+    const size_t   N = 51;
+    vector<double> zeta(N);
+    vector<double> surf(N);
+    vector<double> sfit(N);
 
 
-    if(argc>++iarg)
+    GLS<double>::Function      poly = _GLS::Create<double,_GLS::Polynomial>();
+    GLS<double>::Samples       samples(1);
+    (void) samples.append(zeta, surf, sfit);
+
+    const size_t   m=2;
+    vector<double> aorg(m);
+    vector<double> aerr(m);
+    vector<bool>   used(m,true);
+    samples.prepare(m);
+
+
+
+    for(int iarg=1;iarg<argc;++iarg)
     {
         B.mu   = strconv::to<double>(argv[iarg],"mu");
+
+        std::cerr << "mu=" << B.mu << std::endl;
+
+        //derivative<double> drvs;
+
+        const string param_name = vformat("param%g.dat",B.mu);
+        ios::ocstream::overwrite(param_name);
+
+        const string heur_name = vformat("heur%g.dat",B.mu);
+        ios::ocstream::overwrite(heur_name);
+
+
+
+        for(int t_deg = 40; t_deg <= 170; t_deg+=10)
+        {
+            const double theta  = Deg2Rad(double(t_deg));
+            std::cerr << "theta=" << t_deg << std::endl;
+
+            std::cerr << "\t-- computing surface@zeta=0" << std::endl;
+            const double surf0  = B.surface0(theta);
+            std::cerr << "\t   surface0=" << surf0 << std::endl;
+
+            std::cerr << "\t-- computing zeta_max" << std::endl;
+            const double zeta_max = B.compute_zeta_max(theta);
+            std::cerr << "\t   zeta_max=" << zeta_max << std::endl;
+
+            {
+                ios::acstream fp(param_name);
+                fp("%.15g %.15g %.15g\n", double(t_deg), surf0, zeta_max);
+            }
+
+
+            const double zeta_min = 0;
+            for(size_t i=1;i<=N;++i)
+            {
+                const double ztmp = (i<=1) ? zeta_min : ( (i>=N) ? zeta_max : zeta_min + (i-1)*(zeta_max-zeta_min)/double(N-1) );
+                const double stmp = B.find_surface(theta,ztmp);
+                std::cerr << "\t\t" << ztmp << " " << stmp << std::endl;
+                { ios::acstream fp(heur_name); fp("%.15g %.15g\n", ztmp, stmp); }
+            }
+            { ios::acstream fp(heur_name); fp << "\n"; }
+
+            aorg[1] = surf0;
+            used[1] = false;
+            
+        }
+
     }
-    std::cerr << "mu=" << B.mu << std::endl;
+
+    return 0;
 
 
-
+#if 0
     //__________________________________________________________________________
     //
     // find zeta_max
@@ -107,11 +172,10 @@ YOCTO_PROGRAM_START()
             }
             fp << "\n";
         }
-
-
-
-
+        
+        
     }
+#endif
     
 }
 YOCTO_PROGRAM_END()

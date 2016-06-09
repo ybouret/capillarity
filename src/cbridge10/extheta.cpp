@@ -5,6 +5,7 @@
 #include "yocto/math/io/data-set.hpp"
 #include "yocto/string/conv.hpp"
 #include "yocto/math/fit/glsf-spec.hpp"
+#include "yocto/container/utils.hpp"
 
 YOCTO_PROGRAM_START()
 {
@@ -163,6 +164,11 @@ YOCTO_PROGRAM_START()
             }
         }
 
+        const double zeta_max_exp = find_max_of(zeta);
+        const double zeta_min_exp = find_min_of(zeta);
+        std::cerr << "zeta_max_exp=" << zeta_max_exp << std::endl;
+        std::cerr << "zeta_min_exp=" << zeta_min_exp << std::endl;
+
         vector<double> theta(N);
         for(size_t i=1;i<=N;++i)
         {
@@ -179,6 +185,42 @@ YOCTO_PROGRAM_START()
                 fp("%g %g %g\n", zeta[i] ,  Rad2Deg(theta[i]), Rad2Deg(alpha[i]) );
             }
         }
+
+
+        for(size_t i=1;i<=N;++i)
+        {
+            theta[i] = setup.compute_theta(alpha[i], zeta[i]-zeta_min_exp);
+        }
+
+        {
+            string outname = rootname;
+            vfs::change_extension(outname, "theta0.dat");
+            ios::wcstream fp(outname);
+
+            for(size_t i=1;i<=N;++i)
+            {
+                fp("%g %g %g\n", zeta[i]-zeta_min_exp ,  Rad2Deg(theta[i]), Rad2Deg(alpha[i]) );
+            }
+        }
+
+        for(size_t i=1;i<=N;++i)
+        {
+            theta[i] = setup.compute_theta(alpha[i], zeta[i]-zeta_min_exp/2);
+        }
+
+        {
+            string outname = rootname;
+            vfs::change_extension(outname, "theta1.dat");
+            ios::wcstream fp(outname);
+
+            for(size_t i=1;i<=N;++i)
+            {
+                fp("%g %g %g\n", zeta[i]-zeta_min_exp/2 ,  Rad2Deg(theta[i]), Rad2Deg(alpha[i]) );
+            }
+        }
+
+
+
 
     }
     

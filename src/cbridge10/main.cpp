@@ -17,22 +17,11 @@ YOCTO_PROGRAM_START()
     }
     std::cerr << "mu=" << B.mu << std::endl;
 
-#if 1
     if(argc>++iarg)
     {
         zeta = strconv::to<double>(argv[iarg],"zeta");
     }
     std::cerr << "zeta=" << zeta << std::endl;
-#endif
-
-
-    double theta_deg = 100;
-    if(argc>++iarg)
-    {
-        theta_deg = strconv::to<double>(argv[iarg],"theta");
-    }
-    const double theta = Deg2Rad(theta_deg);
-    std::cerr << "theta=" << theta_deg << std::endl;
 
 
     {
@@ -44,7 +33,42 @@ YOCTO_PROGRAM_START()
         }
     }
 
-#if 1
+
+    double alpha_deg = 20.0;
+    if(argc>++iarg)
+    {
+        alpha_deg = strconv::to<double>(argv[iarg],"alpha");
+    }
+    std::cerr << "alpha=" << alpha_deg << std::endl;
+    
+    const double alpha = Deg2Rad(alpha_deg);
+
+    {
+        ios::wcstream pp("prof.dat");
+        ios::wcstream ap("ans.dat");
+        for(double theta_deg=1;theta_deg<=170; theta_deg += 0.5)
+        {
+            const double theta = Deg2Rad(theta_deg);
+            const double ans   = B.profile(alpha,theta,zeta,&pp);
+            pp << "\n";
+            ap("%g %g %g %g\n", theta_deg, ans, sin(B.param[BRIDGE_A]), B.param[BRIDGE_U] );
+        }
+
+    }
+
+
+
+#if 0
+    double theta_deg = 100;
+    if(argc>++iarg)
+    {
+        theta_deg = strconv::to<double>(argv[iarg],"theta");
+    }
+    const double theta = Deg2Rad(theta_deg);
+    std::cerr << "theta=" << theta_deg << std::endl;
+
+
+
     {
         ios::wcstream pp("prof.dat");
         ios::wcstream ap("ans.dat");
@@ -56,11 +80,9 @@ YOCTO_PROGRAM_START()
             ap("%g %g %g %g\n", a_deg, ans, sin(B.param[BRIDGE_A]), B.param[BRIDGE_U] );
         }
     }
-#endif
 
     const double alpha = B.find_alpha(theta,zeta);
     std::cerr << "alpha=" << Rad2Deg(alpha) << std::endl;
-#if 1
     {
         ios::wcstream pp("good.dat");
         pp("%g %g\n", 0.0, 1.0+zeta);

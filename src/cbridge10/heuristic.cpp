@@ -24,7 +24,7 @@ YOCTO_PROGRAM_START()
     GLS<double>::Samples       samples(1);
     (void) samples.append(zeta, surf, sfit);
 
-    const size_t   m=4;
+    const size_t   m=3;
     vector<double> aorg(m);
     vector<double> aerr(m);
     vector<bool>   used(m,true);
@@ -86,9 +86,10 @@ YOCTO_PROGRAM_START()
 
 
             const double zeta_min = 0;
+            const double zeta_top = zeta_max/2;
             for(size_t i=1;i<=N;++i)
             {
-                const double ztmp = (i<=1) ? zeta_min : ( (i>=N) ? zeta_max : zeta_min + (i-1)*(zeta_max-zeta_min)/double(N-1) );
+                const double ztmp = (i<=1) ? zeta_min : ( (i>=N) ? zeta_top : zeta_min + (i-1)*(zeta_top-zeta_min)/double(N-1) );
                 const double stmp = B.find_surface(theta,ztmp);
                 std::cerr << "\t\t" << ztmp << " " << stmp << std::endl;
                 { ios::acstream fp(heur_name); fp("%.15g %.15g\n", ztmp, stmp); }
@@ -122,7 +123,7 @@ YOCTO_PROGRAM_START()
             used[1] = false;
 
             aorg[3] = 0;
-            used[3] = false;
+            used[3] = true;
 
 
             if(samples.fit_with(poly, aorg, used, aerr))

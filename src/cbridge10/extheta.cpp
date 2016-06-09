@@ -187,9 +187,10 @@ YOCTO_PROGRAM_START()
         }
 
 
+        const double rate = -0.00010;
         for(size_t i=1;i<=N;++i)
         {
-            theta[i] = setup.compute_theta(alpha[i], zeta[i]-zeta_min_exp);
+            theta[i] = setup.compute_theta(alpha[i], zeta[i]+rate*(i-1));
         }
 
         {
@@ -199,23 +200,7 @@ YOCTO_PROGRAM_START()
 
             for(size_t i=1;i<=N;++i)
             {
-                fp("%g %g %g\n", zeta[i]-zeta_min_exp ,  Rad2Deg(theta[i]), Rad2Deg(alpha[i]) );
-            }
-        }
-
-        for(size_t i=1;i<=N;++i)
-        {
-            theta[i] = setup.compute_theta(alpha[i], zeta[i]-zeta_min_exp/2);
-        }
-
-        {
-            string outname = rootname;
-            vfs::change_extension(outname, "theta1.dat");
-            ios::wcstream fp(outname);
-
-            for(size_t i=1;i<=N;++i)
-            {
-                fp("%g %g %g\n", zeta[i]-zeta_min_exp/2 ,  Rad2Deg(theta[i]), Rad2Deg(alpha[i]) );
+                fp("%g %g %g\n", zeta[i]+rate*(i-1),  Rad2Deg(theta[i]), Rad2Deg(alpha[i]) );
             }
         }
 

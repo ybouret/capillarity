@@ -17,3 +17,12 @@ capillary_length(user_capillary_length)
     assert(capillary_length>0);
     
 }
+
+
+double Setup:: compute_theta(const double alpha, const double zeta)
+{
+    bridge.mu = sqrt( Square(R0)/(2*Square(capillary_length) ));
+    //std::cerr << "mu=" << bridge.mu << std::endl;
+
+    return bridge.find_theta(alpha,zeta);
+}

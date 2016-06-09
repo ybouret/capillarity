@@ -501,7 +501,7 @@ double Bridge:: find_theta( const double alpha, const double zeta )
     const double theta_hi = numeric<double>::pi - delta;
     const double value_hi = f(theta_hi);
 
-#if 1
+#if 0
     {
         ios::wcstream pp("prof-theta.dat");
         ios::wcstream fp("find-theta.dat");
@@ -554,7 +554,7 @@ double Bridge:: find_theta( const double alpha, const double zeta )
 
     const double theta = theta_l;
     std::cerr << "theta=" << Rad2Deg(theta) << std::endl;
-#if 1
+#if 0
     {
         ios::wcstream fp("good-theta.dat");
         (void) profile(alpha, theta, zeta, &fp);

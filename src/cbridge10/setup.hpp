@@ -22,6 +22,11 @@ public:
 
     virtual ~Setup() throw();
 
+    double compute_theta(const double alpha, const double zeta);
+
+
+
+
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Setup);
 };

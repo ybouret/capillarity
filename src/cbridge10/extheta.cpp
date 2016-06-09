@@ -21,6 +21,13 @@ YOCTO_PROGRAM_START()
 
     for(int i=3;i<argc;++i)
     {
+        const string filename = argv[i];
+        const string rootname = vfs::get_base_name(filename);
+
+        //______________________________________________________________________
+        //
+        // load data
+        //______________________________________________________________________
         vector<double> height;
         vector<double> surface;
         vector<double> surffit;
@@ -29,7 +36,7 @@ YOCTO_PROGRAM_START()
             data_set<double> ds;
             ds.use(1, height);
             ds.use(2, surface);
-            ios::icstream fp(argv[i]);
+            ios::icstream fp(filename);
             ds.load(fp);
         }
         size_t N0 = height.size();
@@ -42,6 +49,10 @@ YOCTO_PROGRAM_START()
             }
         }
 
+        //______________________________________________________________________
+        //
+        // autocut
+        //______________________________________________________________________
         const Direction        hdir = (height[1] > height[N0]) ? Pushing : Pulling;
         GLS<double>::Function *part = 0;
         switch (hdir)
@@ -84,14 +95,90 @@ YOCTO_PROGRAM_START()
             throw exception("couldn't part data...");
         }
         GLS<double>::display(std::cerr, aorg, aerr);
+
         {
-            ios::wcstream fp("sample0.dat");
+            string outname = rootname;
+            vfs::change_extension(outname, "cut.dat");
+            ios::wcstream fp(outname);
             for(size_t i=1;i<=N0;++i)
             {
                 fp("%g %g %g\n", height[i], surface[i], surffit[i]);
             }
         }
 
+        //______________________________________________________________________
+        //
+        // build data to extract
+        //______________________________________________________________________
+        const double R0 = setup.R0;
+        const double S0 = numeric<double>::pi * R0*R0;
+        const double CutOff = aorg[3];
+        vector<double> zeta(N0,as_capacity); //!< reduced height
+        vector<double> alpha(N0,as_capacity); //!< angle
+        for(size_t i=1;i<=N0;++i)
+        {
+            const double h_i = height[i];
+            const double hh  = h_i/R0;
+            const double ss  = surface[i]/S0;
+            if(ss>=1)
+            {
+                throw exception("invalid surface %g", surface[i]);
+            }
+            
+            const double aa = asin( sqrt(ss) );
+            switch(hdir)
+            {
+                case Pushing:
+                    if(h_i<=CutOff)
+                    {
+                        zeta.push_back(hh);
+                        alpha.push_back(aa);
+                    }
+                    break;
+
+                case Pulling:
+                    if(h_i>=CutOff)
+                    {
+                        zeta.push_back(hh);
+                        alpha.push_back(aa);
+                    }
+                    break;
+            }
+        }
+
+        const size_t N = zeta.size();
+        if(N<=0)
+        {
+            throw exception("No data remaining");
+        }
+        std::cerr << "using #data=" << N << std::endl;
+
+        {
+            string outname = rootname;
+            vfs::change_extension(outname, "alpha.dat");
+            ios::wcstream fp(outname);
+            for(size_t i=1;i<=N;++i)
+            {
+                fp("%g %g %g\n", zeta[i] * R0, S0 * Square( sin(alpha[i]) ), Rad2Deg(alpha[i]) );
+            }
+        }
+
+        vector<double> theta(N);
+        for(size_t i=1;i<=N;++i)
+        {
+            theta[i] = setup.compute_theta(alpha[i], zeta[i]);
+        }
+
+        {
+            string outname = rootname;
+            vfs::change_extension(outname, "theta.dat");
+            ios::wcstream fp(outname);
+
+            for(size_t i=1;i<=N;++i)
+            {
+                fp("%g %g %g\n", zeta[i] ,  Rad2Deg(theta[i]), Rad2Deg(alpha[i]) );
+            }
+        }
 
     }
     

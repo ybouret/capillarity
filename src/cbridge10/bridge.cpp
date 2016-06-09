@@ -20,7 +20,9 @@ v_center(0),
 mu2(0),
 current_theta(0),
 current_zeta(0),
+current_alpha(0),
 fn_of_alpha( this, & Bridge:: __profile_of_alpha ),
+fn_of_theta( this, & Bridge:: __profile_of_theta ),
 check0(this, & Bridge:: __check0)
 {
     odeint.start(nvar);
@@ -79,15 +81,7 @@ void Bridge:: __Cb( array<double> &Y, double )
 
 }
 
-#if 0
-double Bridge:: goodness(const double u, const double v, const double phi) const throw()
-{
-    //return sign_of(v);
-    return Fabs(v);
-    //return ((mu2*v-sin(phi)/u)/mu2);
-    //return v < 0 ? -1 : (0<v ? 1 : 0);
-}
-#endif
+
 
 void Bridge:: compute_start(const double alpha, const double theta, const double zeta)
 {
@@ -303,6 +297,11 @@ double Bridge:: __profile_of_alpha(const double alpha)
     return profile(alpha, current_theta, current_zeta, NULL);
 }
 
+double Bridge:: __profile_of_theta(const double theta)
+{
+    return profile(current_alpha, theta, current_zeta, NULL);
+}
+
 #include "yocto/math/opt/bracket.hpp"
 #include "yocto/ios/ocstream.hpp"
 
@@ -472,3 +471,15 @@ double Bridge:: compute_zeta_max(const double theta)
     
     return zeta_lo;
 }
+
+double Bridge:: find_theta( const double alpha, const double zeta )
+{
+    current_alpha = alpha;
+    current_zeta  = zeta;
+    Function &f   = fn_of_theta;
+
+    
+
+    return -1;
+}
+

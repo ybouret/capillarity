@@ -40,13 +40,13 @@ YOCTO_PROGRAM_START()
         alpha_deg = strconv::to<double>(argv[iarg],"alpha");
     }
     std::cerr << "alpha=" << alpha_deg << std::endl;
-    
+
     const double alpha = Deg2Rad(alpha_deg);
 
     {
         ios::wcstream pp("prof.dat");
         ios::wcstream ap("ans.dat");
-        for(double theta_deg=1;theta_deg<=170; theta_deg += 0.5)
+        for(double theta_deg=0.5;theta_deg<=170; theta_deg += 0.5)
         {
             const double theta = Deg2Rad(theta_deg);
             const double ans   = B.profile(alpha,theta,zeta,&pp);

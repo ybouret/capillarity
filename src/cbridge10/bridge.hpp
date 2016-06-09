@@ -46,19 +46,24 @@ public:
     double find_alpha( const double theta, const double zeta );
     void   compute_rates(array<double> &dY, const array<double> &Y) throw();
     void   compute_start(const double alpha, const double theta, const double zeta);
-    
+    double find_theta( const double alpha, const double zeta );
+
+
 private:
     double   v_center;
     double   mu2;
     double   current_theta;
     double   current_zeta;
+    double   current_alpha;
     Function fn_of_alpha;
+    Function fn_of_theta;
     optimize1D<double>::event check0;
     
     YOCTO_DISABLE_COPY_AND_ASSIGN(Bridge);
     void __Eq( array<double> &dYdt, double, const array<double> &Y);
     void __Cb( array<double> &Y, double );
-    double __profile_of_alpha(const double theta);
+    double __profile_of_alpha(const double alpha);
+    double __profile_of_theta(const double theta);
     bool   __check0(const triplet<double> &X, const triplet<double> &Y);
 };
 

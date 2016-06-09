@@ -24,14 +24,14 @@ YOCTO_PROGRAM_START()
     GLS<double>::Samples       samples(1);
     (void) samples.append(zeta, surf, sfit);
 
-    const size_t   m=2;
+    const size_t   m=4;
     vector<double> aorg(m);
     vector<double> aerr(m);
     vector<bool>   used(m,true);
+
     samples.prepare(m);
 
-
-
+    const double dzeta = 0.005;
     for(int iarg=1;iarg<argc;++iarg)
     {
         B.mu   = strconv::to<double>(argv[iarg],"mu");
@@ -46,6 +46,15 @@ YOCTO_PROGRAM_START()
         const string heur_name = vformat("heur%g.dat",B.mu);
         ios::ocstream::overwrite(heur_name);
 
+        const string sfit_name = vformat("sfit%g.dat",B.mu);
+        ios::ocstream::overwrite(sfit_name);
+
+
+        const string delta_name = vformat("delta%g.dat",B.mu);
+        ios::ocstream::overwrite(delta_name);
+
+        const string coef_name = vformat("coef%g.dat",B.mu);
+        ios::ocstream::overwrite(coef_name);
 
 
         for(int t_deg = 40; t_deg <= 170; t_deg+=10)
@@ -57,13 +66,22 @@ YOCTO_PROGRAM_START()
             const double surf0  = B.surface0(theta);
             std::cerr << "\t   surface0=" << surf0 << std::endl;
 
+            std::cerr << "\t-- computing slope@zeta=0" << std::endl;
+            B.current_theta = theta;
+            const double slope  = (surf0-B.surface_of_zeta(-dzeta))/(dzeta);
+            std::cerr << "\t-- slope approx " << slope << std::endl;
+
             std::cerr << "\t-- computing zeta_max" << std::endl;
             const double zeta_max = B.compute_zeta_max(theta);
             std::cerr << "\t   zeta_max=" << zeta_max << std::endl;
 
+            std::cerr << "\t-- computing surf_min" << std::endl;
+            const double surf_min = B.find_surface(theta,zeta_max);
+            std::cerr << "\t   surf_min=" << surf_min << std::endl;
+
             {
                 ios::acstream fp(param_name);
-                fp("%.15g %.15g %.15g\n", double(t_deg), surf0, zeta_max);
+                fp("%.15g %.15g %.15g %.15g %.15g\n", double(t_deg), surf0, slope, zeta_max, surf_min);
             }
 
 
@@ -74,12 +92,66 @@ YOCTO_PROGRAM_START()
                 const double stmp = B.find_surface(theta,ztmp);
                 std::cerr << "\t\t" << ztmp << " " << stmp << std::endl;
                 { ios::acstream fp(heur_name); fp("%.15g %.15g\n", ztmp, stmp); }
+                zeta[i] = ztmp;
+                surf[i] = stmp;
             }
             { ios::acstream fp(heur_name); fp << "\n"; }
 
+            {
+                ios::acstream fp(sfit_name);
+                for(size_t i=1;i<=N;++i)
+                {
+                    fp("%.15g %.15g\n", zeta[i], surf0+slope*zeta[i]);
+                }
+                fp << "\n";
+            }
+
+            {
+                ios::acstream fp(delta_name);
+                const double delta_min = surf_min - (surf0+slope*zeta_max);
+
+                for(size_t i=1;i<=N;++i)
+                {
+                    fp("%.15g %.15g\n", zeta[i]/zeta_max, (surf[i]-(surf0+slope*zeta[i]))/delta_min );
+                }
+                fp << "\n";
+            }
+
+#if 1
             aorg[1] = surf0;
             used[1] = false;
-            
+
+            aorg[3] = 0;
+            used[3] = false;
+
+
+            if(samples.fit_with(poly, aorg, used, aerr))
+            {
+                GLS<double>::display(std::cerr,aorg, aerr);
+                ios::acstream fp(sfit_name);
+                for(size_t i=1;i<=N;++i)
+                {
+                    fp("%.15g %.15g\n", zeta[i], sfit[i]);
+                }
+                fp << "\n";
+            }
+            else
+            {
+                throw exception("unexpected fit failure...");
+            }
+
+            {
+                ios::acstream fp(coef_name);
+                fp("%.15g", double(t_deg));
+                for(size_t i=1;i<=m;++i)
+                {
+                    fp(" %.15g",aorg[i]);
+                }
+                fp("\n");
+            }
+#endif
+
+
         }
 
     }

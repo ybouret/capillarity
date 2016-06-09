@@ -34,6 +34,7 @@ YOCTO_PROGRAM_START()
     }
 
 
+#if 0
     double alpha_deg = 20.0;
     if(argc>++iarg)
     {
@@ -43,7 +44,6 @@ YOCTO_PROGRAM_START()
 
     const double alpha = Deg2Rad(alpha_deg);
 
-#if 0
     {
         ios::wcstream pp("prof.dat");
         ios::wcstream ap("ans.dat");
@@ -56,12 +56,13 @@ YOCTO_PROGRAM_START()
         }
 
     }
-#endif
-
     B.find_theta(alpha,zeta);
 
+#endif
 
-#if 0
+
+
+#if 1
     double theta_deg = 100;
     if(argc>++iarg)
     {

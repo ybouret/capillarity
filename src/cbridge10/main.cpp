@@ -17,12 +17,35 @@ YOCTO_PROGRAM_START()
     }
     std::cerr << "mu=" << B.mu << std::endl;
 
+
+#if 1
+    double alpha_deg = 20.0;
+    if(argc>++iarg)
+    {
+        alpha_deg = strconv::to<double>(argv[iarg],"alpha");
+    }
+    std::cerr << "alpha=" << alpha_deg << std::endl;
+    const double alpha = Deg2Rad(alpha_deg);
+
+    double theta_deg = 100;
+    if(argc>++iarg)
+    {
+        theta_deg = strconv::to<double>(argv[iarg],"theta");
+    }
+    std::cerr << "theta=" << theta_deg << std::endl;
+    const double theta = Deg2Rad(theta_deg);
+
+    B.find_zeta(alpha, theta);
+
+#endif
+
+
+#if 0
     if(argc>++iarg)
     {
         zeta = strconv::to<double>(argv[iarg],"zeta");
     }
     std::cerr << "zeta=" << zeta << std::endl;
-
 
     {
         ios::wcstream fp("lens.dat");
@@ -32,6 +55,7 @@ YOCTO_PROGRAM_START()
             fp("%g %g\n",sin(a),zeta+(1.0-cos(a)));
         }
     }
+#endif
 
 
 #if 0
@@ -62,7 +86,7 @@ YOCTO_PROGRAM_START()
 
 
 
-#if 1
+#if 0
     double theta_deg = 100;
     if(argc>++iarg)
     {

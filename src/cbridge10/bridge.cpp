@@ -25,6 +25,7 @@ current_zeta(0),
 current_alpha(0),
 fn_of_alpha( this, & Bridge:: __profile_of_alpha ),
 fn_of_theta( this, & Bridge:: __profile_of_theta ),
+fn_of_zeta(  this, & Bridge:: __profile_of_zeta  ),
 check0(this, & Bridge:: __check0)
 {
     odeint.start(nvar);
@@ -304,6 +305,12 @@ double Bridge:: __profile_of_theta(const double theta)
     return profile(current_alpha, theta, current_zeta, NULL);
 }
 
+double Bridge:: __profile_of_zeta(const double zeta)
+{
+    return profile(current_alpha, current_theta, zeta, NULL);
+}
+
+
 
 #include "yocto/math/opt/bracket.hpp"
 #include "yocto/ios/ocstream.hpp"
@@ -473,7 +480,7 @@ double Bridge:: compute_zeta_max(const double theta)
         zeta_hi += 0.5;
         //std::cerr << "zeta_hi=" << zeta_hi << std::endl;
     }
-    
+
     while( zeta_hi - zeta_lo > odeint.eps )
     {
         const double zeta_mid  = clamp(zeta_lo,0.5*(zeta_lo+zeta_hi),zeta_hi);
@@ -488,7 +495,7 @@ double Bridge:: compute_zeta_max(const double theta)
             zeta_lo = zeta_mid;
         }
     }
-    
+
     return zeta_lo;
 }
 
@@ -564,3 +571,115 @@ double Bridge:: find_theta( const double alpha, const double zeta )
     return theta;
 }
 
+
+double Bridge:: find_zeta( const double alpha, const double theta )
+{
+    current_alpha = alpha;
+    current_theta = theta;
+
+    assert(alpha>0);
+    assert(alpha<numeric<double>::pi);
+
+    assert(theta>0);
+    assert(theta<numeric<double>::pi);
+
+    Function &f = fn_of_zeta;
+
+    const double zeta_lo  = -0.5;
+    const double value_lo = f(zeta_lo);
+    const double zeta_hi  =  1.0;
+    const double value_hi = f(zeta_hi);
+
+
+#if 0
+    {
+        ios::wcstream pp("prof-zeta.dat");
+        ios::wcstream ap("find-zeta.dat");
+        for(double zeta = zeta_lo; zeta <= zeta_hi; zeta += 0.01)
+        {
+            const double ans = profile(alpha, theta, zeta, &pp);
+            pp << "\n";
+            ap("%g %g\n", zeta, ans);
+        }
+    }
+#endif
+
+    triplet<double> X = { zeta_lo,  0, zeta_hi  };
+    triplet<double> F = { value_lo, 0, value_hi };
+
+    bracket<double>::inside(f, X, F);
+    if( F.b>0&& ! optimize1D<double>::run_until(check0,f, X, F, 0) )
+    {
+        std::cerr << "no possible zeta!" << std::endl;
+        return -2;
+    }
+
+    const double zeta_opt = X.b;
+    (void) f(zeta_opt);
+    const double slope_opt = sin(param[BRIDGE_A]);
+
+
+    double zeta_top  = zeta_opt;
+    double slope_top = slope_opt;
+    {
+        double zeta_tmp = zeta_hi;
+        while(zeta_tmp-zeta_top>odeint.eps)
+        {
+            const double zeta_mid  = clamp(zeta_top,0.5*(zeta_top+zeta_tmp),zeta_tmp);
+            const double value_mid = f(zeta_mid);
+            if(value_mid<=0)
+            {
+                zeta_top  = zeta_mid;
+                slope_top = sin( param[BRIDGE_A] );
+            }
+            else
+            {
+                zeta_tmp = zeta_mid;
+            }
+
+        }
+    }
+
+    double zeta = zeta_top;
+
+    if(zeta_top<=0&&value_lo>0)
+    {
+        double zeta_bot  = zeta_opt;
+        double slope_bot = slope_opt;
+        double zeta_tmp  = zeta_lo;
+        while(zeta_bot-zeta_tmp>odeint.eps)
+        {
+            const double zeta_mid  = clamp(zeta_tmp,0.5*(zeta_tmp+zeta_bot),zeta_bot);
+            const double value_mid = f(zeta_mid);
+            if(value_mid<=0)
+            {
+                zeta_bot  = zeta_mid;
+                slope_bot = sin( param[BRIDGE_A] );
+            }
+            else
+            {
+                zeta_tmp = zeta_mid;
+            }
+        }
+        
+        std::cerr << "zeta_top =" << zeta_top  << std::endl;
+        std::cerr << "slope_top=" << slope_top << std::endl;
+        std::cerr << "zeta_bot =" << zeta_bot  << std::endl;
+        std::cerr << "slope_bot=" << slope_bot << std::endl;
+        if(Fabs(slope_bot)<=Fabs(slope_top))
+        {
+            zeta=zeta_bot;
+        }
+    }
+    
+#if 0
+    {
+        ios::wcstream pp("good-zeta.dat");
+        profile(alpha, theta, zeta, &pp);
+    }
+#endif
+
+
+
+    return zeta;
+}

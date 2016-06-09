@@ -679,7 +679,7 @@ double Bridge:: find_zeta( const double alpha, const double theta )
     }
 #endif
 
-
+    std::cerr << "zeta=" << zeta << std::endl;
 
     return zeta;
 }

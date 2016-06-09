@@ -43,6 +43,7 @@ YOCTO_PROGRAM_START()
 
     const double alpha = Deg2Rad(alpha_deg);
 
+#if 0
     {
         ios::wcstream pp("prof.dat");
         ios::wcstream ap("ans.dat");
@@ -55,7 +56,9 @@ YOCTO_PROGRAM_START()
         }
 
     }
+#endif
 
+    B.find_theta(alpha,zeta);
 
 
 #if 0

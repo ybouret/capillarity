@@ -61,7 +61,7 @@ YOCTO_PROGRAM_START()
             case Pushing:
                 std::cerr << "Pushing/Enfoncement" << std::endl;
                 break;
-                
+
             case Pulling:
                 std::cerr << "Pulling/Tirage"   << std::endl;
                 break;
@@ -134,21 +134,50 @@ YOCTO_PROGRAM_START()
         }
 
         {
+            const double theta_ave_deg = Rad2Deg(aveth);
+            vector<double> coord(N);
+            vector<double> dzfit(N);
+            vector<double> dzeta(N);
+            GLS<double>::Sample S(coord,dzeta,dzfit);
+            vector<double> zparam(2);
+
+            for(size_t i=1;i<=N;++i) coord[i] = i;
+
+            ios::wcstream lp("corr.dat");
+
             string outname = rootname;
             vfs::change_extension(outname, "corr.dat");
             ios::wcstream fp(outname);
             for(size_t i=1;i<=N;++i)
             {
-                fp("%g %g\n", zeta[i], setup.bridge.find_zeta(alpha[i], aveth) );
+                fp("%.15g %.15g 0\n", coord[i],zeta[i]);
             }
+            fp << "\n";
+
+            for(int dth=-5;dth<=5;++dth)
+            {
+                const double th = Deg2Rad(theta_ave_deg+dth);
+                for(size_t i=1;i<=N;++i)
+                {
+                    dzeta[i] = setup.bridge.find_zeta(alpha[i], th) - zeta[i];
+                    fp("%.15g %.15g %g\n",coord[i], zeta[i] + dzeta[i], dzeta[i]);
+                }
+                fp << "\n";
+
+                _GLS::Polynomial<double>::Start(S,zparam);
+                std::cerr << "zparam=" << zparam << std::endl;
+                lp("%.15g %.15g %.15g\n", Rad2Deg(th), zparam[2], zparam[1]);
+            }
+
         }
 
 
-
-
-
-
-
+        
+        
+        
+        
+        
+        
     }
     
     

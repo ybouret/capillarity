@@ -134,7 +134,6 @@ YOCTO_PROGRAM_START()
         }
 
         {
-            const double theta_ave_deg = Rad2Deg(aveth);
             vector<double> coord(N);
             vector<double> dzfit(N);
             vector<double> dzeta(N);
@@ -154,6 +153,57 @@ YOCTO_PROGRAM_START()
             }
             fp << "\n";
 
+
+            double t0 = aveth;
+            double H0 = setup.rebuild(t0, zparam, coord, alpha, zeta, dzeta, dzfit);
+            std::cerr << "t0=" << Rad2Deg(t0) << std::endl;
+            std::cerr << "H0=" << H0 << std::endl;
+            lp("%g %g %g %g\n", Rad2Deg(t0), H0, zparam[2], zparam[1]);
+
+            double t0deg = Rad2Deg(t0);
+            double tp    = Deg2Rad( ceil(t0deg) + 1 );
+            double Hp    = setup.rebuild(tp, zparam, coord, alpha, zeta, dzeta, dzfit);
+            std::cerr << "tp=" << Rad2Deg(tp) << std::endl;
+            std::cerr << "Hp=" << Hp << std::endl;
+
+            if(Hp<H0)
+            {
+                lp("%g %g %g %g\n", Rad2Deg(tp), Hp, zparam[2], zparam[1]);
+                for(int i=2;i<=90;i+=5)
+                {
+                    tp = Deg2Rad( ceil(t0deg)+i );
+                    if(Rad2Deg(tp)>=175) break;
+                    Hp = setup.rebuild(tp, zparam, coord, alpha, zeta, dzeta, dzfit);
+                    std::cerr << "tp=" << Rad2Deg(tp) << std::endl;
+                    std::cerr << "Hp=" << Hp << std::endl;
+                    lp("%g %g %g %g\n", Rad2Deg(tp), Hp, zparam[2], zparam[1]);
+                }
+            }
+
+
+            double tm = Deg2Rad( floor(Rad2Deg(aveth)) - 1 );
+            double Hm = setup.rebuild(tm, zparam, coord, alpha, zeta, dzeta, dzfit);
+            std::cerr << "tm=" << Rad2Deg(tm) << std::endl;
+            std::cerr << "Hm=" << Hm << std::endl;
+
+            if(Hm<H0)
+            {
+                lp("%g %g %g %g\n", Rad2Deg(tm), Hm, zparam[2], zparam[1]);
+                for(int i=2;i<=90;i+=5)
+                {
+                    tm = Deg2Rad( floor(t0deg)-i );
+                    if(Rad2Deg(tm)<=5) break;
+                    Hm = setup.rebuild(tm, zparam, coord, alpha, zeta, dzeta, dzfit);
+                    std::cerr << "tm=" << Rad2Deg(tm) << std::endl;
+                    std::cerr << "Hm=" << Hm << std::endl;
+                    lp("%g %g %g %g\n", Rad2Deg(tm), Hm, zparam[2], zparam[1]);
+                }
+
+            }
+
+
+
+#if 0
             for(int dth=-5;dth<=5;++dth)
             {
                 const double th = Deg2Rad(theta_ave_deg+dth);
@@ -168,6 +218,7 @@ YOCTO_PROGRAM_START()
                 std::cerr << "zparam=" << zparam << std::endl;
                 lp("%.15g %.15g %.15g\n", Rad2Deg(th), zparam[2], zparam[1]);
             }
+#endif
 
         }
 

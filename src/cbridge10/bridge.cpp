@@ -662,10 +662,10 @@ double Bridge:: find_zeta( const double alpha, const double theta )
             }
         }
         
-        std::cerr << "zeta_top =" << zeta_top  << std::endl;
-        std::cerr << "slope_top=" << slope_top << std::endl;
-        std::cerr << "zeta_bot =" << zeta_bot  << std::endl;
-        std::cerr << "slope_bot=" << slope_bot << std::endl;
+        //std::cerr << "zeta_top =" << zeta_top  << std::endl;
+        //std::cerr << "slope_top=" << slope_top << std::endl;
+        //std::cerr << "zeta_bot =" << zeta_bot  << std::endl;
+        //std::cerr << "slope_bot=" << slope_bot << std::endl;
         if(Fabs(slope_bot)<=Fabs(slope_top))
         {
             zeta=zeta_bot;
@@ -679,7 +679,7 @@ double Bridge:: find_zeta( const double alpha, const double theta )
     }
 #endif
 
-    std::cerr << "zeta=" << zeta << std::endl;
+    //std::cerr << "zeta=" << zeta << std::endl;
 
     return zeta;
 }

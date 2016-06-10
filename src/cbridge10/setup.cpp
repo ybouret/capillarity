@@ -73,6 +73,26 @@ size_t Setup:: isolate(const Direction      hdir,
     return zeta.size();
 }
 
+double Setup:: rebuild(const double         th,
+                       array<double>       &zparam,
+                       const array<double> &coord,
+                       const array<double> &alpha,
+                       const array<double> &zeta,
+                       array<double>       &dzeta,
+                       array<double>       &dzfit
+                       )
+{
+    const size_t N = coord.size();
+    for(size_t i=1;i<=N;++i)
+    {
+        dzeta[i] = bridge.find_zeta(alpha[i], th) - zeta[i];
+    }
+
+    GLS<double>::Sample S(coord,dzeta,dzfit);
+    _GLS::Polynomial<double>::Start(S,zparam);
+    return Fabs(zparam[2]);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 Parted:: Parted() throw()

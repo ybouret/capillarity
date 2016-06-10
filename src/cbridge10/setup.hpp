@@ -3,7 +3,7 @@
 
 #include "bridge.hpp"
 #include "yocto/string.hpp"
-#include "yocto/math/fit/glsf.hpp"
+#include "yocto/math/fit/glsf-spec.hpp"
 
 #define BRIDGE_SEARCH_DEGREES     0.001
 #define BRIDGE_INTEGRATOR_FTOL    1e-5
@@ -37,6 +37,15 @@ public:
                    const array<double> &height,
                    const array<double> &surface,
                    const double         CutOff);
+
+    double rebuild(const double         th,
+                   array<double>       &zparam,
+                   const array<double> &coord,
+                   const array<double> &alpha,
+                   const array<double> &zeta,
+                   array<double>       &dzeta,
+                   array<double>       &dzfit
+                   );
 
 
 private:

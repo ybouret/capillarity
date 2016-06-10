@@ -41,6 +41,7 @@ YOCTO_PROGRAM_START()
             ds.load(fp);
         }
         size_t N0 = height.size();
+        surffit.make(N0);
         std::cerr << "#data=" << N0 << std::endl;
         {
             ios::wcstream fp("output.dat");
@@ -55,48 +56,19 @@ YOCTO_PROGRAM_START()
         // autocut
         //______________________________________________________________________
         const Direction        hdir = (height[1] > height[N0]) ? Pushing : Pulling;
-        GLS<double>::Function *part = 0;
         switch (hdir)
         {
             case Pushing:
                 std::cerr << "Pushing/Enfoncement" << std::endl;
-                part = &cut_push;
                 break;
                 
             case Pulling:
                 std::cerr << "Pulling/Tirage"   << std::endl;
-                part = &cut_pull;
                 break;
         }
 
-        surffit.make(N0);
-        GLS<double>::Samples       samples;
-        const GLS<double>::Sample &sample = samples.append(height,surface,surffit);
 
-        const size_t   nvar = 3;
-        vector<double> aorg(nvar);
-        vector<double> aerr(nvar);
-        vector<bool>   used(nvar,true);
-        {
-            vector<double> p(2);
-            if(!_GLS::Polynomial<double>::Start(sample, p))
-            {
-                throw exception("couldn't guess initial parameters");
-            }
-            std::cerr << "p=" << p << std::endl;
-            aorg[1] = p[1];
-            aorg[2] = p[2];
-            aorg[3] = 0.5*(height[1]+height[N0]);
-        }
-        samples.prepare(nvar);
-
-
-        if( !samples.fit_with(*part, aorg, used, aerr, &cut_cb) )
-        {
-            throw exception("couldn't part data...");
-        }
-        GLS<double>::display(std::cerr, aorg, aerr);
-
+        const double CutOff = parted.split(hdir, height, surface, surffit);
         {
             string outname = rootname;
             vfs::change_extension(outname, "cut.dat");
@@ -113,7 +85,6 @@ YOCTO_PROGRAM_START()
         //______________________________________________________________________
         const double R0 = setup.R0;
         const double S0 = numeric<double>::pi * R0*R0;
-        const double CutOff = aorg[3];
         vector<double> zeta(N0,as_capacity); //!< reduced height
         vector<double> alpha(N0,as_capacity); //!< angle
         for(size_t i=1;i<=N0;++i)

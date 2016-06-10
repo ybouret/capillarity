@@ -41,36 +41,13 @@ enum Direction
 class Parted
 {
 public:
-    explicit Parted() throw() {}
-    virtual ~Parted() throw() {}
+    explicit Parted() throw();
+    virtual ~Parted() throw();
+    double push( double x, const array<double> &aorg );
+    double pull( double x, const array<double> &aorg );
+    bool   callback(const GLS<double>::Samples &, const array<double> &aorg );
+    double split(const Direction hdir,const array<double> &height, const array<double> &surface, array<double> &surffit);
 
-    //! decreasing heigh
-    double push( double x, const array<double> &aorg )
-    {
-        assert(aorg.size()>=3);
-        const double intercept = aorg[1];
-        const double slope     = aorg[2];
-        const double cutoff    = aorg[3];
-        const double surfmin   = intercept + slope * cutoff;
-        return (x <= cutoff) ? intercept+slope*x : surfmin;
-    }
-
-    //! increasing h
-    double pull( double x, const array<double> &aorg )
-    {
-        assert(aorg.size()>=3);
-        const double intercept = aorg[1];
-        const double slope     = aorg[2];
-        const double cutoff    = aorg[3];
-        const double surfmax   = intercept + slope * cutoff;
-        return (x >= cutoff) ? intercept+slope*x : surfmax;
-    }
-
-    bool callback(const GLS<double>::Samples &, const array<double> &aorg )
-    {
-        std::cerr << "aorg=" << aorg << std::endl;
-        return true;
-    }
 
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Parted);

@@ -16,7 +16,7 @@ capillary_length(user_capillary_length)
 {
     assert(R0>0);
     assert(capillary_length>0);
-    
+
 }
 
 
@@ -28,6 +28,50 @@ double Setup:: compute_theta(const double alpha, const double zeta)
     return bridge.find_theta(alpha,zeta);
 }
 
+
+size_t Setup:: isolate(const Direction      hdir,
+                       vector<double>      &zeta,
+                       vector<double>      &alpha,
+                       const array<double> &height,
+                       const array<double> &surface,
+                       const double         CutOff)
+{
+    const size_t N0 = height.size();
+    zeta.free();
+    alpha.free();
+    const double   S0 = numeric<double>::pi * R0*R0;
+    for(size_t i=1;i<=N0;++i)
+    {
+        const double h_i = height[i];
+        const double hh  = h_i/R0;
+        const double ss  = surface[i]/S0;
+        if(ss>=1)
+        {
+            throw exception("invalid surface %g", surface[i]);
+        }
+
+        const double aa = asin( sqrt(ss) );
+        switch(hdir)
+        {
+            case Pushing:
+                if(h_i<=CutOff)
+                {
+                    zeta.push_back(hh);
+                    alpha.push_back(aa);
+                }
+                break;
+
+            case Pulling:
+                if(h_i>=CutOff)
+                {
+                    zeta.push_back(hh);
+                    alpha.push_back(aa);
+                }
+                break;
+        }
+    }
+    return zeta.size();
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 

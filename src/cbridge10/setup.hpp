@@ -10,6 +10,13 @@
 #define BRIDGE_INTEGRATOR_DEGREES 0.1
 #define BRIDGE_INTEGRATOR_LENGTH  0.01
 
+enum Direction
+{
+    Pulling, //!< increasing H
+    Pushing, //!< decreasing H
+};
+
+
 class Setup
 {
 public:
@@ -24,18 +31,18 @@ public:
 
     double compute_theta(const double alpha, const double zeta);
 
-
+    size_t isolate(const Direction      hdir,
+                   vector<double>      &zeta,
+                   vector<double>      &alpha,
+                   const array<double> &height,
+                   const array<double> &surface,
+                   const double         CutOff);
 
 
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Setup);
 };
 
-enum Direction
-{
-    Pulling, //!< increasing H
-    Pushing, //!< decreasing H
-};
 
 
 class Parted

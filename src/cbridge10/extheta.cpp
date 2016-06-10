@@ -67,7 +67,6 @@ YOCTO_PROGRAM_START()
                 break;
         }
 
-
         const double CutOff = parted.split(hdir, height, surface, surffit);
         {
             string outname = rootname;
@@ -83,42 +82,9 @@ YOCTO_PROGRAM_START()
         //
         // build data to extract
         //______________________________________________________________________
-        const double R0 = setup.R0;
-        const double S0 = numeric<double>::pi * R0*R0;
-        vector<double> zeta(N0,as_capacity); //!< reduced height
+        vector<double> zeta(N0,as_capacity);  //!< reduced height
         vector<double> alpha(N0,as_capacity); //!< angle
-        for(size_t i=1;i<=N0;++i)
-        {
-            const double h_i = height[i];
-            const double hh  = h_i/R0;
-            const double ss  = surface[i]/S0;
-            if(ss>=1)
-            {
-                throw exception("invalid surface %g", surface[i]);
-            }
-            
-            const double aa = asin( sqrt(ss) );
-            switch(hdir)
-            {
-                case Pushing:
-                    if(h_i<=CutOff)
-                    {
-                        zeta.push_back(hh);
-                        alpha.push_back(aa);
-                    }
-                    break;
-
-                case Pulling:
-                    if(h_i>=CutOff)
-                    {
-                        zeta.push_back(hh);
-                        alpha.push_back(aa);
-                    }
-                    break;
-            }
-        }
-
-        const size_t N = zeta.size();
+        const size_t   N = setup.isolate(hdir, zeta, alpha, height, surface, CutOff);
         if(N<=0)
         {
             throw exception("No data remaining");
@@ -131,7 +97,7 @@ YOCTO_PROGRAM_START()
             ios::wcstream fp(outname);
             for(size_t i=1;i<=N;++i)
             {
-                fp("%g %g %g\n", zeta[i] * R0, S0 * Square( sin(alpha[i]) ), Rad2Deg(alpha[i]) );
+                fp("%g %g %g\n", zeta[i] * setup.R0, numeric<double>::pi * Square( setup.R0 * sin(alpha[i]) ), Rad2Deg(alpha[i]) );
             }
         }
 

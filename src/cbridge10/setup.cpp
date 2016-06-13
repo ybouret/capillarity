@@ -16,12 +16,12 @@ capillary_length(user_capillary_length)
     bridge.set_mu(R0,capillary_length);
 }
 
-
+#if 0
 double Setup:: compute_theta(const double alpha, const double zeta)
 {
     return bridge.find_theta(alpha,zeta);
 }
-
+#endif
 
 size_t Setup:: isolate(const Direction      hdir,
                        vector<double>      &zeta,

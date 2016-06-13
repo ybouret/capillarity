@@ -26,7 +26,7 @@ public:
 
     virtual ~Setup() throw();
 
-    double compute_theta(const double alpha, const double zeta);
+    //double compute_theta(const double alpha, const double zeta);
 
     size_t isolate(const Direction      hdir,
                    vector<double>      &zeta,
@@ -51,6 +51,8 @@ public:
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Setup);
 };
+
+
 
 
 //! will provide a cutoff

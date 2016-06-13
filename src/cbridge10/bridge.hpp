@@ -74,7 +74,7 @@ public:
     //! find zeta from a given alpha and theta
     double find_zeta( const double alpha, const double theta );
 
-    void set_mu(const double R0, const double capillary_lenght);
+    void set_mu(const double R0, const double capillary_length);
 
 
     double   v_center;

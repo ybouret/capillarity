@@ -40,10 +40,10 @@ Bridge:: ~Bridge() throw()
 {
 }
 
-void Bridge:: set_mu(const double R0, const double capillary_lenght)
+void Bridge:: set_mu(const double R0, const double capillary_length)
 {
-    mu = sqrt( Square(R0) / ( 2.0 * Square(capillary_lenght) ) );
-    //mu = sqrt( Square(R0) / ( 1.0 * Square(capillary_lenght) ) );
+    mu = sqrt( Square(R0) / ( 2.0 * Square(capillary_length) ) );
+    //mu = sqrt( Square(R0) / ( 1.0 * Square(capillary_length) ) );
     std::cerr << "mu=" << mu << std::endl;
 }
 

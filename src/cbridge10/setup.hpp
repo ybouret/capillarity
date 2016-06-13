@@ -84,7 +84,9 @@ public:
     vector<double> alpha;
     vector<double> theta;
     vector<double> dzeta;
-
+    vector<double> znew;
+    vector<double> zfit;
+    
     void extract_theta();
 
 private:

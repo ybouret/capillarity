@@ -6,6 +6,7 @@
 #include "yocto/string/conv.hpp"
 #include "yocto/math/fit/glsf-spec.hpp"
 #include "yocto/container/utils.hpp"
+#include "yocto/math/stat/descr.hpp"
 
 YOCTO_PROGRAM_START()
 {
@@ -28,6 +29,9 @@ YOCTO_PROGRAM_START()
     vector<double> &alpha = app.alpha;
     vector<double> &theta = app.theta;
     vector<double> &dzeta = app.dzeta;
+    vector<double> &znew  = app.znew;
+    vector<double> &zfit  = app.zfit;
+    vector<double>  coef(2);
 
     for(int i=5;i<argc;++i)
     {
@@ -104,11 +108,13 @@ YOCTO_PROGRAM_START()
         std::cerr << "using #data=" << N << std::endl;
 #endif
 
-        
+
         zeta.free();
         alpha.free();
         theta.free();
         dzeta.free();
+        znew.free();
+
         const double   S0 = setup.S0;
 
         for(size_t i=1;i<=N0;++i)
@@ -135,7 +141,8 @@ YOCTO_PROGRAM_START()
             dzeta[i] = zeta[i] - zeta[1];
         }
         theta.make(N);
-
+        znew.make(N);
+        zfit.make(N);
 
         {
             string outname = rootname;
@@ -160,7 +167,7 @@ YOCTO_PROGRAM_START()
         std::cerr << "-- extracting theta using #cores=" << app.cores << std::endl;
         app.extract_theta();
 
-        
+
 
         {
             string outname = rootname;
@@ -175,9 +182,43 @@ YOCTO_PROGRAM_START()
             }
         }
 
-        //double theta_ave = 0;
+        for(size_t iter=1;iter<=5;++iter)
+        {
+            double theta_ave = 0;
+            compute_average(theta_ave, theta);
+            std::cerr << "theta_ave=" << Rad2Deg(theta_ave) << std::endl;
+            std::cerr << "-- inversion..." << std::endl;
+            app.compile<double,double>();
+            app.call(znew,alpha, &theta_ave);
 
+            for(size_t i=1;i<=N;++i)
+            {
+                znew[i] -= zeta[i];
+            }
 
+            GLS<double>::Sample sample(dzeta,znew,zfit);
+            _GLS::Polynomial<double>::Start(sample,coef);
+            std::cerr << "coef=" << coef << std::endl;
+            for(size_t i=1;i<=N;++i)
+            {
+                znew[i] = zeta[i] + _GLS::Polynomial<double>::Eval(dzeta[i],coef);
+            }
+            
+            {
+                ios::wcstream fp("znew.dat");
+                for(size_t i=1;i<=N;++i)
+                {
+                    fp("%g %g %g\n", double(i), zeta[i], znew[i] );
+                }
+            }
+
+            for(size_t i=1;i<=N;++i)
+            {
+                zeta[i] = znew[i];
+            }
+            app.extract_theta();
+        }
+        
         
     }
     

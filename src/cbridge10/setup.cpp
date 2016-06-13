@@ -148,8 +148,8 @@ double Parted:: split( const Direction hdir, const array<double> &height, const 
     }
     samples.prepare(nvar);
 
-    GLS<double>::Callback cb(this, & Parted::callback );
-    GLS<double>::Function *part = 0;
+    GLS<double>::Callback  cb(this, & Parted::callback );
+    GLS<double>::Function  *part = 0;
     GLS<double>::Function  _push(this, & Parted:: push );
     GLS<double>::Function  _pull(this, & Parted:: pull );
 
@@ -165,5 +165,31 @@ double Parted:: split( const Direction hdir, const array<double> &height, const 
     }
     GLS<double>::display(std::cerr, aorg, aerr);
     return aorg[3];
+}
+
+void Setup:: run(threading::context  &ctx,
+                 array<double>       &target,
+                 const array<double> &source,
+                 const array<double> &second,
+                 void                *args)
+{
+    assert(args);
+    const int choice = *(int *)args;
+    switch(choice)
+    {
+        case SETUP_EXTRACT_THETA:
+        {
+            array<double>       &theta = target;
+            const array<double> &alpha = source;
+            const array<double> &zeta  = second;
+            size_t offset = 1;
+            size_t length = theta.size();
+            ctx.split(offset, length);
+            for(size_t i=offset,count=length;count-->0;++i)
+            {
+                theta[i] = bridge.find_theta(alpha[i], zeta[i]);
+            }
+        }
+    }
 }
 

@@ -563,7 +563,7 @@ double Bridge:: find_theta( const double alpha, const double zeta )
     }
 
     const double theta = theta_l;
-    std::cerr << "theta=" << Rad2Deg(theta) << std::endl;
+    //std::cerr << "theta=" << Rad2Deg(theta) << std::endl;
 #if 0
     {
         ios::wcstream fp("good-theta.dat");

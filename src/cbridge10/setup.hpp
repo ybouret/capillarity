@@ -12,6 +12,7 @@ enum Direction
     Pushing, //!< decreasing H
 };
 
+#define SETUP_EXTRACT_THETA 1
 
 class Setup
 {
@@ -44,7 +45,7 @@ public:
                    );
 
 
-    void run( threading::context &ctx, array<double> &target, const array<double> &source, void *args);
+    void run( threading::context &ctx, array<double> &target, const array<double> &source, const array<double> &second, void *args);
     
 
 private:

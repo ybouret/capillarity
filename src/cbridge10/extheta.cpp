@@ -24,6 +24,7 @@ YOCTO_PROGRAM_START()
             cpu.append<double,double>(R0,cap_len);
         }
     }
+
     Setup  &setup = cpu[0];
     Parted  parted;
 
@@ -114,20 +115,16 @@ YOCTO_PROGRAM_START()
         std::cerr << "zeta_min_exp=" << zeta_min_exp << std::endl;
 
         vector<double> theta(N);
-        double         aveth = 0;
-
+        
         //______________________________________________________________________
         //
         // extracting data
         //______________________________________________________________________
-        aveth=0;
-        for(size_t i=1;i<=N;++i)
-        {
-            theta[i] = setup.compute_theta(alpha[i], zeta[i]);
-            aveth   += theta[i];
-        }
-        aveth /= N;
+        cpu.compile<double,double,double>();
+        int choice = SETUP_EXTRACT_THETA;
+        cpu.call(theta, alpha, zeta, &choice);
 
+        
 
         {
             string outname = rootname;

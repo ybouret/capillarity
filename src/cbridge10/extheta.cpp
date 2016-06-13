@@ -6,6 +6,7 @@
 #include "yocto/string/conv.hpp"
 #include "yocto/math/fit/glsf-spec.hpp"
 #include "yocto/container/utils.hpp"
+#include "yocto/threading/vpu.hpp"
 
 YOCTO_PROGRAM_START()
 {
@@ -14,11 +15,17 @@ YOCTO_PROGRAM_START()
         throw exception("usage: %s R0 capillary_length [datafiles]", program);
     }
 
-    Setup  setup( strconv::to<double>(argv[1],"R0"), strconv::to<double>(argv[2],"capillary_length"));
-    Parted parted;
-    GLS<double>::Function cut_pull( &parted, & Parted::pull );
-    GLS<double>::Function cut_push( &parted, & Parted::push );
-    GLS<double>::Callback cut_cb( &parted, & Parted::callback);
+    threading::processing_unit<Setup> cpu( new threading::crew(true) );
+    {
+        const double R0      = strconv::to<double>(argv[1],"R0");
+        const double cap_len = strconv::to<double>(argv[2],"capillary_length");
+        for(size_t i=0;i<cpu.cores;++i)
+        {
+            cpu.append<double,double>(R0,cap_len);
+        }
+    }
+    Setup  &setup = cpu[0];
+    Parted  parted;
 
     for(int i=3;i<argc;++i)
     {

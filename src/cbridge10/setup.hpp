@@ -44,6 +44,9 @@ public:
                    );
 
 
+    void run( threading::context &ctx, array<double> &target, const array<double> &source, void *args);
+    
+
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Setup);
 };

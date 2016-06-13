@@ -4,6 +4,7 @@
 #include "bridge.hpp"
 #include "yocto/string.hpp"
 #include "yocto/math/fit/glsf-spec.hpp"
+#include "yocto/threading/vpu.hpp"
 
 
 enum Direction
@@ -21,9 +22,11 @@ public:
     explicit Setup(const double  user_R0,
                    const double  user_capillary_length);
     DefaultBridge bridge;
-    double R0;
-    double capillary_length;
-
+    const double R0;
+    const double capillary_length;
+    const double R02;
+    const double S0;
+    
     virtual ~Setup() throw();
 
     //double compute_theta(const double alpha, const double zeta);
@@ -50,6 +53,44 @@ public:
 
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Setup);
+};
+
+
+class Setups : public threading::processing_unit<Setup>
+{
+public:
+    explicit Setups(threading::kernel_executor *kxp,
+                    const double                R0,
+                    const double                capillary_length);
+
+    virtual ~Setups() throw();
+
+
+private:
+    YOCTO_DISABLE_COPY_AND_ASSIGN(Setups);
+};
+
+class Application : public Setups
+{
+public:
+
+    explicit Application( threading::kernel_executor *kxp,
+                         const double                 R0,
+                         const double                 capillary_length);
+
+    virtual ~Application() throw();
+
+    Setup &setup;
+
+    vector<double> zeta;
+    vector<double> alpha;
+    vector<double> theta;
+    vector<double> dzeta;
+
+    void extract_theta();
+
+private:
+    YOCTO_DISABLE_COPY_AND_ASSIGN(Application);
 };
 
 

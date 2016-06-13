@@ -6,7 +6,6 @@
 #include "yocto/string/conv.hpp"
 #include "yocto/math/fit/glsf-spec.hpp"
 #include "yocto/container/utils.hpp"
-#include "yocto/threading/vpu.hpp"
 
 YOCTO_PROGRAM_START()
 {
@@ -15,20 +14,20 @@ YOCTO_PROGRAM_START()
         throw exception("usage: %s R0 capillary_length area_min  area_max [datafiles]", program);
     }
 
-    threading::processing_unit<Setup> cpu( new threading::crew(true) );
-    {
-        const double R0      = strconv::to<double>(argv[1],"R0");
-        const double cap_len = strconv::to<double>(argv[2],"capillary_length");
-        for(size_t i=0;i<cpu.cores;++i)
-        {
-            cpu.append<double,double>(R0,cap_len);
-        }
-    }
+
+    Application app(new threading::crew(true),
+                    strconv::to<double>(argv[1],"R0"),
+                    strconv::to<double>(argv[2],"capillary_length")
+                    );
+
     const double area_min = strconv::to<double>(argv[3]);
     const double area_max = strconv::to<double>(argv[4]);
 
-    Setup  &setup = cpu[0];
-    Parted  parted;
+    Setup  &setup = app.setup;
+    vector<double> &zeta  = app.zeta;
+    vector<double> &alpha = app.alpha;
+    vector<double> &theta = app.theta;
+    vector<double> &dzeta = app.dzeta;
 
     for(int i=5;i<argc;++i)
     {
@@ -105,10 +104,13 @@ YOCTO_PROGRAM_START()
         std::cerr << "using #data=" << N << std::endl;
 #endif
 
-        vector<double> zeta(N0,as_capacity);  //!< reduced height
-        vector<double> alpha(N0,as_capacity); //!< angle
-        vector<double> dzeta(N0,as_capacity); //!< delta reduced height
-        const double   S0 = numeric<double>::pi * Square(setup.R0);
+        
+        zeta.free();
+        alpha.free();
+        theta.free();
+        dzeta.free();
+        const double   S0 = setup.S0;
+
         for(size_t i=1;i<=N0;++i)
         {
             const double s = surface[i];
@@ -132,7 +134,7 @@ YOCTO_PROGRAM_START()
         {
             dzeta[i] = zeta[i] - zeta[1];
         }
-        
+        theta.make(N);
 
 
         {
@@ -151,16 +153,12 @@ YOCTO_PROGRAM_START()
         std::cerr << "zeta_max_exp=" << zeta_max_exp << std::endl;
         std::cerr << "zeta_min_exp=" << zeta_min_exp << std::endl;
 
-        vector<double> theta(N);
-
         //______________________________________________________________________
         //
         // extracting data
         //______________________________________________________________________
-        std::cerr << "-- extracting theta using #cores=" << cpu.cores << std::endl;
-        cpu.compile<double,double,double>();
-        int choice = SETUP_EXTRACT_THETA;
-        cpu.call(theta, alpha, zeta, &choice);
+        std::cerr << "-- extracting theta using #cores=" << app.cores << std::endl;
+        app.extract_theta();
 
         
 

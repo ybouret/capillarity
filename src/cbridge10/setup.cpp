@@ -9,19 +9,15 @@ Setup:: Setup(const double user_R0,
               const double user_capillary_length) :
 bridge(),
 R0(user_R0),
-capillary_length(user_capillary_length)
+capillary_length(user_capillary_length),
+R02( Square(R0) ),
+S0( R02 * numeric<double>::pi )
 {
     assert(R0>0);
     assert(capillary_length>0);
     bridge.set_mu(R0,capillary_length);
 }
 
-#if 0
-double Setup:: compute_theta(const double alpha, const double zeta)
-{
-    return bridge.find_theta(alpha,zeta);
-}
-#endif
 
 size_t Setup:: isolate(const Direction      hdir,
                        vector<double>      &zeta,
@@ -191,5 +187,43 @@ void Setup:: run(threading::context  &ctx,
             }
         }
     }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+Setups:: ~Setups() throw()
+{
+
+}
+
+Setups:: Setups(threading::kernel_executor *kxp,
+                const double                R0,
+                const double                capillary_length) :
+threading::processing_unit<Setup>(kxp)
+{
+    for(size_t i=0;i<cores;++i)
+    {
+        append<double,double>(R0,capillary_length);
+    }
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+Application:: ~Application() throw() {}
+
+Application:: Application( threading::kernel_executor *kxp,
+                          const double                 user_R0,
+                          const double                 user_capillary_length) :
+Setups(kxp,user_R0,user_capillary_length),
+setup( (*this)[0] )
+{
+
+}
+
+void Application:: extract_theta()
+{
+    int choice = SETUP_EXTRACT_THETA;
+    compile<double,double,double>();
+    call(theta, alpha, zeta, &choice);
 }
 

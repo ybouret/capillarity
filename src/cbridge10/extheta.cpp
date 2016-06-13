@@ -136,7 +136,7 @@ YOCTO_PROGRAM_START()
 
             for(size_t i=1;i<=N;++i)
             {
-                fp("%g %g %g\n", zeta[i] ,  Rad2Deg(theta[i]), Rad2Deg(alpha[i]) );
+                fp("%g %g %g %g\n", zeta[i] ,  Rad2Deg(theta[i]), Rad2Deg(alpha[i]), double(i) );
             }
         }
 

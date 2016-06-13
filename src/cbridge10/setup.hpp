@@ -28,9 +28,7 @@ public:
     const double S0;
     
     virtual ~Setup() throw();
-
-    //double compute_theta(const double alpha, const double zeta);
-
+    
     size_t isolate(const Direction      hdir,
                    vector<double>      &zeta,
                    vector<double>      &alpha,
@@ -49,7 +47,7 @@ public:
 
 
     void run( threading::context &ctx, array<double> &target, const array<double> &source, const array<double> &second, void *args);
-    
+    void run( threading::context &ctx, array<double> &target, const array<double> &source, void *args);
 
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Setup);

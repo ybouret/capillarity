@@ -189,6 +189,22 @@ void Setup:: run(threading::context  &ctx,
     }
 }
 
+
+void Setup:: run( threading::context &ctx, array<double> &target, const array<double> &source, void *args)
+{
+    assert(args);
+    const double theta = *(double *)args;
+    
+    size_t offset = 1;
+    size_t length = target.size();
+    ctx.split(offset, length);
+    for(size_t i=offset,count=length;count-->0;++i)
+    {
+        target[i] = bridge.find_zeta(source[i], theta);
+    }
+
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 Setups:: ~Setups() throw()
 {

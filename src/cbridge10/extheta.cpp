@@ -171,9 +171,11 @@ YOCTO_PROGRAM_START()
             {
                 const double t = round(10.0*Rad2Deg(theta[i]))/10.0;
 
-                fp("%g %g %g %g\n", zeta[i] , t , Rad2Deg(alpha[i]), double(i) );
+                fp("%g %g %g\n", setup.R0 * zeta[i] , t , Rad2Deg(alpha[i]) );
             }
         }
+
+        //double theta_ave = 0;
 
 
         

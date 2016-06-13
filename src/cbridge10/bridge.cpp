@@ -1,21 +1,21 @@
 #include "bridge.hpp"
 #include "yocto/math/core/tao.hpp"
 
-Bridge:: Bridge(const double delta_degrees,
-                const double ftol,
-                const double actrl_degrees,
-                const double sctrl) :
+Bridge:: Bridge(const double search_degrees,
+                const double integrator_ftol,
+                const double integrator_degrees,
+                const double integrator_length) :
 nvar( BRIDGE_N ),
 mu(1),
-odeint(ftol),
+odeint(integrator_ftol),
 pprev(nvar),
 param(nvar),
 flag(false),
 eq( this, & Bridge::__Eq ),
 cb( this, & Bridge::__Cb ),
-delta( Deg2Rad(delta_degrees) ),
-angle_control( Deg2Rad(actrl_degrees) ),
-shift_control( sctrl ),
+delta( Deg2Rad(search_degrees) ),
+angle_control( Deg2Rad(integrator_degrees) ),
+shift_control( integrator_length ),
 surface0(this, & Bridge:: __surfac0_of_theta ),
 surface_of_zeta(this, & Bridge:: __surface_of_zeta),
 v_center(0),
@@ -29,10 +29,10 @@ fn_of_zeta(  this, & Bridge:: __profile_of_zeta  ),
 check0(this, & Bridge:: __check0)
 {
     odeint.start(nvar);
-    std::cerr << "odeint.eps=" << odeint.eps << std::endl;
-    std::cerr << "angular_search=" << Rad2Deg(delta) << std::endl;
-    std::cerr << "angle_control="  << Rad2Deg(angle_control) << std::endl;
-    std::cerr << "shift_control="  << shift_control          << std::endl;
+    std::cerr << "odeint.eps     = " << odeint.eps << std::endl;
+    std::cerr << "angular_search = " << Rad2Deg(delta) << std::endl;
+    std::cerr << "angle_control  = "  << Rad2Deg(angle_control) << std::endl;
+    std::cerr << "shift_control  = "  << shift_control          << std::endl;
 }
 
 
@@ -40,6 +40,11 @@ Bridge:: ~Bridge() throw()
 {
 }
 
+void Bridge:: set_mu(const double R0, const double capillary_lenght)
+{
+    mu = sqrt( Square(R0) / ( 2.0 * Square(capillary_lenght) ) );
+    std::cerr << "mu=" << mu << std::endl;
+}
 
 
 void   Bridge:: compute_rates(array<double> &dYdt, const array<double> &Y)  throw()
@@ -126,8 +131,6 @@ double Bridge:: profile(const double  alpha,
     assert(alpha<numeric<double>::pi);
     flag     = true;
     compute_start(alpha, theta, zeta);
-    //std::cerr << "Bridge.mu=" << mu << "|profile(alpha=" << Rad2Deg(alpha) << ",theta=" << Rad2Deg(theta) << ",zeta=" << zeta << ")" << std::endl;
-
     tao::set(pprev, param);
 
     //__________________________________________________________________________

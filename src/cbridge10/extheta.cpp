@@ -133,6 +133,7 @@ YOCTO_PROGRAM_START()
             }
         }
 
+#if 0
         {
             vector<double> coord(N);
             vector<double> dzfit(N);
@@ -201,32 +202,8 @@ YOCTO_PROGRAM_START()
 
             }
 
-
-
-#if 0
-            for(int dth=-5;dth<=5;++dth)
-            {
-                const double th = Deg2Rad(theta_ave_deg+dth);
-                for(size_t i=1;i<=N;++i)
-                {
-                    dzeta[i] = setup.bridge.find_zeta(alpha[i], th) - zeta[i];
-                    fp("%.15g %.15g %g\n",coord[i], zeta[i] + dzeta[i], dzeta[i]);
-                }
-                fp << "\n";
-
-                _GLS::Polynomial<double>::Start(S,zparam);
-                std::cerr << "zparam=" << zparam << std::endl;
-                lp("%.15g %.15g %.15g\n", Rad2Deg(th), zparam[2], zparam[1]);
-            }
-#endif
-
         }
-
-
-        
-        
-        
-        
+#endif
         
         
     }

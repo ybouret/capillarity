@@ -5,10 +5,6 @@
 #include "yocto/string.hpp"
 #include "yocto/math/fit/glsf-spec.hpp"
 
-#define BRIDGE_SEARCH_DEGREES     0.001
-#define BRIDGE_INTEGRATOR_FTOL    1e-5
-#define BRIDGE_INTEGRATOR_DEGREES 0.1
-#define BRIDGE_INTEGRATOR_LENGTH  0.01
 
 enum Direction
 {
@@ -23,7 +19,7 @@ public:
 
     explicit Setup(const double  user_R0,
                    const double  user_capillary_length);
-    Bridge bridge;
+    DefaultBridge bridge;
     double R0;
     double capillary_length;
 
@@ -53,7 +49,7 @@ private:
 };
 
 
-
+//! will provide a cutoff
 class Parted
 {
 public:
@@ -63,7 +59,6 @@ public:
     double pull( double x, const array<double> &aorg );
     bool   callback(const GLS<double>::Samples &, const array<double> &aorg );
     double split(const Direction hdir,const array<double> &height, const array<double> &surface, array<double> &surffit);
-
 
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Parted);

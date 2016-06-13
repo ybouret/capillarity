@@ -15,6 +15,12 @@ using namespace math;
 #define BRIDGE_A 3
 #define BRIDGE_N 3
 
+
+#define BRIDGE_SEARCH_DEGREES     0.001
+#define BRIDGE_INTEGRATOR_FTOL    1e-5
+#define BRIDGE_INTEGRATOR_DEGREES 0.1
+#define BRIDGE_INTEGRATOR_LENGTH  0.01
+
 typedef numeric<double>::function    Function;
 typedef ode::Field<double>::Equation Equation;
 typedef ode::Field<double>::Callback Callback;
@@ -23,10 +29,10 @@ class Bridge
 {
 public:
 
-    explicit Bridge(const double delta_degrees,
-                    const double ftol,
-                    const double actrl_degrees,
-                    const double sctrl);
+    explicit Bridge(const double search_degrees,
+                    const double integrator_ftol,
+                    const double integrator_degrees,
+                    const double integrator_length);
     virtual ~Bridge() throw();
     
     const size_t                nvar;
@@ -65,6 +71,8 @@ public:
     //! find zeta from a given alpha and theta
     double find_zeta( const double alpha, const double theta );
 
+    void set_mu(const double R0, const double capillary_lenght);
+
 
     double   v_center;
     double   mu2;
@@ -87,6 +95,21 @@ private:
     double __surface_of_zeta(const double zeta);
     
     bool   __check0(const triplet<double> &X, const triplet<double> &Y);
+};
+
+class DefaultBridge : public Bridge
+{
+public:
+    explicit DefaultBridge() :
+    Bridge(BRIDGE_SEARCH_DEGREES,
+           BRIDGE_INTEGRATOR_FTOL,
+           BRIDGE_INTEGRATOR_DEGREES,
+           BRIDGE_INTEGRATOR_LENGTH) {}
+
+    virtual ~DefaultBridge() throw() {}
+
+private:
+    YOCTO_DISABLE_COPY_AND_ASSIGN(DefaultBridge);
 };
 
 #endif

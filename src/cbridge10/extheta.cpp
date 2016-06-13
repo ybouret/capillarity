@@ -10,9 +10,9 @@
 
 YOCTO_PROGRAM_START()
 {
-    if(argc<=2)
+    if(argc<=4)
     {
-        throw exception("usage: %s R0 capillary_length [datafiles]", program);
+        throw exception("usage: %s R0 capillary_length area_min  area_max [datafiles]", program);
     }
 
     threading::processing_unit<Setup> cpu( new threading::crew(true) );
@@ -24,11 +24,13 @@ YOCTO_PROGRAM_START()
             cpu.append<double,double>(R0,cap_len);
         }
     }
+    const double area_min = strconv::to<double>(argv[3]);
+    const double area_max = strconv::to<double>(argv[4]);
 
     Setup  &setup = cpu[0];
     Parted  parted;
 
-    for(int i=3;i<argc;++i)
+    for(int i=5;i<argc;++i)
     {
         const string filename = argv[i];
         const string rootname = vfs::get_base_name(filename);
@@ -51,6 +53,8 @@ YOCTO_PROGRAM_START()
         size_t N0 = height.size();
         surffit.make(N0);
         std::cerr << "#data=" << N0 << std::endl;
+
+        if(false)
         {
             ios::wcstream fp("output.dat");
             for(size_t i=1;i<=N0;++i)
@@ -59,6 +63,7 @@ YOCTO_PROGRAM_START()
             }
         }
 
+#if 0
         //______________________________________________________________________
         //
         // autocut
@@ -98,6 +103,31 @@ YOCTO_PROGRAM_START()
             throw exception("No data remaining");
         }
         std::cerr << "using #data=" << N << std::endl;
+#endif
+
+        vector<double> zeta(N0,as_capacity);  //!< reduced height
+        vector<double> alpha(N0,as_capacity); //!< angle
+        const double   S0 = numeric<double>::pi * Square(setup.R0);
+        for(size_t i=1;i<=N0;++i)
+        {
+            const double s = surface[i];
+            if(area_max>area_min)
+            {
+                if(s<area_min||s>area_max)
+                {
+                    continue;
+                }
+            }
+            zeta.push_back( height[i]/setup.R0 );
+            const double ss = s / S0;
+            if(ss>1)
+                throw exception("surface is too high");
+            alpha.push_back( asin( sqrt(ss) ) );
+        }
+        const size_t N = zeta.size();
+        std::cerr << "using #data=" << N << std::endl;
+
+
 
         {
             string outname = rootname;
@@ -109,17 +139,19 @@ YOCTO_PROGRAM_START()
             }
         }
 
+
         const double zeta_max_exp = find_max_of(zeta);
         const double zeta_min_exp = find_min_of(zeta);
         std::cerr << "zeta_max_exp=" << zeta_max_exp << std::endl;
         std::cerr << "zeta_min_exp=" << zeta_min_exp << std::endl;
 
         vector<double> theta(N);
-        
+
         //______________________________________________________________________
         //
         // extracting data
         //______________________________________________________________________
+        std::cerr << "-- extracting theta using #cores=" << cpu.cores << std::endl;
         cpu.compile<double,double,double>();
         int choice = SETUP_EXTRACT_THETA;
         cpu.call(theta, alpha, zeta, &choice);

@@ -686,3 +686,27 @@ double Bridge:: find_zeta( const double alpha, const double theta )
 
     return zeta;
 }
+
+void Bridge:: run(threading::context  &ctx,
+                  array<double>       &target,
+                  const array<double> &source,
+                  void *args)
+{
+    assert(args);
+    const int choice = *(int *)args;
+    size_t offset = 1;
+    size_t length = target.size();
+    ctx.split(offset,length);
+
+    switch(choice)
+    {
+        case BRIDGE_ZETA_TO_SURF:
+            for(size_t i=offset,count=length;count-->0;++i)
+            {
+                target[i] = find_surface(current_theta,source[i]);
+            }
+            break;
+    }
+}
+
+

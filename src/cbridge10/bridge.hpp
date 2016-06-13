@@ -5,6 +5,7 @@
 #include "yocto/ios/ostream.hpp"
 #include "yocto/math/trigconv.hpp"
 #include "yocto/math/opt/minimize.hpp"
+#include "yocto/threading/crew.hpp"
 
 using namespace yocto;
 using namespace math;
@@ -24,6 +25,8 @@ using namespace math;
 typedef numeric<double>::function    Function;
 typedef ode::Field<double>::Equation Equation;
 typedef ode::Field<double>::Callback Callback;
+
+#define BRIDGE_ZETA_TO_SURF 1
 
 class Bridge
 {
@@ -83,6 +86,9 @@ public:
     Function fn_of_theta;
     Function fn_of_zeta;
     optimize1D<double>::event check0;
+
+    void run(threading::context &ctx, array<double> &target, const array<double> &source, void *args);
+
 
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Bridge);

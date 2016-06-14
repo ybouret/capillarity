@@ -199,7 +199,13 @@ YOCTO_PROGRAM_START()
             double theta_new = 0;
             compute_average(theta_new, theta);
             std::cerr << "theta_new=" << Rad2Deg(theta_new) << std::endl;
-            if(iter>=2) break;
+            const double dth_deg = Fabs(Rad2Deg(theta_ave) - Rad2Deg(theta_new));
+            std::cerr << "dtheta_deg=" << dth_deg << std::endl;
+            if(  dth_deg <= 0.01 )
+            {
+                break;
+            }
+            theta_ave=theta_new;
         }
 
 
@@ -211,44 +217,13 @@ YOCTO_PROGRAM_START()
 
             for(size_t i=1;i<=N;++i)
             {
-                const double t = round(10.0*Rad2Deg(theta[i]))/10.0;
-
+                //const double t = round(10.0*Rad2Deg(theta[i]))/10.0;
+                const double t = Rad2Deg(theta[i]);
                 fp("%.15g %.15g %.15g\n", setup.R0 * zeta0[i] , t , Rad2Deg(alpha[i]) );
             }
         }
 
-#if 0
-        for(size_t iter=1;iter<=1;++iter)
-        {
-            double theta_ave = 0;
-            compute_average(theta_ave, theta);
-            std::cerr << "theta_ave=" << Rad2Deg(theta_ave) << std::endl;
-            std::cerr << "-- inversion..." << std::endl;
-            app.compile<double,double>();
-            app.call(znew,alpha, &theta_ave);
 
-
-            for(size_t i=1;i<=N;++i)
-            {
-                znew[i] -= zeta[i];
-            }
-
-            _GLS::Polynomial<double>::Start(sample,coef);
-            std::cerr << "coef=" << coef << std::endl;
-            for(size_t i=1;i<=N;++i)
-            {
-                znew[i] = zeta[i] + _GLS::Polynomial<double>::Eval(dzeta[i],coef);
-            }
-            
-
-            for(size_t i=1;i<=N;++i)
-            {
-                zeta[i] = znew[i];
-            }
-            app.extract_theta();
-        }
-#endif
-        
     }
     
     

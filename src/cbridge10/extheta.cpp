@@ -165,7 +165,42 @@ YOCTO_PROGRAM_START()
         // extracting data
         //______________________________________________________________________
         std::cerr << "-- extracting theta using #cores=" << app.cores << std::endl;
+
+        // initialize search
+        vector<double> zeta0(N);
+        tao::set(zeta0,zeta);
         app.extract_theta();
+        double theta_ave = 0;
+        compute_average(theta_ave, theta);
+        tao::ld(coef,0);
+        GLS<double>::Sample sample(dzeta,znew,zfit);
+
+        std::cerr << "theta_ave=" << Rad2Deg(theta_ave) << std::endl;
+        size_t iter = 0;
+        while(true)
+        {
+            ++iter;
+            std::cerr << "-- inversion" << std::endl;
+            app.compile<double,double>();
+            app.call(znew,alpha,&theta_ave);
+            _GLS::Polynomial<double>::Start(sample,coef);
+            std::cerr << "coef=" << coef << std::endl;
+
+            {
+                ios::wcstream fp("znew.dat");
+                for(size_t i=1;i<=N;++i)
+                {
+                    fp("%g %g %g %g\n", double(i), zeta[i], znew[i], zfit[i]);
+                }
+            }
+            tao::set(zeta,zfit);
+            std::cerr << "-- extraction" << std::endl;
+            app.extract_theta();
+            double theta_new = 0;
+            compute_average(theta_new, theta);
+            std::cerr << "theta_new=" << Rad2Deg(theta_new) << std::endl;
+            if(iter>=2) break;
+        }
 
 
 
@@ -178,11 +213,12 @@ YOCTO_PROGRAM_START()
             {
                 const double t = round(10.0*Rad2Deg(theta[i]))/10.0;
 
-                fp("%g %g %g\n", setup.R0 * zeta[i] , t , Rad2Deg(alpha[i]) );
+                fp("%.15g %.15g %.15g\n", setup.R0 * zeta0[i] , t , Rad2Deg(alpha[i]) );
             }
         }
 
-        for(size_t iter=1;iter<=5;++iter)
+#if 0
+        for(size_t iter=1;iter<=1;++iter)
         {
             double theta_ave = 0;
             compute_average(theta_ave, theta);
@@ -191,12 +227,12 @@ YOCTO_PROGRAM_START()
             app.compile<double,double>();
             app.call(znew,alpha, &theta_ave);
 
+
             for(size_t i=1;i<=N;++i)
             {
                 znew[i] -= zeta[i];
             }
 
-            GLS<double>::Sample sample(dzeta,znew,zfit);
             _GLS::Polynomial<double>::Start(sample,coef);
             std::cerr << "coef=" << coef << std::endl;
             for(size_t i=1;i<=N;++i)
@@ -204,13 +240,6 @@ YOCTO_PROGRAM_START()
                 znew[i] = zeta[i] + _GLS::Polynomial<double>::Eval(dzeta[i],coef);
             }
             
-            {
-                ios::wcstream fp("znew.dat");
-                for(size_t i=1;i<=N;++i)
-                {
-                    fp("%g %g %g\n", double(i), zeta[i], znew[i] );
-                }
-            }
 
             for(size_t i=1;i<=N;++i)
             {
@@ -218,7 +247,7 @@ YOCTO_PROGRAM_START()
             }
             app.extract_theta();
         }
-        
+#endif
         
     }
     

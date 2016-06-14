@@ -1,69 +1,103 @@
-#include "bridge.hpp"
+#include "setup.hpp"
 #include "yocto/program.hpp"
 #include "yocto/ios/ocstream.hpp"
 #include "yocto/string/conv.hpp"
+#include "yocto/container/matrix.hpp"
 
 YOCTO_PROGRAM_START()
 {
-    Bridge B(0.001,  // angular search
-             1e-5,   // integrator ftol
-             0.1,    // max angular turn in degrees
-             1.0/100 // max speed rate in degrees
-             );
-    
-    int    iarg = 0;
-    
-    
-    if(argc>++iarg)
+
+    if(argc<=2)
     {
-        B.mu   = strconv::to<double>(argv[iarg],"mu");
+        throw exception("usage: %s R0 capillary_length",program);
     }
-    std::cerr << "mu=" << B.mu << std::endl;
-    
-    
-    
-    const string zeta_file = vformat("zeta_max%g.dat",B.mu);
-    ios::ocstream::overwrite(zeta_file);
-    const string abac_file = vformat("abacus%g.dat",B.mu);
-    ios::ocstream::overwrite(abac_file);
-    //__________________________________________________________________________
-    //
-    // find zeta_max
-    //__________________________________________________________________________
-    const double d_zeta = 0.005;
-    for(int t_deg = 40; t_deg <= 170; t_deg+=10)
+
+
+    Setups app( new threading::crew(true),
+               strconv::to<double>(argv[1],"R0"),
+               strconv::to<double>(argv[2],"capillary_length") );
+
+    Setup       &setup    = app[0];
+
+    const string filename = vformat("abacusR0=%g_L=%g.dat", setup.R0, setup.capillary_length );
+    const string fullname = vformat("abacusR0=%g_L=%g_full.dat",setup.R0, setup.capillary_length );
+    const string areaname = vformat("athetaR0=%g_L=%g.dat", setup.R0, setup.capillary_length );
+
+    ios::ocstream::overwrite(filename);
+    ios::ocstream::overwrite(fullname);
+    ios::ocstream::overwrite(areaname);
+
+    const size_t N        = 50+1;
+
+    const int th_deg_min = 5;
+    const int th_deg_max = 175;
+    const int th_deg_inc = 5;
+    const int n_theta    = 1+(th_deg_max-th_deg_min)/th_deg_inc;
+
+    matrix<double> A(2*n_theta,N);
+    app.compile<double,double>();
+    for(int th_deg = th_deg_min, iz=1,ia=2,count=1; th_deg <= th_deg_max; th_deg += th_deg_inc,iz+=2,ia+=2,++count)
     {
-        std::cerr << "theta=" << t_deg << std::endl; std::cerr.flush();
-        const double theta    = Deg2Rad( double(t_deg) );
-        const double zeta_max = B.compute_zeta_max( theta);
-        std::cerr << "zeta_max=" << zeta_max << std::endl;
+        std::cerr << "-- theta=" << th_deg << std::endl;
+        const double  theta = Deg2Rad(double(th_deg));
+        array<double> &zeta = A[iz];
+        array<double> &area = A[ia];
+        std::cerr << "\tcomputing zeta_max..." << std::endl;
+        const double zeta_max = setup.bridge.compute_zeta_max(theta);
+        std::cerr << "\tzeta_max=" << zeta_max << std::endl;
+
+        zeta[1] = 0.0;
+        for(size_t i=2;i<N;++i)
         {
-            ios::acstream zp(zeta_file);
-            zp("%.15g %.15g\n", double(t_deg), zeta_max);
+            zeta[i] = (i*zeta_max)/double(N-1);
         }
-        //continue;
-        
+        zeta[N] = zeta_max;
+        double param = -theta;
+        app.call(area,zeta,&param);
+
+        for(size_t i=1;i<=N;++i)
         {
-            ios::acstream fp(abac_file);
-            fp("#theta=%g\n", double(t_deg));
+            zeta[i] *= setup.R0;
+            area[i] *= setup.R02;
         }
-        const double zeta_min = -0.1;
-        const double N = ceil((zeta_max-zeta_min)/d_zeta);
-        std::cerr << "N=" << N << std::endl;
-        for(size_t i=0;i<=N;++i)
+
         {
-            const double zeta = (i<=0) ? zeta_min : ( (i>=N)  ? zeta_max : zeta_min + (i*(zeta_max-zeta_min)/double(N)) );
-            const double alpha = B.find_alpha(theta,zeta);
-            const double surf  = numeric<double>::pi * Square( sin(alpha) );
-            std::cerr << "\tzeta=" << zeta << " => " << alpha << " rad => " << Rad2Deg(alpha) << " deg" << std::endl;
-            ios::acstream fp(abac_file);
-            fp("%.15g %.15g %.15g %.15g\n",zeta,surf,Rad2Deg(alpha),alpha);
+            ios::acstream fp(areaname);
+            fp("%.15g %d\n", area[1], th_deg);
         }
+
         {
-            ios::acstream fp(abac_file);
+            ios::acstream fp(fullname);
+            for(size_t i=1;i<=N;++i)
+            {
+                fp("%.15g %.15g\n", zeta[i], area[i]);
+            }
+            fp << '\n';
+        }
+
+        {
+            ios::wcstream fp(filename);
+            fp << "#";
+            for(int j=1;j<=count;++j)
+            {
+                const int th_tmp = th_deg_min + (j-1) * th_deg_inc;
+                if(j>1) fp << ' ';
+                fp("h%d A%d",th_tmp,th_tmp);
+            }
             fp << "\n";
+            for(size_t i=1;i<=N;++i)
+            {
+                for(size_t j=1,jz=1,ja=2;j<=count;++j,jz+=2,ja+=2)
+                {
+                    if(j>1) fp << ' ';
+                    fp("%.15g %.15g", A[jz][i], A[ja][i]);
+                }
+                fp << '\n';
+            }
         }
     }
+
+
     
 }
 YOCTO_PROGRAM_END()

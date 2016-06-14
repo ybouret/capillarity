@@ -4,7 +4,7 @@ ADD_EXECUTABLE(cbridge main.cpp)
 TARGET_LINK_YOCTO(cbridge mk)
 TARGET_LINK_LIBRARIES(cbridge bridge)
 
-ADD_EXECUTABLE(abacus abacus.cpp)
+ADD_EXECUTABLE(abacus abacus.cpp setup.hpp setup.cpp)
 TARGET_LINK_YOCTO(abacus mk)
 TARGET_LINK_LIBRARIES(abacus bridge)
 

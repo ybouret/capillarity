@@ -198,9 +198,19 @@ void Setup:: run( threading::context &ctx, array<double> &target, const array<do
     size_t offset = 1;
     size_t length = target.size();
     ctx.split(offset, length);
-    for(size_t i=offset,count=length;count-->0;++i)
+    if(theta>0)
     {
-        target[i] = bridge.find_zeta(source[i], theta);
+        for(size_t i=offset,count=length;count-->0;++i)
+        {
+            target[i] = bridge.find_zeta(source[i], theta);
+        }
+    }
+    else
+    {
+        for(size_t i=offset,count=length;count-->0;++i)
+        {
+            target[i] = bridge.find_surface(-theta,source[i]);
+        }
     }
 
 }

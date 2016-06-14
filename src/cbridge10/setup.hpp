@@ -47,6 +47,8 @@ public:
 
 
     void run( threading::context &ctx, array<double> &target, const array<double> &source, const array<double> &second, void *args);
+
+    //! compute zeta from alpha if theta>=0, compute surf from zeta if theta<0
     void run( threading::context &ctx, array<double> &target, const array<double> &source, void *args);
 
 private:

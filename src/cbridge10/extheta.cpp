@@ -144,6 +144,7 @@ YOCTO_PROGRAM_START()
         znew.make(N);
         zfit.make(N);
 
+#if 0
         {
             string outname = rootname;
             vfs::change_extension(outname, "alpha.dat");
@@ -153,7 +154,7 @@ YOCTO_PROGRAM_START()
                 fp("%g %g %g\n", zeta[i] * setup.R0, numeric<double>::pi * Square( setup.R0 * sin(alpha[i]) ), Rad2Deg(alpha[i]) );
             }
         }
-
+#endif
 
         const double zeta_max_exp = find_max_of(zeta);
         const double zeta_min_exp = find_min_of(zeta);
@@ -186,6 +187,7 @@ YOCTO_PROGRAM_START()
             _GLS::Polynomial<double>::Start(sample,coef);
             std::cerr << "coef=" << coef << std::endl;
 
+#if 0
             {
                 ios::wcstream fp("znew.dat");
                 for(size_t i=1;i<=N;++i)
@@ -193,6 +195,7 @@ YOCTO_PROGRAM_START()
                     fp("%g %g %g %g\n", double(i), zeta[i], znew[i], zfit[i]);
                 }
             }
+#endif
             tao::set(zeta,zfit);
             std::cerr << "-- extraction" << std::endl;
             app.extract_theta();
@@ -214,7 +217,7 @@ YOCTO_PROGRAM_START()
             string outname = rootname;
             vfs::change_extension(outname, "theta.dat");
             ios::wcstream fp(outname);
-
+            fp("#H theta alpha\n");
             for(size_t i=1;i<=N;++i)
             {
                 //const double t = round(10.0*Rad2Deg(theta[i]))/10.0;

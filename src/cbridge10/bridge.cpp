@@ -512,11 +512,11 @@ double Bridge:: find_theta( const double alpha, const double zeta )
     const double theta_hi = numeric<double>::pi - delta;
     const double value_hi = f(theta_hi);
 
-#if 0
+#if 1
     {
         ios::wcstream pp("prof-theta.dat");
         ios::wcstream fp("find-theta.dat");
-        for(double theta_deg=0.5;theta_deg<=175;theta_deg+=1)
+        for(double theta_deg=1;theta_deg<=179;theta_deg+=1)
         {
             const double ans = profile(alpha, Deg2Rad(theta_deg), zeta, &pp);
             pp << "\n";
@@ -530,6 +530,18 @@ double Bridge:: find_theta( const double alpha, const double zeta )
     {
         // no possible intercept...
         std::cerr << "no possible intercept level-1" << std::endl;
+        {
+            std::cerr << "alpha=" << Rad2Deg(alpha) << ", zeta=" << zeta << std::endl;
+            ios::wcstream pp("prof-theta-bad.dat");
+            profile(alpha, theta_hi, zeta, &pp);
+
+            ios::wcstream fp("lens.dat");
+            for(double aa = -numeric<double>::pi; aa <= numeric<double>::pi; aa += 0.01 )
+            {
+                fp("%g %g\n", sin(aa), 1+zeta-cos(aa));
+            }
+            exit(-1);
+        }
         return -1;
     }
 

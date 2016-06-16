@@ -512,7 +512,7 @@ double Bridge:: find_theta( const double alpha, const double zeta )
     const double theta_hi = numeric<double>::pi - delta;
     const double value_hi = f(theta_hi);
 
-#if 1
+#if 0
     {
         ios::wcstream pp("prof-theta.dat");
         ios::wcstream fp("find-theta.dat");
@@ -522,69 +522,88 @@ double Bridge:: find_theta( const double alpha, const double zeta )
             pp << "\n";
             fp("%g %g\n", theta_deg,ans);
         }
+
+        ios::wcstream lp("lens.dat");
+        for(double aa = -numeric<double>::pi; aa <= numeric<double>::pi; aa += 0.01 )
+        {
+            lp("%g %g\n", sin(aa), 1+zeta-cos(aa));
+        }
+
     }
 #endif
 
-
-    if(value_hi<=0)
-    {
-        // no possible intercept...
-        std::cerr << "no possible intercept level-1" << std::endl;
-        {
-            std::cerr << "alpha=" << Rad2Deg(alpha) << ", zeta=" << zeta << std::endl;
-            ios::wcstream pp("prof-theta-bad.dat");
-            profile(alpha, theta_hi, zeta, &pp);
-
-            ios::wcstream fp("lens.dat");
-            for(double aa = -numeric<double>::pi; aa <= numeric<double>::pi; aa += 0.01 )
-            {
-                fp("%g %g\n", sin(aa), 1+zeta-cos(aa));
-            }
-            exit(-1);
-        }
-        return -1;
-    }
 
     const double theta_lo = delta;
     const double value_lo = f(theta_lo);
 
     triplet<double> X = { theta_lo, 0, theta_hi };
     triplet<double> F = { value_lo, 0, value_hi };
-
     bracket<double>::inside(f,X,F);
+
+
     if(F.b>0 && !optimize1D<double>::run_until(check0, f, X, F, 0) )
     {
         // no possible intercept
-        std::cerr << "no possible intercept level-2" << std::endl;
+        //std::cerr << "no possible intercept" << std::endl;
         return -1;
     }
 
-    double theta_l = X.b;
-    double theta_r = theta_hi;
-    while( (theta_r-theta_l) > delta )
+    if(F.c>0)
     {
-        const double theta_m = clamp(theta_l,0.5*(theta_l+theta_r),theta_r);
-        const double value_m = f(theta_m);
-        if(value_m<=0)
+        double theta_l = X.b;
+        double theta_r = theta_hi;
+        while( (theta_r-theta_l) > delta )
         {
-            theta_l = theta_m;
+            const double theta_m = clamp(theta_l,0.5*(theta_l+theta_r),theta_r);
+            const double value_m = f(theta_m);
+            if(value_m<=0)
+            {
+                theta_l = theta_m;
+            }
+            else
+            {
+                theta_r = theta_m;
+            }
         }
-        else
+
+        const double theta = theta_l;
+
+        if(false)
         {
-            theta_r = theta_m;
+            ios::wcstream fp("good-theta.dat");
+            (void) profile(alpha, theta, zeta, &fp);
         }
+        return theta;
+
+    }
+    else
+    {
+
+        double theta_l = theta_lo;
+        double theta_r = X.b;
+        while( (theta_r-theta_l) > delta )
+        {
+            const double theta_m = clamp(theta_l,0.5*(theta_l+theta_r),theta_r);
+            const double value_m = f(theta_m);
+            if(value_m<=0)
+            {
+                theta_r = theta_m;
+            }
+            else
+            {
+                theta_l = theta_m;
+            }
+        }
+        const double theta = theta_r;
+        if(false)
+        {
+            ios::wcstream fp("good-theta.dat");
+            (void) profile(alpha, theta, zeta, &fp);
+        }
+        return theta;
     }
 
-    const double theta = theta_l;
-    //std::cerr << "theta=" << Rad2Deg(theta) << std::endl;
-#if 0
-    {
-        ios::wcstream fp("good-theta.dat");
-        (void) profile(alpha, theta, zeta, &fp);
-    }
-#endif
 
-    return theta;
 }
 
 

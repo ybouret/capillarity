@@ -51,6 +51,8 @@ public:
     //! compute zeta from alpha if theta>=0, compute surf from zeta if theta<0
     void run( threading::context &ctx, array<double> &target, const array<double> &source, void *args);
 
+    bool flag;
+
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Setup);
 };
@@ -65,6 +67,7 @@ public:
 
     virtual ~Setups() throw();
 
+    bool was_success() const throw();
 
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Setups);
@@ -89,7 +92,8 @@ public:
     vector<double> znew;
     vector<double> zfit;
     
-    void extract_theta();
+    bool extract_theta();
+
 
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Application);

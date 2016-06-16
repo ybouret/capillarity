@@ -170,7 +170,12 @@ YOCTO_PROGRAM_START()
         // initialize search
         vector<double> zeta0(N);
         tao::set(zeta0,zeta);
-        app.extract_theta();
+        if( !app.extract_theta() )
+        {
+            std::cerr << "COULDN'T EXTRACT IT THETA!" << std::endl;
+            continue;
+        }
+
         double theta_ave = 0;
         compute_average(theta_ave, theta);
         tao::ld(coef,0);
@@ -178,6 +183,7 @@ YOCTO_PROGRAM_START()
 
         std::cerr << "theta_ave=" << Rad2Deg(theta_ave) << std::endl;
         size_t iter = 0;
+        bool   isOK = true;
         while(true)
         {
             ++iter;
@@ -198,7 +204,14 @@ YOCTO_PROGRAM_START()
 #endif
             tao::set(zeta,zfit);
             std::cerr << "-- extraction" << std::endl;
-            app.extract_theta();
+
+            if(!app.extract_theta())
+            {
+                std::cerr << "COULDN'T RE-EXTRACT THETA !" << std::endl;
+                isOK = false;
+                break;
+            }
+
             double theta_new = 0;
             compute_average(theta_new, theta);
             std::cerr << "theta_new=" << Rad2Deg(theta_new) << std::endl;
@@ -211,7 +224,8 @@ YOCTO_PROGRAM_START()
             theta_ave=theta_new;
         }
 
-
+        if(!isOK)
+            continue;
 
         {
             string outname = rootname;

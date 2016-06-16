@@ -11,7 +11,8 @@ bridge(),
 R0(user_R0),
 capillary_length(user_capillary_length),
 R02( Square(R0) ),
-S0( R02 * numeric<double>::pi )
+S0( R02 * numeric<double>::pi ),
+flag(false)
 {
     assert(R0>0);
     assert(capillary_length>0);
@@ -171,6 +172,7 @@ void Setup:: run(threading::context  &ctx,
 {
     assert(args);
     const int choice = *(int *)args;
+    flag = true;
     switch(choice)
     {
         case SETUP_EXTRACT_THETA:
@@ -184,6 +186,10 @@ void Setup:: run(threading::context  &ctx,
             for(size_t i=offset,count=length;count-->0;++i)
             {
                 theta[i] = bridge.find_theta(alpha[i], zeta[i]);
+                if(theta[i]<0)
+                {
+                    flag = false;
+                }
             }
         }
     }
@@ -194,7 +200,7 @@ void Setup:: run( threading::context &ctx, array<double> &target, const array<do
 {
     assert(args);
     const double theta = *(double *)args;
-    
+    flag = true;
     size_t offset = 1;
     size_t length = target.size();
     ctx.split(offset, length);
@@ -232,6 +238,14 @@ threading::processing_unit<Setup>(kxp)
     }
 }
 
+bool Setups:: was_success() const throw()
+{
+    for(size_t i=0;i<size;++i)
+    {
+        if( ! (*this)[i].flag ) return false;
+    }
+    return true;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -246,10 +260,11 @@ setup( (*this)[0] )
 
 }
 
-void Application:: extract_theta()
+bool Application:: extract_theta()
 {
     int choice = SETUP_EXTRACT_THETA;
     compile<double,double,double>();
     call(theta, alpha, zeta, &choice);
+    return was_success();
 }
 

@@ -27,10 +27,12 @@ YOCTO_PROGRAM_START()
     ios::ocstream::overwrite(fullname);
     ios::ocstream::overwrite(areaname);
 
-    const size_t N        = 50+1;
+    const size_t N        = 100+1;
 
-    const int th_deg_min = 5;
+    //const int th_deg_min = 5;
+    const int th_deg_min = 160;
     const int th_deg_max = 175;
+
     const int th_deg_inc = 5;
     const int n_theta    = 1+(th_deg_max-th_deg_min)/th_deg_inc;
 
@@ -46,12 +48,14 @@ YOCTO_PROGRAM_START()
         const double zeta_max = setup.bridge.compute_zeta_max(theta);
         std::cerr << "\tzeta_max=" << zeta_max << std::endl;
 
-        zeta[1] = 0.0;
+        const double zeta_min = -0.05;
+        zeta[1] = zeta_min;
         for(size_t i=2;i<N;++i)
         {
-            zeta[i] = (i*zeta_max)/double(N-1);
+            zeta[i] = zeta_min + (i*(zeta_max-zeta_min) )/double(N-1);
         }
         zeta[N] = zeta_max;
+
         double param = -theta;
         app.call(area,zeta,&param);
 

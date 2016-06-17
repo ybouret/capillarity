@@ -33,13 +33,14 @@ YOCTO_PROGRAM_START()
     std::cerr << "-- computing simulated range..." << std::endl;
     const double zeta_top = 0.75 * zeta_max;
     const double h_top    = R0 * zeta_top;
-    const double dh       = log_round_floor(h_top/50.0);
+    const double h_lo     = -5;
+    const double dh       = log_round_floor((h_top-h_lo)/50.0);
     std::cerr << "h_top=" << h_top << std::endl;
     std::cerr << "dh   =" << dh    << std::endl;
-    const size_t N        = 1+size_t(floor(h_top/dh));
+    const size_t N        = 1+size_t(floor( (h_top-h_lo)/dh));
     const size_t N1       = N-1;
     std::cerr << "h:0.." << N1*dh << std::endl;
-    std::cerr << "in " << N << " points..." << std::endl;
+    std::cerr << "in   " << N << " points..." << std::endl;
 
     std::cerr << "-- building points..." << std::endl;
     vector<double> zeta(N);
@@ -48,7 +49,7 @@ YOCTO_PROGRAM_START()
 
     for(size_t i=1;i<=N;++i)
     {
-        height[i] = (i-1)*dh;
+        height[i] = h_lo+(i-1)*dh;
         zeta[i]   = height[i]/R0;
         surf[i]   = 0;
     }

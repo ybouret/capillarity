@@ -13,10 +13,10 @@
 
 #include "yocto/math/alg/shapes.hpp"
 #include "yocto/string/conv.hpp"
+#include "yocto/math/stat/descr.hpp"
 
 using namespace yocto;
 using namespace graphics;
-using namespace math;
 
 YOCTO_PROGRAM_START()
 {
@@ -117,7 +117,7 @@ YOCTO_PROGRAM_START()
 
 
 
-    fit_circle<double> FitCircle;
+    math::fit_circle<double> FitCircle;
     pixmap3 wksp(w,h);
     for(unit_t x=0;x<w;++x)
     {
@@ -141,10 +141,22 @@ YOCTO_PROGRAM_START()
     const double r2 = circle_radius*circle_radius;
 
     pixmapf drop(w,h);
+
+    // approximate center
+    double xd = (xmin+xmax)/2;
+    double yd = (h+(circle_radius+circle_center.y))/2;
+    double rd = ((xmax-xmin)/2)*0.6;
+    double rd2 = rd*rd;
+
+
     for(unit_t x=0;x<w;++x)
     {
-        const double dx = x-circle_center.x;
+        const double dx  = x-circle_center.x;
         const double dx2 = dx*dx;
+
+        const double DX  = x - xd;
+        const double DX2 = DX*DX;
+
         for(unit_t y=0;y<h;++y)
         {
             const double dy  = y-circle_center.y;
@@ -155,19 +167,35 @@ YOCTO_PROGRAM_START()
             }
             else
             {
+                const double DY  = y-yd;
+                const double DY2 = DY*DY;
                 if(x>=xmin&&x<=xmax)
                 {
+
                     drop[y][x] = grd[y][x];
+                    //std::cerr << "(" << x << "," << y << ")" << std::endl;
+                    if(DX2+DY2<=rd2)
+                    {
+                        //std::cerr << "*" << std::endl;
+                        drop[y][x] = 0.0f;
+                    }
+                    //drop[0][x] = 1.0f;
                 }
             }
         }
 
     }
 
+    std::cerr << "xd=" << xd << std::endl;
+    std::cerr << "yd=" << yd << std::endl;
+    std::cerr << "rd=" << rd << std::endl;
+
+
     PNG.save("wksp.png",wksp,NULL);
     PNG.save("drop.png",drop,NULL);
 
     // extracting drop
+
     pixmapf drop_edges(w,h);
     {
         std::cerr << "-- isolating edges..." << std::endl;
@@ -182,59 +210,82 @@ YOCTO_PROGRAM_START()
     B.build(drop_edges,8);
     PNG.save("drop_blobs.png", B, blobColors, NULL);
 
-
-
-#if 0
-
-
-    std::cerr << "-- keeping background..." << std::endl;
-    pixmapf bg(w,h);
+    pixmapf drop_edge(w,h);
+    B.content[1]->transfer(drop_edge,drop_edges);
+    if(B.content.size()>=2)
     {
-        histogram H;
-        H.update(pxm,xps,&server);
-        const size_t t = H.threshold();
-        std::cerr << "background_threshold=" << t << std::endl;
-        threshold::apply(bg, t, pxm, threshold::keep_background);
-        PNG.save("bg.png",bg,NULL);
+        B.content[2]->transfer(drop_edge,drop_edges);
     }
+    PNG.save("drop_edge.png",drop_edge,NULL);
 
-    std::cerr << "-- detecting gradient..." << std::endl;
-    pixmapf grd(w,h);
-    {
-        pixmapf tmp(w,h);
-        gradient G;
-        G.compute(grd, tmp, bg, xps, &server);
-    }
-    PNG.save("grad.png", grd, NULL);
 
-    std::cerr << "-- isolating edges..." << std::endl;
-    pixmapf edges(w,h);
+    pixmapf shape(w,h);
+    unit_t sy_min = h-1;
+    for(unit_t j=h-1;j>=0;--j)
     {
-        histogram H;
-        H.update(grd,xps,&server);
-        const size_t t = H.threshold();
-        std::cerr << "edges_threshold=" << t << std::endl;
-        threshold::apply(edges, t, grd, threshold::keep_foreground);
-    }
-    PNG.save("edges.png",edges,NULL);
-
-    std::cerr << "-- isolating lens..." << std::endl;
-    pixmap3 wksp(w,h);
-    for(unit_t x=0;x<w;++x)
-    {
-        for(unit_t y=0;y<h;++y)
+        for(unit_t i=xd;i>=0;--i)
         {
-            const float   g = pxm[y][x];
-            const uint8_t u = gist::float2byte(g);
-            wksp[y][x]      = RGB(u,u,u);
-            if(bg[y][x]>0)
+            if(drop_edge[j][i]>0)
             {
-                wksp[y][x] = edge_color;
+                shape[j][i] = 1.0;
+                sy_min=j;
+                break;
+            }
+        }
+        for(unit_t i=xd;i<w;++i)
+        {
+            if(drop_edge[j][i]>0)
+            {
+                shape[j][i] = 1.0;
+                sy_min=j;
+                break;
             }
         }
     }
-    PNG.save("wksp.png",wksp,NULL);
-#endif
+    // remove sy_min
+    for(unit_t i=0;i<w;++i)
+    {
+        shape[sy_min][i] = 0;
+    }
+    ++sy_min;
+    PNG.save("shape.png",shape,NULL);
+    std::cerr << "sy_min=" << sy_min << std::endl;
 
+    vector<double> SX;
+    vector<double> SY;
+    const unit_t sy_max = (h+sy_min)/2;
+    for(unit_t j=sy_min;j<sy_max;++j)
+    {
+        for(unit_t i=0;i<w;++i)
+        {
+            if(shape[j][i]>0)
+            {
+                SX.push_back(i);
+                SY.push_back(j);
+            }
+        }
+    }
+
+    {
+        pixmap3 shape3(wksp);
+        
+        for(size_t i=1;i<=SX.size();++i)
+        {
+            shape3[unit_t(SY[i])][unit_t(SX[i])] = RGB(0,255,0);
+        }
+        PNG.save("shape3.png",shape3,NULL);
+
+    }
+
+    {
+        ios::wcstream fp("shape.dat");
+        for(size_t i=1;i<=SX.size();++i)
+        {
+            fp("%g %g\n", SX[i], SY[i]);
+        }
+    }
+    
+    math::compute_average(xd,SX);
+    std::cerr << "xd=" << xd << std::endl;
 }
 YOCTO_PROGRAM_END()

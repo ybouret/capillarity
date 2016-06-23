@@ -118,8 +118,6 @@ YOCTO_PROGRAM_START()
 
 
     fit_circle<double> FitCircle;
-
-    ios::wcstream fp("circle.dat");
     pixmap3 wksp(w,h);
     for(unit_t x=0;x<w;++x)
     {
@@ -132,7 +130,6 @@ YOCTO_PROGRAM_START()
             {
                 wksp[y][x] = C1;
                 FitCircle.append(x,y);
-                fp("%g %g\n", double(x),double(y));
             }
         }
     }
@@ -142,6 +139,8 @@ YOCTO_PROGRAM_START()
     FitCircle.solve(circle_radius, circle_center);
     std::cerr << "circle_radius=" << circle_radius << " @" << circle_center << std::endl;
     const double r2 = circle_radius*circle_radius;
+
+    pixmapf drop(w,h);
     for(unit_t x=0;x<w;++x)
     {
         const double dx = x-circle_center.x;
@@ -154,11 +153,35 @@ YOCTO_PROGRAM_START()
             {
                 wksp[y][x] = mix::blend(wksp[y][x],C2,90);
             }
+            else
+            {
+                if(x>=xmin&&x<=xmax)
+                {
+                    drop[y][x] = grd[y][x];
+                }
+            }
         }
 
     }
 
     PNG.save("wksp.png",wksp,NULL);
+    PNG.save("drop.png",drop,NULL);
+
+    // extracting drop
+    pixmapf drop_edges(w,h);
+    {
+        std::cerr << "-- isolating edges..." << std::endl;
+        histogram H;
+        H.update(drop,xps,&server);
+        const size_t t = H.threshold();
+        std::cerr << "drop_threshold=" << t << std::endl;
+        threshold::apply(drop_edges, t, drop, threshold::keep_foreground);
+    }
+    PNG.save("drop_edges.png",drop_edges,NULL);
+
+    B.build(drop_edges,8);
+    PNG.save("drop_blobs.png", B, blobColors, NULL);
+
 
 
 #if 0

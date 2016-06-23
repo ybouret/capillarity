@@ -6,6 +6,7 @@
 #include "yocto/graphics/ops/blobs.hpp"
 #include "yocto/graphics/ops/histogram.hpp"
 #include "yocto/graphics/ops/blur.hpp"
+#include "yocto/graphics/ops/mix.hpp"
 
 #include "yocto/ios/ocstream.hpp"
 #include "yocto/graphics/rawpix.hpp"
@@ -151,7 +152,7 @@ YOCTO_PROGRAM_START()
             const double dy2 = dy*dy;
             if(dx2+dy2<=r2)
             {
-                wksp[y][x] = C2;
+                wksp[y][x] = mix::blend(wksp[y][x],C2,90);
             }
         }
 

@@ -10,9 +10,13 @@ LINK_DIRECTORIES(    ${YROOT}/lib     )
 SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/../)
 
 ADD_EXECUTABLE(extract_lens extract_lens.cpp)
-TARGET_LINK_YOCTO(extract_lens mk graphics png z jpeg tiff lzma jbig)
+TARGET_LINK_YOCTO(extract_lens mk graphics png tiff)
 
-INSTALL( TARGETS extract_lens RUNTIME DESTINATION bin )
+ADD_EXECUTABLE(contact_angle contact_angle.cpp)
+TARGET_LINK_YOCTO(contact_angle mk graphics png tiff)
+
+
+INSTALL( TARGETS extract_lens contact_angle RUNTIME DESTINATION bin )
 
 ADD_SUBDIRECTORY(cbridge10)
 

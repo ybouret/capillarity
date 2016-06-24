@@ -88,7 +88,7 @@ YOCTO_PROGRAM_START()
     pixmapf edges(w,h);
     {
         std::cerr << "-- isolating edges..." << std::endl;
-        histogram H;
+        Histogram H;
         H.update(grd,xps,&server);
         const size_t t = H.threshold();
         std::cerr << "edges_threshold=" << t << std::endl;
@@ -199,7 +199,7 @@ YOCTO_PROGRAM_START()
     pixmapf drop_edges(w,h);
     {
         std::cerr << "-- isolating edges..." << std::endl;
-        histogram H;
+        Histogram H;
         H.update(drop,xps,&server);
         const size_t t = H.threshold();
         std::cerr << "drop_threshold=" << t << std::endl;

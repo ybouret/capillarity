@@ -47,7 +47,7 @@ YOCTO_PROGRAM_START()
 
         pixmapf edges(w,h);
         {
-            histogram H;
+            Histogram H;
             H.update(grd, xps, NULL);
             const size_t t = H.threshold();
             std::cerr << "threshold=" << t << std::endl;

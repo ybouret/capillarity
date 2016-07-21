@@ -1,18 +1,19 @@
 #include "yocto/program.hpp"
-#include "yocto/graphics/rawpix.hpp"
-#include "yocto/graphics/ops/gradient.hpp"
-#include "yocto/graphics/ops/histogram.hpp"
-#include "yocto/graphics/ops/blobs.hpp"
-#include "yocto/graphics/image/png.hpp"
-#include "yocto/graphics/image/jpeg.hpp"
-#include "yocto/graphics/image/tiff.hpp"
+#include "yocto/gfx/rawpix.hpp"
+#include "yocto/gfx/ops/edges.hpp"
+#include "yocto/gfx/ops/histogram.hpp"
+#include "yocto/gfx/ops/particles.hpp"
+#include "yocto/gfx/ops/filter.hpp"
+#include "yocto/gfx/image/png.hpp"
+#include "yocto/gfx/image/jpeg.hpp"
+#include "yocto/gfx/image/tiff.hpp"
 #include "yocto/ios/ocstream.hpp"
 
 #include "yocto/math/alg/shapes.hpp"
 
 
 using namespace yocto;
-using namespace graphics;
+using namespace gfx;
 using namespace math;
 
 YOCTO_PROGRAM_START()
@@ -31,12 +32,77 @@ YOCTO_PROGRAM_START()
         pixmapf      pxm( IMG.loadf(filename,NULL) );
         PNG.save("lens.png", pxm, NULL);
 
-        const unit_t w = pxm.w;
-        const unit_t h = pxm.h;
+        const unit_t  w = pxm.w;
+        const unit_t  h = pxm.h;
+        Filter<float> F(w,h);
 
-        xpatches     xps;
-        xpatch::create(xps, pxm, NULL);
+        xpatches     xps(pxm,true);
 
+        F.PseudoMedian(pxm,xps);
+        PNG.save("lens2.png",pxm,NULL);
+
+
+        edges Edges(w,h);
+        Edges.build_from(pxm,xps);
+
+        PNG.save("edges.png",Edges,0);
+
+        pixmapf fg(w,h);
+        separate(threshold::keep_foreground,fg,Edges,xps);
+        PNG.save("fg.png",Edges,0);
+
+        tagmap tags(w,h);
+        tags.build(fg,8);
+        tags.colors.shift = YGFX_WHITE;
+        PNG.save("fg.png",tags,tags.colors,0);
+
+
+
+        particles pa;
+        pa.load(tags);
+        if(pa.size()<=0)
+            throw exception("No main edge detected!");
+
+        pixmapf edge(w,h);
+        pa[1]->transfer(edge,pxm);
+        PNG.save("edge.png",edge,0);
+
+        F.Close(edge,xps);
+        PNG.save("edge2.png",edge,0);
+
+        string output = filename;
+        vfs::change_extension(output, "coords");
+        std::cerr << "saving to " << output << std::endl;
+        ios::wcstream fp(output);
+        fit_conic<double>  FitConic;
+        fit_circle<double> FitCircle;
+
+        for(unit_t i=0;i<w;++i)
+        {
+
+            for(unit_t j=0;j<h;++j)
+            {
+                if(edge[j][i]>0)
+                {
+                    fp("%g %g\n", double(i), double(j));
+                    edge[j][i] = 1.0;
+                    FitConic.append(double(i), double(j));
+                    FitCircle.append(double(i), double(j));
+                    break;
+                }
+            }
+
+        }
+
+        PNG.save("edge_fin.png",edge,NULL);
+
+        double          circle_radius = 0;
+        point2d<double> circle_center;
+        FitCircle.solve(circle_radius, circle_center);
+        std::cerr << "circle_radius=" << circle_radius << std::endl;
+        std::cerr << "circle_center=" << circle_center << std::endl;
+
+#if 0
         pixmapf grd(w,h);
         {
             pixmapf tmp(w,h);
@@ -44,6 +110,7 @@ YOCTO_PROGRAM_START()
             G.compute(grd, tmp, pxm, xps, NULL);
         }
         PNG.save("grad.png", grd, NULL);
+
 
         pixmapf edges(w,h);
         {
@@ -68,6 +135,9 @@ YOCTO_PROGRAM_START()
         pixmapf edge(w,h);
         B.content[1]->transfer(edge, pxm);
         PNG.save("edge.png",edge,NULL);
+
+        Filter<float> F;
+
 
 
         string output = filename;
@@ -102,7 +172,7 @@ YOCTO_PROGRAM_START()
         std::cerr << "circle_radius=" << circle_radius << std::endl;
         std::cerr << "circle_center=" << circle_center << std::endl;
 
-
+#endif
 
 
     }

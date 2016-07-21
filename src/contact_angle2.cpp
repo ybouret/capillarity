@@ -77,8 +77,25 @@ YOCTO_PROGRAM_START()
         pixmap1 edgesU(edges,gist::float2byte,edges);
         pixmap1 fg(w,h);
         separate(threshold::keep_foreground,fg,edgesU,xps);
-
         IMG.save("fg.png",fg,0);
+
+        std::cerr << "-- Working on BG..." << std::endl;
+        pixmap1 bg(w,h);
+        for(unit_t j=0;j<h;++j)
+        {
+            for(unit_t i=0;i<w;++i)
+            {
+                bg[j][i] = edgesU[j][i] - fg[j][i];
+            }
+        }
+        IMG.save("bg.png",bg,0);
+
+
+        Filter<uint8_t> Fu(w,h);
+        Fu.PseudoMedian(bg,xps);
+        IMG.save("bg2.png",bg,0);
+
+
 
         std::cerr << "-- Extracting Tags" << std::endl;
         tagmap tags(w,h);

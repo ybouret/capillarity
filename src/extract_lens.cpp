@@ -42,19 +42,19 @@ YOCTO_PROGRAM_START()
         PNG.save("lens2.png",pxm,NULL);
 
 
-        edges Edges(w,h);
-        Edges.build_from(pxm,xps);
+        Edges edges(w,h);
+        edges.build_from(pxm,xps);
 
-        PNG.save("edges.png",Edges,0);
+        PNG.save("edges.png",edges,0);
 
         pixmapf fg(w,h);
-        separate(threshold::keep_foreground,fg,Edges,xps);
-        PNG.save("fg.png",Edges,0);
+        separate(threshold::keep_foreground,fg,edges,xps);
+        PNG.save("fg.png",fg,0);
 
         tagmap tags(w,h);
         tags.build(fg,8);
         tags.colors.shift = YGFX_WHITE;
-        PNG.save("fg.png",tags,tags.colors,0);
+        PNG.save("tags.png",tags,tags.colors,0);
 
 
 

@@ -111,6 +111,17 @@ YOCTO_PROGRAM_START()
         p2.transfer(wksp,pixel<float>::invert,original);
         IMG.save("wksp.png",wksp,NULL);
 
+        std::cerr << "p1.size=" << p1.size << std::endl;
+        std::cerr << "p2.size=" << p2.size << std::endl;
+
+        p1.split_using(tags);
+        p2.split_using(tags);
+        pixmapf outl(w,h);
+        p1.mask_border(outl, 1.0f, 255);
+        p2.mask_border(outl, 1.0f, 255);
+
+        IMG.save("outline.png",outl,NULL);
+
 
     }
 

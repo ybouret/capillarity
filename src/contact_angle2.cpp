@@ -11,7 +11,7 @@
 #include "yocto/ios/ocstream.hpp"
 #include "yocto/gfx/rawpix.hpp"
 
-#include "yocto/math/alg/shapes.hpp"
+#include "yocto/math/alg/shapes2d.hpp"
 #include "yocto/string/conv.hpp"
 #include "yocto/math/stat/descr.hpp"
 #include "yocto/string/conv.hpp"

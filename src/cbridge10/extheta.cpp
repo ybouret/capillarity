@@ -172,7 +172,7 @@ YOCTO_PROGRAM_START()
         tao::set(zeta0,zeta);
         if( !app.extract_theta() )
         {
-            std::cerr << "COULDN'T EXTRACT IT THETA!" << std::endl;
+            std::cerr << "COULDN'T EXTRACT THETA!" << std::endl;
             continue;
         }
 

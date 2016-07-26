@@ -48,8 +48,8 @@ YOCTO_PROGRAM_START()
 
         {
             data_set<double> ds;
-            ds.use(1, height);
-            ds.use(2, surface);
+            ds.use(2, height);
+            ds.use(1, surface);
             ios::icstream fp(filename);
             ds.load(fp);
         }

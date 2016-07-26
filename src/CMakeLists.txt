@@ -12,8 +12,8 @@ SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/../)
 ADD_EXECUTABLE(extract_lens extract_lens.cpp)
 TARGET_LINK_YOCTO(extract_lens mk gfx png tiff)
 
-ADD_EXECUTABLE(switch_cols switch_cols.cpp)
-TARGET_LINK_YOCTO(switch_cols)
+#ADD_EXECUTABLE(switch_cols switch_cols.cpp)
+#TARGET_LINK_YOCTO(switch_cols)
 
 #ADD_EXECUTABLE(contact_angle contact_angle.cpp)
 #TARGET_LINK_YOCTO(contact_angle mk graphics png tiff)

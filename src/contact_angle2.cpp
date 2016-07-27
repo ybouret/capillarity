@@ -16,6 +16,7 @@
 #include "yocto/string/conv.hpp"
 
 #include "yocto/math/alg/shapes2d.hpp"
+#include "yocto/math/opt/cgrad.hpp"
 
 using namespace yocto;
 using namespace gfx;
@@ -43,6 +44,109 @@ static inline RGB Float2RGB(const float f)
     const uint8_t u = gist::float2byte(f);
     return RGB(u,u,u);
 }
+
+class Shaper
+{
+public:
+    point2d<double> center;
+    point2d<double> radius;
+    matrix<double>  rotate;
+    vector<double>  X;
+    vector<double>  Y;
+    vector<double>  alpha; //!< angle/center
+    vector<double>  rho;   //!< radis/center
+    vector<double>  W;
+
+    inline void load_particle(const vlist &L, const pixmap<float> &wksp)
+    {
+        for(const vnode *node = L.head;node;node=node->next)
+        {
+            const double x = double(node->vtx.x);
+            const double y = double(node->vtx.y);
+            const double w = wksp[node->vtx];
+
+            const point2d<double> delta_org(x-center.x,y-center.y);
+            point2d<double>       delta;
+            tao::mul_trn(delta,rotate,delta_org);
+            const double dx =  delta.x;
+            const double dy = -delta.y;
+            const double rr = Hypotenuse(dx,dy);
+            const double at = atan(dx/(dy+rr));
+            const double theta = at+at;
+            if(Fabs(theta)>numeric<double>::pi/2)
+                continue;
+            
+            X.push_back(x);
+            Y.push_back(y);
+            W.push_back(w);
+            alpha.push_back( theta );
+            rho.push_back(rr);
+        }
+    }
+
+
+    inline Shaper(size_t n) :
+    center(),
+    radius(),
+    rotate(2),
+    X(n,as_capacity),
+    Y(n,as_capacity),
+    alpha(n,as_capacity),
+    rho(n,as_capacity),
+    W(n,as_capacity)
+    {
+    }
+
+    inline ~Shaper() throw()
+    {
+    }
+
+    double ellradius(const double theta)
+    {
+        const double a    = radius.x;
+        const double b    = radius.y;
+        const double ab   = a*b;
+        return ab/Hypotenuse(a*cos(theta),b*sin(theta));
+    }
+
+    double F(const double theta,const array<double> &params)
+    {
+        const double Amain = params[1];
+        const double Ahalf = params[2];
+        const double arg   = theta*(2/numeric<double>::pi);
+        return Amain + (Ahalf-Amain) * (arg*arg);
+    }
+
+    double rhoFit(const double theta, const array<double> &params)
+    {
+        return ellradius(theta)*F(theta,params);
+    }
+
+    double H(const array<double> &params)
+    {
+        double ans = 0;
+
+        const size_t n = X.size();
+        for(size_t i=n;i>0;--i)
+        {
+            const double theta = alpha[i];
+            const double rf    = rhoFit(theta,params);
+            ans += Fabs(W[i]*(rf-rho[i]));
+        }
+
+        return ans/n;
+    }
+
+    bool HCB(const array<double> &params)
+    {
+        std::cerr << "Try " << params << std::endl;
+        return true;
+    }
+
+private:
+    YOCTO_DISABLE_COPY_AND_ASSIGN(Shaper);
+
+};
 
 YOCTO_PROGRAM_START()
 {
@@ -123,6 +227,7 @@ YOCTO_PROGRAM_START()
         particle &p1 = *pa[1];
         particle &p2 = *pa[2];
 
+        // workspace is inverted: black is more weight!
         pixmapf wksp(w,h);
         p1.transfer(wksp,pixel<float>::invert,original);
         p2.transfer(wksp,pixel<float>::invert,original);
@@ -142,18 +247,21 @@ YOCTO_PROGRAM_START()
         fit_conic.compute(FitConicEllipse,A);
         std::cerr << "A=" << A << std::endl;
 
-        point2d<double> center, radius;
-        matrix<double>  rotate(2);
-        fit_conic.Reduce(center, radius, rotate, A);
-        std::cerr << "center=" << center << std::endl;
-        std::cerr << "radius=" << radius << std::endl;
-        std::cerr << "rotate=" << rotate << std::endl;
+        Shaper shape(p1.size+p2.size);
 
+        fit_conic.Reduce(shape.center, shape.radius, shape.rotate, A);
+        std::cerr << "center=" << shape.center << std::endl;
+        std::cerr << "radius=" << shape.radius << std::endl;
+        std::cerr << "rotate=" << shape.rotate << std::endl;
+
+
+
+        // graphical init
         pixmap3 wfit(w,h);
         p1.transfer(wfit,Float2RGB,original);
         p2.transfer(wfit,Float2RGB,original);
 
-        const double vc  = FitConic<double>::Eval(A,center.x,center.y);
+        const double vc  = FitConic<double>::Eval(A,shape.center.x,shape.center.y);
         RGB          col = named_color::fetch(YGFX_RED);
         for(unit_t j=0;j<h;++j)
         {
@@ -167,8 +275,8 @@ YOCTO_PROGRAM_START()
             }
         }
 
-        const double a = radius.x;
-        const double b = radius.y;
+        const double a = shape.radius.x;
+        const double b = shape.radius.y;
         const double ab = a*b;
         col = named_color::fetch(YGFX_GREEN);
         for(double theta=-1.57;theta<=1.57;theta+=0.001)
@@ -176,8 +284,8 @@ YOCTO_PROGRAM_START()
             const double rho = ab/Hypotenuse(a*cos(theta),b*sin(theta));
             const point2d<double> P(rho*sin(theta),-rho*cos(theta));
             point2d<double> p;
-            tao::mul(p,rotate, P);
-            p += center;
+            tao::mul(p,shape.rotate, P);
+            p += shape.center;
             vertex v( gist::float2unit(p.x), gist::float2unit(p.y) );
             if(wfit.has(v))
             {
@@ -186,27 +294,65 @@ YOCTO_PROGRAM_START()
         }
 
         IMG.save("wfit.png",wfit,NULL);
-
-
-
-
-#if 0
-        p1.mask(wksp, 1.0f, 255);
-        p2.mask(wksp, 1.0f, 255);
-        IMG.save("wsym.png",wksp,NULL);
-
-        p1.split_using(tags);
-        p2.split_using(tags);
-        pixmapf outl(w,h);
-        p1.mask_border(outl, 1.0f, 255);
-        p2.mask_border(outl, 1.0f, 255);
-
-        IMG.save("outline.png",outl,NULL);
-#endif
         
+        
+        // preparing data
+        shape.load_particle(p1,wksp);
+        shape.load_particle(p2,wksp);
+
+        {
+            ios::wcstream fp("polar.dat");
+            for(size_t i=1;i<=shape.X.size();++i)
+            {
+                const double theta = shape.alpha[i];
+                //const double rho   = shape.rho[i];
+                //fp("%g %g %g\n", alpha, rho, shape.ellradius(shape.alpha[i]) );
+                const double rho = shape.ellradius(theta);
+                const point2d<double> P(rho*sin(theta),-rho*cos(theta));
+                point2d<double> p;
+                tao::mul(p,shape.rotate, P);
+                p += shape.center;
+                fp("%g %g %g %g %g %g %g\n", shape.X[i], shape.Y[i], p.x, p.y, theta, shape.rho[i], rho);
+            }
+        }
+
+        const size_t   nvar = 2;
+        vector<double> aorg(nvar);
+        vector<bool>   used(nvar,true);
+        vector<double> scal(nvar,1e-4);
+        aorg[1] = 1;
+        aorg[2] = 1;
+
+        cgrad<double>               CG;
+        cgrad<double>::scalar_field H(   &shape, & Shaper::H   );
+        cgrad<double>::callback     HCB( &shape, & Shaper::HCB );
+        std::cerr << "Optimizing Shape" << std::endl;
+        if(CG.run(H, aorg, used, scal, 1e-7, &HCB))
+        {
+            std::cerr << "SUCCESS: " << aorg << std::endl;
+        }
+        else
+        {
+            std::cerr << "FAILURE" << std::endl;
+            return 1;
+        }
+
+        {
+            ios::wcstream fp("polar_fit.dat");
+            for(size_t i=1;i<=shape.X.size();++i)
+            {
+                const double theta = shape.alpha[i];
+                const double rho   = shape.rhoFit(theta,aorg);
+                const point2d<double> P(rho*sin(theta),-rho*cos(theta));
+                point2d<double> p;
+                tao::mul(p,shape.rotate, P);
+                p += shape.center;
+                fp("%g %g %g %g %g %g %g\n", shape.X[i], shape.Y[i], p.x, p.y, theta, shape.rho[i], rho);
+            }
+        }
 
     }
-
-
+    
+    
 }
 YOCTO_PROGRAM_END()

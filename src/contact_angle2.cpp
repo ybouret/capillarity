@@ -162,8 +162,26 @@ YOCTO_PROGRAM_START()
                 const double val = FitConic<double>::Eval(A,i,j);
                 if(val*vc>=0)
                 {
-                    wfit[j][i] = pixel<RGB>::blend(wfit[j][i], col, 80);
+                    wfit[j][i] = pixel<RGB>::blend(wfit[j][i], col, 50);
                 }
+            }
+        }
+
+        const double a = radius.x;
+        const double b = radius.y;
+        const double ab = a*b;
+        col = named_color::fetch(YGFX_GREEN);
+        for(double theta=-1.57;theta<=1.57;theta+=0.001)
+        {
+            const double rho = ab/Hypotenuse(a*cos(theta),b*sin(theta));
+            const point2d<double> P(rho*sin(theta),-rho*cos(theta));
+            point2d<double> p;
+            tao::mul(p,rotate, P);
+            p += center;
+            vertex v( gist::float2unit(p.x), gist::float2unit(p.y) );
+            if(wfit.has(v))
+            {
+                wfit[v] = col;
             }
         }
 

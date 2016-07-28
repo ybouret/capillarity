@@ -65,25 +65,21 @@ YOCTO_PROGRAM_START()
         edges.build_from(img,xps);
         IMG.save("img_edges0.png",edges,NULL);
 
-        // histogram
         std::cerr << "-- Histogram..." << std::endl;
         H.reset();
         H.update(edges,xps);
-        const size_t tt = H.threshold();
-        std::cerr << "tt=" << tt << std::endl;
+        const size_t ht = H.threshold();
+        std::cerr << "ht=" << ht << std::endl;
+        std::cerr << "-- Prepare" << std::endl;
+        threshold::apply(img,ht,edges,threshold::keep_foreground);
+        IMG.save("img_edges1.png",img,NULL);
 
-        {
-            ios::wcstream fp("hist.dat");
-            for(size_t i=0;i<H.bins;++i)
-            {
-                fp("%g %g\n", double(i), double(H.count[i]));
-            }
-        }
-
-        threshold::apply(img,tt,edges,threshold::keep_foreground);
-        IMG.save("img_edges1.png",img,0);
-        threshold::apply(img,tt/2,edges,threshold::keep_foreground);
-        IMG.save("img_edges2.png",img,0);
+        tagmap tags(w,h);
+        tags.build(img,8);
+        particles pa;
+        pa.load(tags);
+        pa.remove_shallow_with(tags);
+        IMG.save("tags.png",tags,tags.colors,NULL);
 
 
     }

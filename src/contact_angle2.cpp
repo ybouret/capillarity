@@ -45,6 +45,9 @@ static inline RGB Float2RGB(const float f)
     return RGB(u,u,u);
 }
 
+#include "yocto/code/ipower.hpp"
+#include "yocto/sort/index.hpp"
+
 class Shaper
 {
 public:
@@ -85,6 +88,19 @@ public:
     }
 
 
+    void sort()
+    {
+        const size_t   n = X.size();
+        vector<double> tmp(n);
+        vector<size_t> idx(n);
+        make_index(alpha,idx,__compare<float>);
+        make_rank(X,idx,tmp);
+        make_rank(Y,idx,tmp);
+        make_rank(W,idx,tmp);
+        make_rank(alpha,idx,tmp);
+        make_rank(rho,idx,tmp);
+    }
+
     inline Shaper(size_t n) :
     center(),
     radius(),
@@ -111,10 +127,13 @@ public:
 
     double F(const double theta,const array<double> &params)
     {
-        const double Amain = params[1];
-        const double Ahalf = params[2];
         const double arg   = theta*(2/numeric<double>::pi);
-        return Amain + (Ahalf-Amain) * (arg*arg);
+        double ans = params[1];
+        for(size_t i=2;i<=params.size();++i)
+        {
+            ans += params[i] * ipower(arg,i-1);
+        }
+        return ans;
     }
 
     double rhoFit(const double theta, const array<double> &params)
@@ -300,6 +319,8 @@ YOCTO_PROGRAM_START()
         shape.load_particle(p1,wksp);
         shape.load_particle(p2,wksp);
 
+        shape.sort();
+
         {
             ios::wcstream fp("polar.dat");
             for(size_t i=1;i<=shape.X.size();++i)
@@ -316,12 +337,12 @@ YOCTO_PROGRAM_START()
             }
         }
 
-        const size_t   nvar = 2;
-        vector<double> aorg(nvar);
+        const size_t   nvar = 3;
+        vector<double> aorg(nvar,0);
         vector<bool>   used(nvar,true);
         vector<double> scal(nvar,1e-4);
         aorg[1] = 1;
-        aorg[2] = 1;
+        //aorg[2] = 1;
 
         cgrad<double>               CG;
         cgrad<double>::scalar_field H(   &shape, & Shaper::H   );

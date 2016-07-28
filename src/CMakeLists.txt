@@ -21,8 +21,10 @@ TARGET_LINK_YOCTO(polar mk)
 ADD_EXECUTABLE(contact_angle2 contact_angle2.cpp)
 TARGET_LINK_YOCTO(contact_angle2 mk gfx png tiff)
 
+ADD_EXECUTABLE(contact_angle3 contact_angle3.cpp)
+TARGET_LINK_YOCTO(contact_angle3 mk gfx png tiff)
 
-INSTALL( TARGETS polar extract_lens contact_angle2 RUNTIME DESTINATION bin )
+INSTALL( TARGETS polar extract_lens contact_angle2 contact_angle3 RUNTIME DESTINATION bin )
 
 ADD_SUBDIRECTORY(cbridge10)
 

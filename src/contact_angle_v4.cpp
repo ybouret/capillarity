@@ -20,6 +20,14 @@ static inline bool is_bad_vertex(const vertex &v) throw()
     return v.y>=y_limit;
 }
 
+static inline
+int compare_by_decreasing_height( const particle::ptr &lhs, const particle::ptr &rhs )
+{
+    const vertex L = lhs->width();
+    const vertex R = rhs->width();
+    return __compare(R.y,L.y);
+}
+
 YOCTO_PROGRAM_START()
 {
     YOCTO_GFX_DECL_FORMAT(jpeg);
@@ -82,7 +90,7 @@ YOCTO_PROGRAM_START()
         stencil_scharr_x5 Gx;
         stencil_scharr_y5 Gy;
 
-        ED.build_from(img,Gx,Gy,xps);
+        ED.build_from(img,Gx,Gy,xps,1.0f);
         ED.tags.colors.shift = YGFX_RED;
         IMG.save("img-grad.png", ED, 0 );
         IMG.save("img-tags.png", tags, tags.colors, 0);
@@ -124,31 +132,22 @@ YOCTO_PROGRAM_START()
         // Remove upper part
         //______________________________________________________________________
         std::cerr << "-- Removing Vertices" << std::endl;
-#if 0
-        for(size_t i=edges.size();i>0;--i)
-        {
-            particle &pa = *edges[i];
-            vlist     stk;
-            while(pa.size)
-            {
-                vnode *node = pa.pop_front();
-                if(is_bad_vertex(node->vtx))
-                {
-                    tags[node->vtx] = 0;
-                    ED[node->vtx]   = 0;
-                    delete node;
-                }
-                else
-                {
-                    stk.push_back(node);
-                }
-            }
-            pa.swap_with(stk);
-        }
-#endif
         edges.reject_all_vertices_from(tags,is_bad_vertex);
         std::cerr << "#final_edges=" << edges.size() << std::endl;
         IMG.save("img-final.png", tags, tags.colors, 0);
+        if( edges.size() < 2 )
+        {
+            throw exception("cannot find 2 particles!");
+        }
+
+        // sort by Y extension
+        quicksort(edges, compare_by_decreasing_height);
+        particle::ptr A( edges[1] );
+        particle::ptr B( edges[2] );
+        tgt.copy(source);
+        A->mask(tgt, named_color::fetch(YGFX_RED),   127);
+        B->mask(tgt, named_color::fetch(YGFX_GREEN), 127);
+        IMG.save("img-wksp.png", tgt, 0 );
 
     }
 

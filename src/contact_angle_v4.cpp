@@ -24,24 +24,34 @@ YOCTO_PROGRAM_START()
     {
         const string  filename = argv[1];
         std::cerr << "-- Loading " << filename << std::endl;
-        const pixmapf source( IMG.loadf(filename,0) );
+        const pixmap3 source( IMG.load3(filename,0) );
         std::cerr << "-- Prepare Engine" << std::endl;
         xpatches xps(source,true);
 
         // hard copy
-        pixmapf img(source);
+        pixmapf img(source,RGB::to_float,source);
         IMG.save("img.png",img,0);
         const unit_t w = source.w;
         const unit_t h = source.h;
 
+        // detect edges
         std::cerr << "Edges..." << std::endl;
-        EdgeDetector ED(w,h);
-        stencil_scharr_x Gx;
-        stencil_scharr_y Gy;
+        EdgeDetector     ED(w,h);
+        stencil_sobel_x5 Gx;
+        stencil_sobel_y5 Gy;
 
         ED.build_from(img,Gx,Gy,xps);
         IMG.save("img-tags.png", ED.tags, ED.tags.colors, 0);
         std::cerr << "#edges=" << ED.edges.size() << std::endl;
+
+        pixmap3 tgt(source);
+        for(size_t i=ED.edges.size();i>0;--i)
+        {
+            const particle &pa = *ED.edges[i];
+            pa.mask(tgt, named_color::fetch(pa.tag+ED.tags.colors.shift), 255);
+        }
+        IMG.save("img-edges.png", tgt, 0);
+
     }
 
 }

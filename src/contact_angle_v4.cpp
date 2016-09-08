@@ -13,6 +13,8 @@
 #include "yocto/gfx/draw/circle.hpp"
 #include "yocto/math/alg/shapes2d.hpp"
 #include "yocto/sort/quick.hpp"
+#include "yocto/sort/index.hpp"
+#include "yocto/math/fit/glsf-spec.hpp"
 
 using namespace yocto;
 using namespace gfx;
@@ -471,8 +473,60 @@ YOCTO_PROGRAM_START()
         }
 
         IMG.save("img-shape.png", tgt, 0 );
-        
-        
+
+        vector<double> XX(ntot,as_capacity);
+        vector<double> YY(ntot,as_capacity);
+        vector<double> Theta(ntot,as_capacity);
+        vector<double> Ratio(ntot,as_capacity);
+        for(size_t i=shape.x.size();i>0;--i)
+        {
+            if( Fabs(shape.theta[i])<numeric<double>::pi/2 )
+            {
+                XX.push_back(shape.x[i]);
+                YY.push_back(shape.y[i]);
+                Theta.push_back(sin(shape.theta[i]));
+                Ratio.push_back(shape.rho[i]/shape.radius-1);
+            }
+        }
+
+        const size_t nfit = XX.size();
+        {
+            vector<size_t> idx(nfit);
+            vector<double> tmp(nfit);
+            make_index(Theta,idx,__compare<double>);
+            make_rank(Theta, idx, tmp);
+            make_rank(XX, idx, tmp);
+            make_rank(YY, idx, tmp);
+            make_rank(Ratio, idx, tmp);
+        }
+        vector<double> Rfit(nfit);
+
+        {
+            ios::wcstream fp("tofit.dat");
+            for(size_t i=1;i<=nfit;++i)
+            {
+                fp("%g %g\n", Theta[i],Ratio[i]);
+            }
+        }
+
+        vector<double> aorg(5);
+        GLS<double>::Samples  samples;
+        GLS<double>::Sample  &sample = samples.append(Theta, Ratio, Rfit);
+        if( !_GLS::Polynomial<double>::Start(sample, aorg) )
+        {
+            throw exception("unexpected polyfit start failure!!!");
+        }
+        std::cerr << "aorg=" << aorg << std::endl;
+
+        {
+            ios::wcstream fp("rfit.dat");
+            for(size_t i=1;i<=nfit;++i)
+            {
+                fp("%g %g\n", Theta[i],Rfit[i]);
+            }
+        }
+
+
     }
     
 }

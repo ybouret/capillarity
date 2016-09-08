@@ -10,6 +10,8 @@
 #include "yocto/string/conv.hpp"
 #include "yocto/ios/ocstream.hpp"
 #include "yocto/gfx/draw/line.hpp"
+#include "yocto/gfx/draw/circle.hpp"
+#include "yocto/math/alg/shapes2d.hpp"
 
 using namespace yocto;
 using namespace gfx;
@@ -159,6 +161,53 @@ void find_min_lower_distance(const Vertices &A, size_t &ia,
     }
 }
 
+typedef  point2d<double> Point;
+
+class Shaper
+{
+public:
+    Point           center;
+    Point           radius;
+    matrix<double>  rotate;
+
+    vector<double>   x;
+    vector<double>   y;
+    vector<double>   Theta;
+    vector<double>   radii;
+    FitConic<double> fc;
+    vector<double>   param;
+
+    explicit Shaper() : center(), radius(), rotate(2), x(), y(), Theta(), radii(), fc(), param(6)
+    {
+
+    }
+
+    virtual ~Shaper() throw()
+    {
+
+    }
+
+    void computeTheta()
+    {
+        for(size_t i=x.size();i>0;--i)
+        {
+            const Point v(x[i],y[i]);
+            const Point dv=v-center;
+            Point       V;
+            tao::mul_trn(V,rotate,dv);
+            Theta[i] = Atan2(V.x,V.y);
+            radii[i] = dv.norm();
+        }
+    }
+
+    inline double computeR(const double th) const throw()
+    {
+        return radius.x*radius.y / sqrt( square_of( radius.x * sin(th) ) + square_of( radius.y * cos(th) ) );
+    }
+
+private:
+    YOCTO_DISABLE_COPY_AND_ASSIGN(Shaper);
+};
 
 YOCTO_PROGRAM_START()
 {
@@ -331,6 +380,11 @@ YOCTO_PROGRAM_START()
                 fp("%ld %ld\n", Bs[i].x, Bs[i].y);
             }
         }
+
+        //______________________________________________________________________
+        //
+        // Evaluate intersection
+        //______________________________________________________________________
         size_t ia=1,ib=1;
         find_min_lower_distance(As,ia,Bs,ib);
         {
@@ -339,6 +393,129 @@ YOCTO_PROGRAM_START()
             draw_line(tgt, mav.x, mav.y, mbv.x, mbv.y, named_color::fetch(YGFX_WHITE_SMOKE));
         }
         IMG.save("img-shape.png", tgt, 0 );
+
+        //______________________________________________________________________
+        //
+        // bounding box
+        //______________________________________________________________________
+        unit_t xmin = As[ia].x;
+        unit_t xmax = xmin;
+        unit_t ymin = As[ia].y;
+        unit_t ymax = ymin;
+
+        for(size_t i=As.size();i>=ia;--i)
+        {
+            const vertex v = As[i];
+            xmin = min_of(v.x,xmin);
+            xmax = max_of(v.x,xmax);
+            ymin = min_of(v.y,ymin);
+            ymax = max_of(v.y,ymax);
+        }
+
+        for(size_t i=Bs.size();i>=ib;--i)
+        {
+            const vertex v = Bs[i];
+            xmin = min_of(v.x,xmin);
+            xmax = max_of(v.x,xmax);
+            ymin = min_of(v.y,ymin);
+            ymax = max_of(v.y,ymax);
+        }
+        //const unit_t delta_x = xmax-xmin+1;
+        //const unit_t delta_y = ymax-ymin+1;
+
+
+        std::cerr << "Fitting Ellipse..." << std::endl;
+        Shaper S;
+        FitConic<double> &fc = S.fc;
+
+        const size_t ntot = (As.size()-ia)+(Bs.size()-ib)+2;
+        S.x.free();
+        S.y.free();
+        S.x.ensure(ntot);
+        S.y.ensure(ntot);
+        S.Theta.make(ntot);
+        S.radii.make(ntot);
+
+        fc.data.free();
+        fc.data.ensure(ntot);
+
+        for(size_t i=As.size();i>=ia;--i)
+        {
+            const vertex v = As[i];
+            fc.append(v.x, v.y, ED[v]);
+            //fc.append(v.x, v.y, 1);
+            S.x.push_back(v.x);
+            S.y.push_back(v.y);
+        }
+        for(size_t i=Bs.size();i>=ib;--i)
+        {
+            const vertex v = Bs[i];
+            fc.append(v.x, v.y, ED[v]);
+            //fc.append(v.x, v.y, 1);
+            S.x.push_back(v.x);
+            S.y.push_back(v.y);
+        }
+
+
+        array<double> &param = S.param;
+        fc.compute(FitConicEllipse,param);
+        point2d<double>     &center = S.center;
+        point2d<double>     &radius = S.radius;
+        matrix<double>      &rotate = S.rotate;
+        fc.Reduce(center,radius,rotate,param);
+        std::cerr << "center=" << center << std::endl;
+        std::cerr << "radius=" << radius << std::endl;
+        std::cerr << "rotate=" << rotate << std::endl;
+
+        S.computeTheta();
+        const unit_t cx = unit_t(floor(center.x+0.5));
+        const unit_t cy = unit_t(floor(center.y+0.5));
+        const vertex cc(cx,cy);
+        const RGB    Scolor = named_color::fetch(YGFX_CYAN);
+        const double ep     = radius.y*radius.y/radius.x;
+        const double ee     = sqrt(radius.x*radius.x-radius.y*radius.y)/radius.x;
+        std::cerr << "ellipse excentricity=" << ee << std::endl;
+        std::cerr << "ellipse parameter   =" << ep << std::endl;
+#if 1
+        for(size_t i=1;i<=ntot;++i)
+        {
+            const double theta   = S.Theta[i];
+            const double r       = S.radii[i];
+            const Point    V( cos(theta) * r, sin(theta) * r );
+            point2d<double> v;
+            tao::mul(v, rotate, V);
+            v += center;
+            const vertex p(unit_t(floor(v.x+0.5)),unit_t(floor(v.y+0.5)));
+            draw_line(tgt, cx, cy, p.x, p.y, named_color::fetch(YGFX_WHITE), 100);
+        }
+#endif
+
+        for(double th=0;th<360;++th)
+        {
+            const double   theta = Deg2Rad(th);
+            const double   r     = S.computeR(theta);
+            const Point    V( cos(theta) * r, sin(theta) * r );
+            //const point2d<double> V(cos(theta)*radius.x,sin(theta)*radius.y);
+            point2d<double> v;
+            tao::mul(v, rotate, V);
+            v += center;
+            const vertex p(unit_t(floor(v.x+0.5)),unit_t(floor(v.y+0.5)));
+            if(tgt.has(p))
+            {
+                tgt[p] = Scolor;
+            }
+        }
+
+        draw_disk(tgt, cx, cy, 2, named_color::fetch(YGFX_YELLOW_OCHRE) );
+        IMG.save("img-shape.png", tgt, 0 );
+
+        {
+            ios::wcstream fp("r_theta.dat");
+            for(size_t i=1;i<=ntot;++i)
+            {
+                fp("%g %g %g\n", S.Theta[i], S.radii[i], S.computeR(S.Theta[i]));
+            }
+        }
 
     }
 

@@ -9,6 +9,7 @@
 #include "yocto/gfx/ops/filter.hpp"
 #include "yocto/string/conv.hpp"
 #include "yocto/ios/ocstream.hpp"
+#include "yocto/gfx/draw/line.hpp"
 
 using namespace yocto;
 using namespace gfx;
@@ -22,7 +23,7 @@ static inline bool is_bad_vertex(const vertex &v) throw()
 }
 
 static inline
-int compare_by_decreasing_height( const particle::ptr &lhs, const particle::ptr &rhs )
+int compare_by_decreasing_particle_height( const particle::ptr &lhs, const particle::ptr &rhs )
 {
     const vertex L = lhs->width();
     const vertex R = rhs->width();
@@ -34,6 +35,12 @@ static inline
 int compare_vtx_by_x(const vertex &lhs, const vertex &rhs) throw()
 {
     return lhs.x-rhs.x;
+}
+
+static inline
+int compare_vtx_by_y(const vertex &lhs, const vertex &rhs) throw()
+{
+    return lhs.y-rhs.y;
 }
 
 typedef vector<vertex>       Vertices;
@@ -83,6 +90,71 @@ void analyze_particle(Vertices       &shape,
         else
         {
             shape.push_back( V.back()  );
+        }
+    }
+    quicksort(shape,compare_vtx_by_y);
+}
+
+#if 0
+static inline
+size_t find_min_shape_index( const Vertices &shape, const int direction )
+{
+    const size_t n = shape.size();
+    size_t       i = max_of<size_t>(1,n/2);
+    unit_t       x = shape[i].x;
+    for(--i;i>0;--i)
+    {
+        const unit_t xtmp=shape[i].x;
+        if(direction>0)
+        {
+            if(xtmp<x)
+            {
+                return i;
+            }
+            goto END;
+        }
+
+        if(direction<0)
+        {
+            if(xtmp>x)
+            {
+                return i;
+            }
+            goto END;
+        }
+
+    END:
+        x=xtmp;
+    }
+    return 1;
+}
+#endif
+
+static inline unit_t distance(const vertex &a, const vertex &b )
+{
+    return square_of(b.x-a.x) + square_of(a.y-b.y);
+}
+
+static inline
+void find_min_lower_distance(const Vertices &A, size_t &ia,
+                             const Vertices &B, size_t &ib)
+{
+    const size_t na = max_of<size_t>(1,A.size()/2);
+    const size_t nb = max_of<size_t>(2,B.size()/2);
+    ia=1;
+    ib=1;
+    unit_t dmin = distance(A[ia], B[ia]);
+    for(size_t a=1;a<=na;++a)
+    {
+        for(size_t b=1;b<=nb;++b)
+        {
+            const unit_t dtmp = distance(A[a],B[b]);
+            if(dtmp<=dmin)
+            {
+                ia=a;
+                ib=b;
+                dmin = dtmp;
+            }
         }
     }
 }
@@ -204,7 +276,7 @@ YOCTO_PROGRAM_START()
         //
         // sort by Y extension
         //______________________________________________________________________
-        quicksort(edges, compare_by_decreasing_height);
+        quicksort(edges, compare_by_decreasing_particle_height);
         particle::ptr A( edges[1] );
         particle::ptr B( edges[2] );
         if( A->center().x >= B->center().x )
@@ -216,54 +288,57 @@ YOCTO_PROGRAM_START()
         //
         // A is LEFT part, B is RIGHT part
         //______________________________________________________________________
-
+        const RGB Acolor = named_color::fetch(YGFX_RED);
+        const RGB Bcolor = named_color::fetch(YGFX_GREEN);
         tgt.copy(source);
-        A->mask(tgt, named_color::fetch(YGFX_RED),   255);
-        B->mask(tgt, named_color::fetch(YGFX_GREEN), 255);
+        A->mask(tgt, Acolor, 255);
+        B->mask(tgt, Bcolor, 255);
         IMG.save("img-wksp.png", tgt, 0 );
 
         //______________________________________________________________________
         //
         // analyze shapes from particles
         //______________________________________________________________________
-        Vertices A_shape;
-        analyze_particle(A_shape,*A,1);
+        Vertices As;
+        analyze_particle(As,*A,1);
 
-        Vertices B_shape;
-        analyze_particle(B_shape,*B,-1);
+        Vertices Bs;
+        analyze_particle(Bs,*B,-1);
 
         tgt.copy(source);
-        for(size_t i=1;i<=A_shape.size();++i)
+
+        for(size_t i=1;i<=As.size();++i)
         {
-            tgt[A_shape[i]] = named_color::fetch(YGFX_RED);
+            tgt[As[i]] = Acolor;
         }
-        for(size_t i=1;i<=B_shape.size();++i)
+        for(size_t i=1;i<=Bs.size();++i)
         {
-            tgt[B_shape[i]] = named_color::fetch(YGFX_GREEN);
+            tgt[Bs[i]] = Bcolor;
         }
-        IMG.save("img-shape.png", tgt, 0 );
 
         {
             ios::wcstream fp("a_shape.dat");
-            for(size_t i=1;i<=A_shape.size();++i)
+            for(size_t i=1;i<=As.size();++i)
             {
-                fp("%ld %ld\n", A_shape[i].x, A_shape[i].y);
+                fp("%ld %ld\n", As[i].x, As[i].y);
             }
         }
 
         {
             ios::wcstream fp("b_shape.dat");
-            for(size_t i=1;i<=B_shape.size();++i)
+            for(size_t i=1;i<=Bs.size();++i)
             {
-                fp("%ld %ld\n", B_shape[i].x, B_shape[i].y);
+                fp("%ld %ld\n", Bs[i].x, Bs[i].y);
             }
         }
-
-        //______________________________________________________________________
-        //
-        // now find out limits
-        //______________________________________________________________________
-        
+        size_t ia=1,ib=1;
+        find_min_lower_distance(As,ia,Bs,ib);
+        {
+            const vertex mav = As[ia];
+            const vertex mbv = Bs[ib];
+            draw_line(tgt, mav.x, mav.y, mbv.x, mbv.y, named_color::fetch(YGFX_WHITE_SMOKE));
+        }
+        IMG.save("img-shape.png", tgt, 0 );
 
     }
 

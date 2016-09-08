@@ -12,6 +12,7 @@
 #include "yocto/gfx/draw/line.hpp"
 #include "yocto/gfx/draw/circle.hpp"
 #include "yocto/math/alg/shapes2d.hpp"
+#include "yocto/sort/quick.hpp"
 
 using namespace yocto;
 using namespace gfx;
@@ -162,7 +163,7 @@ void find_min_lower_distance(const Vertices &A, size_t &ia,
 }
 
 typedef  point2d<double> Point;
-
+#include "yocto/sort/index.hpp"
 class Shaper
 {
 public:
@@ -176,8 +177,9 @@ public:
     vector<double>   radii;
     FitConic<double> fc;
     vector<double>   param;
+    vector<double>   ratio;
 
-    explicit Shaper() : center(), radius(), rotate(2), x(), y(), Theta(), radii(), fc(), param(6)
+    explicit Shaper() : center(), radius(), rotate(2), x(), y(), Theta(), radii(), fc(), param(6), ratio()
     {
 
     }
@@ -187,9 +189,19 @@ public:
 
     }
 
+    inline double ThetaFor(const double xx, const double yy) const
+    {
+        const Point v(xx,yy);
+        const Point dv=v-center;
+        Point       V;
+        tao::mul_trn(V,rotate,dv);
+        return Atan2(V.x,V.y);
+    }
+
     void computeTheta()
     {
-        for(size_t i=x.size();i>0;--i)
+        const size_t n = x.size();
+        for(size_t i=n;i>0;--i)
         {
             const Point v(x[i],y[i]);
             const Point dv=v-center;
@@ -198,12 +210,55 @@ public:
             Theta[i] = Atan2(V.x,V.y);
             radii[i] = dv.norm();
         }
+
+        vector<size_t> idx(n);
+        vector<double> tmp(n);
+        make_index(Theta, idx, __compare<double> );
+        make_rank(x, idx, tmp);
+        make_rank(y, idx, tmp);
+        make_rank(radii, idx, tmp );
+        make_rank(Theta, idx, tmp );
+        ratio.make(n);
+        for(size_t i=n;i>0;--i)
+        {
+            const double th = Theta[i];
+            ratio[i] = radii[i]/computeR(th) - 1.0;
+        }
     }
 
     inline double computeR(const double th) const throw()
     {
         return radius.x*radius.y / sqrt( square_of( radius.x * sin(th) ) + square_of( radius.y * cos(th) ) );
     }
+
+    inline double getSin(const size_t k)
+    {
+        double ans = 0;
+        const size_t n = x.size();
+        for(size_t i=1;i<n;++i)
+        {
+            const double h1 = ratio[i]   * sin(k*Theta[i]);
+            const double h2 = ratio[i+1] * sin(k*Theta[i+1]);
+            ans += (Theta[i+1]-Theta[i]) * (h2+h1) * 0.5;
+        }
+        return ans/numeric<double>::pi;
+    }
+
+    inline double getCos(const size_t k)
+    {
+        double ans = 0;
+        const size_t n = x.size();
+        for(size_t i=1;i<n;++i)
+        {
+            const double h1 = ratio[i]   * cos(k*Theta[i]);
+            const double h2 = ratio[i+1] * cos(k*Theta[i+1]);
+            ans += (Theta[i+1]-Theta[i]) * (h2+h1) * 0.5;
+        }
+        return ans/numeric<double>::pi;
+    }
+
+
+
 
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Shaper);
@@ -428,7 +483,9 @@ YOCTO_PROGRAM_START()
         Shaper S;
         FitConic<double> &fc = S.fc;
 
-        const size_t ntot = (As.size()-ia)+(Bs.size()-ib)+2;
+        const size_t nA   = 1+As.size()-ia;
+        const size_t nB   = 1+Bs.size()-ib;
+        const size_t ntot = nA+nB;
         S.x.free();
         S.y.free();
         S.x.ensure(ntot);
@@ -443,7 +500,6 @@ YOCTO_PROGRAM_START()
         {
             const vertex v = As[i];
             fc.append(v.x, v.y, ED[v]);
-            //fc.append(v.x, v.y, 1);
             S.x.push_back(v.x);
             S.y.push_back(v.y);
         }
@@ -451,7 +507,6 @@ YOCTO_PROGRAM_START()
         {
             const vertex v = Bs[i];
             fc.append(v.x, v.y, ED[v]);
-            //fc.append(v.x, v.y, 1);
             S.x.push_back(v.x);
             S.y.push_back(v.y);
         }
@@ -472,11 +527,7 @@ YOCTO_PROGRAM_START()
         const unit_t cy = unit_t(floor(center.y+0.5));
         const vertex cc(cx,cy);
         const RGB    Scolor = named_color::fetch(YGFX_CYAN);
-        const double ep     = radius.y*radius.y/radius.x;
-        const double ee     = sqrt(radius.x*radius.x-radius.y*radius.y)/radius.x;
-        std::cerr << "ellipse excentricity=" << ee << std::endl;
-        std::cerr << "ellipse parameter   =" << ep << std::endl;
-#if 1
+
         for(size_t i=1;i<=ntot;++i)
         {
             const double theta   = S.Theta[i];
@@ -488,14 +539,12 @@ YOCTO_PROGRAM_START()
             const vertex p(unit_t(floor(v.x+0.5)),unit_t(floor(v.y+0.5)));
             draw_line(tgt, cx, cy, p.x, p.y, named_color::fetch(YGFX_WHITE), 100);
         }
-#endif
 
         for(double th=0;th<360;++th)
         {
             const double   theta = Deg2Rad(th);
             const double   r     = S.computeR(theta);
             const Point    V( cos(theta) * r, sin(theta) * r );
-            //const point2d<double> V(cos(theta)*radius.x,sin(theta)*radius.y);
             point2d<double> v;
             tao::mul(v, rotate, V);
             v += center;
@@ -509,13 +558,58 @@ YOCTO_PROGRAM_START()
         draw_disk(tgt, cx, cy, 2, named_color::fetch(YGFX_YELLOW_OCHRE) );
         IMG.save("img-shape.png", tgt, 0 );
 
+
         {
             ios::wcstream fp("r_theta.dat");
             for(size_t i=1;i<=ntot;++i)
             {
-                fp("%g %g %g\n", S.Theta[i], S.radii[i], S.computeR(S.Theta[i]));
+                const double th  = S.Theta[i];
+                fp("%g %g %g %g\n", th, S.radii[i], S.computeR(th), S.ratio[i]);
             }
         }
+
+        vector<double> tA(nA,as_capacity);
+        vector<double> rA(nA,as_capacity);
+
+        for(size_t i=ia;i<=As.size();++i)
+        {
+            const Point v(As[i].x,As[i].y);
+            const Point dv=v-center;
+            Point       V;
+            tao::mul_trn(V,rotate,dv);
+            tA.push_back(Atan2(V.x,V.y));
+            rA.push_back(dv.norm()/S.computeR(tA.back())-1);
+        }
+        co_qsort(tA,rA);
+        {
+            ios::wcstream fp("ratio_A.dat");
+            for(size_t i=1;i<=nA;++i)
+            {
+                fp("%g %g\n", tA[i], rA[i]);
+            }
+        }
+
+        vector<double> tB(nB,as_capacity);
+        vector<double> rB(nB,as_capacity);
+
+        for(size_t i=ib;i<=Bs.size();++i)
+        {
+            const Point v(Bs[i].x,Bs[i].y);
+            const Point dv=v-center;
+            Point       V;
+            tao::mul_trn(V,rotate,dv);
+            tB.push_back(Atan2(V.x,V.y));
+            rB.push_back(dv.norm()/S.computeR(tB.back())-1);
+        }
+        co_qsort(tB,rB);
+        {
+            ios::wcstream fp("ratio_B.dat");
+            for(size_t i=1;i<=nB;++i)
+            {
+                fp("%g %g\n", tB[i], rB[i]);
+            }
+        }
+
 
     }
 

@@ -185,26 +185,54 @@ We hence get
 \right.
 \end{equation}
 
-The starting acceleration is
+\section{Pushing Displacement}
+If we push the lens with a depth of $d$ within a cylindrical pool or radius $R_p$ then the
+liquid rise of an extra $D$. We assume that the liquid has an initial depth of $L$,
+so that
 \begin{equation}
-	\left(\partial_\tau \phi\right)_0 = \mu^2 v_0 - \dfrac{\sin\phi_0}{r_0} =
-	\mu^2\left\lbrack \zeta + (1-\cos\alpha)\right\rbrack + \cos\theta + \dfrac{\sin\theta}{\tan\alpha}
+	V_p = \pi R_p^2 L
 \end{equation}
 
-If $\zeta<0$, then there is an intersection such that
+\begin{itemize}
+	\item the volume of the immersed spherical lens is
+	\begin{equation}
+		v(d+D) = \dfrac{\pi (d+D)^2}{3}\left(3R-(d+D)\right)
+	\end{equation}
+	\item the slice intercepting the new free surface has an area of
+	\begin{equation}
+		s(d+D) = \pi \left( R^2 - (R-(d+D))^2\right) = \pi (d+D) \left(2R-(d+D)\right)
+	\end{equation}
+	\item The liquid conservation is given by
+	\begin{equation}
+	V_p = \pi R_p^2 L = \pi R_p^2 (L+D) - v(d+D)
+	\end{equation}
+\end{itemize}
+We get
 \begin{equation}
-	\cos\alpha_I=1+\zeta
+		0 =  R_p^2 D - \dfrac{(d+D)^2}{3}\left(3R-(d+D)\right)
 \end{equation}
-and if we start from $\alpha_I$ then
-\begin{equation}
-	\left(\partial_\tau \phi\right)_I \propto \sin(\alpha_I+\theta)
-\end{equation}
-If $\left(\partial_\tau \phi\right)_I>0$ then $\alpha<\alpha_I$.
 
-\section{Results}
-There exists $\zeta_{max}(\mu,\theta)$.
-%We found $\zeta_{max}(\mu,\theta)=\dfrac{2}{\mu}\zeta_{max}(1,\theta)$.
 
+%The starting acceleration is
+%\begin{equation}
+%	\left(\partial_\tau \phi\right)_0 = \mu^2 v_0 - \dfrac{\sin\phi_0}{r_0} =
+%	\mu^2\left\lbrack \zeta + (1-\cos\alpha)\right\rbrack + \cos\theta + \dfrac{\sin\theta}{\tan\alpha}
+%\end{equation}
+%
+%If $\zeta<0$, then there is an intersection such that
+%\begin{equation}
+%	\cos\alpha_I=1+\zeta
+%\end{equation}
+%and if we start from $\alpha_I$ then
+%\begin{equation}
+%	\left(\partial_\tau \phi\right)_I \propto \sin(\alpha_I+\theta)
+%\end{equation}
+%If $\left(\partial_\tau \phi\right)_I>0$ then $\alpha<\alpha_I$.
+%
+%\section{Results}
+%There exists $\zeta_{max}(\mu,\theta)$.
+%%We found $\zeta_{max}(\mu,\theta)=\dfrac{2}{\mu}\zeta_{max}(1,\theta)$.
+%
 
 
 \end{document}

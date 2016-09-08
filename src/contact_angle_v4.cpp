@@ -8,6 +8,7 @@
 #include "yocto/gfx/ops/edges.hpp"
 #include "yocto/gfx/ops/filter.hpp"
 #include "yocto/string/conv.hpp"
+#include "yocto/ios/ocstream.hpp"
 
 using namespace yocto;
 using namespace gfx;
@@ -199,7 +200,10 @@ YOCTO_PROGRAM_START()
             throw exception("cannot find 2 particles!");
         }
 
+        //______________________________________________________________________
+        //
         // sort by Y extension
+        //______________________________________________________________________
         quicksort(edges, compare_by_decreasing_height);
         particle::ptr A( edges[1] );
         particle::ptr B( edges[2] );
@@ -207,13 +211,21 @@ YOCTO_PROGRAM_START()
         {
             bswap(A,B);
         }
+
+        //______________________________________________________________________
+        //
         // A is LEFT part, B is RIGHT part
+        //______________________________________________________________________
+
         tgt.copy(source);
         A->mask(tgt, named_color::fetch(YGFX_RED),   255);
         B->mask(tgt, named_color::fetch(YGFX_GREEN), 255);
         IMG.save("img-wksp.png", tgt, 0 );
 
-        // analyze shapes
+        //______________________________________________________________________
+        //
+        // analyze shapes from particles
+        //______________________________________________________________________
         Vertices A_shape;
         analyze_particle(A_shape,*A,1);
 
@@ -230,6 +242,28 @@ YOCTO_PROGRAM_START()
             tgt[B_shape[i]] = named_color::fetch(YGFX_GREEN);
         }
         IMG.save("img-shape.png", tgt, 0 );
+
+        {
+            ios::wcstream fp("a_shape.dat");
+            for(size_t i=1;i<=A_shape.size();++i)
+            {
+                fp("%ld %ld\n", A_shape[i].x, A_shape[i].y);
+            }
+        }
+
+        {
+            ios::wcstream fp("b_shape.dat");
+            for(size_t i=1;i<=B_shape.size();++i)
+            {
+                fp("%ld %ld\n", B_shape[i].x, B_shape[i].y);
+            }
+        }
+
+        //______________________________________________________________________
+        //
+        // now find out limits
+        //______________________________________________________________________
+        
 
     }
 

@@ -15,6 +15,7 @@
 #include "yocto/sort/quick.hpp"
 #include "yocto/sort/index.hpp"
 #include "yocto/math/fit/glsf-spec.hpp"
+#include "yocto/math/fcn/drvs.hpp"
 
 using namespace yocto;
 using namespace gfx;
@@ -178,7 +179,12 @@ public:
     Point  center;
     double radius;
 
-    Shaper() : x(), y(), w(), center(), radius(0)
+    Shaper() :
+    x(),
+    y(),
+    w(),
+    center(),
+    radius(0)
     {
     }
 
@@ -222,6 +228,69 @@ public:
 
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Shaper);
+};
+
+#include "yocto/math/fcn/zfind.hpp"
+
+class Fitter
+{
+public:
+    vector<double> aorg;
+    const Point    center;
+    const double   radius;
+    mutable double yvalue;
+
+    explicit Fitter(const size_t nv, const Point &cc, const double rr) :
+    aorg(nv),
+    center(cc),
+    radius(rr),
+    yvalue(0)
+    {
+    }
+
+    double computeR(const double angle) const
+    {
+        const double u  = sin(angle);
+        const double rf = (1+_GLS::Polynomial<double>::Eval(u,aorg)) * radius;
+        return rf;
+    }
+
+    double computeX(const double angle) const
+    {
+        const double rf = computeR(angle);
+        return center.x + rf * sin(angle);
+    }
+
+    double computeY(const double angle) const
+    {
+        const double rf = computeR(angle);
+        return center.y - rf * cos(angle);
+    }
+
+    Point computeP(const double angle) const
+    {
+        const double rf = computeR(angle);
+        return Point(center.x + rf * sin(angle),center.y - rf * cos(angle));
+    }
+
+    vertex computeV(const double angle) const
+    {
+        const Point p = computeP(angle);
+        return vertex( floor(p.x+0.5), floor(p.y+0.5) );
+    }
+
+    double compute_dY(double angle) const
+    {
+        return computeY(angle) - yvalue;
+    }
+
+
+    virtual ~Fitter() throw()
+    {
+    }
+
+private:
+
 };
 
 
@@ -275,6 +344,12 @@ YOCTO_PROGRAM_START()
         }
         IMG.save("img.png",img,0);
 
+
+        size_t degree = 6;
+        if(argc>3)
+        {
+            degree = strconv::to_size(argv[3],"degree");
+        }
 
         //______________________________________________________________________
         //
@@ -403,9 +478,10 @@ YOCTO_PROGRAM_START()
         //______________________________________________________________________
         size_t ia=1,ib=1;
         find_min_lower_distance(As,ia,Bs,ib);
+        const vertex mav = As[ia];
+        const vertex mbv = Bs[ib];
         {
-            const vertex mav = As[ia];
-            const vertex mbv = Bs[ib];
+
             draw_line(tgt, mav.x, mav.y, mbv.x, mbv.y, named_color::fetch(YGFX_WHITE_SMOKE));
         }
         IMG.save("img-shape.png", tgt, 0 );
@@ -461,9 +537,9 @@ YOCTO_PROGRAM_START()
         shape.ApproxCircle();
         const unit_t cx = floor(shape.center.x+0.5);
         const unit_t cy = floor(shape.center.y+0.5);
-        
-        draw_circle(tgt, cx, cy, floor(shape.radius+0.5), RGB(255,255,255), 255);
 
+#if 1
+        draw_circle(tgt, cx, cy, floor(shape.radius+0.5), RGB(255,255,255), 255);
         for(size_t i=shape.x.size();i>0;--i)
         {
             const double r = shape.rho[i];
@@ -471,12 +547,14 @@ YOCTO_PROGRAM_START()
             v += shape.center;
             draw_line(tgt, cx, cy, v.x, v.y,  RGB(255,255,255), 127);
         }
+#endif
 
         IMG.save("img-shape.png", tgt, 0 );
 
         vector<double> XX(ntot,as_capacity);
         vector<double> YY(ntot,as_capacity);
         vector<double> Theta(ntot,as_capacity);
+        vector<double> Param(ntot,as_capacity);
         vector<double> Ratio(ntot,as_capacity);
         for(size_t i=shape.x.size();i>0;--i)
         {
@@ -484,7 +562,8 @@ YOCTO_PROGRAM_START()
             {
                 XX.push_back(shape.x[i]);
                 YY.push_back(shape.y[i]);
-                Theta.push_back(sin(shape.theta[i]));
+                Theta.push_back(shape.theta[i]);
+                Param.push_back(sin(shape.theta[i]));
                 Ratio.push_back(shape.rho[i]/shape.radius-1);
             }
         }
@@ -493,25 +572,28 @@ YOCTO_PROGRAM_START()
         {
             vector<size_t> idx(nfit);
             vector<double> tmp(nfit);
-            make_index(Theta,idx,__compare<double>);
+            make_index(Param,idx,__compare<double>);
+            make_rank(Param, idx, tmp);
             make_rank(Theta, idx, tmp);
             make_rank(XX, idx, tmp);
             make_rank(YY, idx, tmp);
             make_rank(Ratio, idx, tmp);
         }
+        assert(nfit==Param.size());
         vector<double> Rfit(nfit);
 
         {
             ios::wcstream fp("tofit.dat");
             for(size_t i=1;i<=nfit;++i)
             {
-                fp("%g %g\n", Theta[i],Ratio[i]);
+                fp("%g %g\n", Param[i],Ratio[i]);
             }
         }
 
-        vector<double> aorg(5);
+        Fitter                ff(1+degree,shape.center,shape.radius);
+        array<double>        &aorg = ff.aorg;
         GLS<double>::Samples  samples;
-        GLS<double>::Sample  &sample = samples.append(Theta, Ratio, Rfit);
+        GLS<double>::Sample  &sample = samples.append(Param, Ratio, Rfit);
         if( !_GLS::Polynomial<double>::Start(sample, aorg) )
         {
             throw exception("unexpected polyfit start failure!!!");
@@ -519,12 +601,93 @@ YOCTO_PROGRAM_START()
         std::cerr << "aorg=" << aorg << std::endl;
 
         {
+            const size_t np  = 1000;
+            const double ulo = Param[1];
+            const double uhi = Param[nfit];
+            const double du  = uhi-ulo;
             ios::wcstream fp("rfit.dat");
-            for(size_t i=1;i<=nfit;++i)
+            for(size_t i=0;i<=np;++i)
             {
-                fp("%g %g\n", Theta[i],Rfit[i]);
+                const double u  = ulo + (i*du)/np;
+                const double rf = _GLS::Polynomial<double>::Eval(u,aorg);
+                fp("%g %g\n", u, rf);
             }
         }
+
+        tgt.copy(source);
+        {
+            draw_line(tgt, mav.x, mav.y, mbv.x, mbv.y, named_color::fetch(YGFX_MAGENTA),200);
+        }
+        for(size_t i=1;i<=nfit;++i)
+        {
+            const vertex v(XX[i],YY[i]);
+            if(tgt.has(v))
+            {
+                tgt[v] = named_color::fetch(YGFX_RED);
+            }
+        }
+
+        {
+            const double dth = numeric<double>::pi/2000;
+            for(double th=Theta[1];th<=Theta[nfit];th+=dth)
+            {
+                //const double rf    = ff.computeR(th);
+                //vertex v( shape.center.x + rf*sin(th), shape.center.y-rf*cos(th) );
+                const vertex v = ff.computeV(th);
+                if(tgt.has(v))
+                {
+                    tgt[v] = pixel<RGB>::blend(tgt[v], named_color::fetch(YGFX_CYAN), 0xff);
+                }
+
+            }
+        }
+
+        IMG.save("img-fitted.png",tgt,0);
+
+        tgt.copy(source);
+        zfind<double> solve( Deg2Rad(0.01) );
+        ff.yvalue = mav.y;
+        numeric<double>::function zfn( &ff, & Fitter::compute_dY);
+        const double angleA = solve(zfn,Theta[1],0);
+        std::cerr << "angleA=" << Rad2Deg(angleA) << std::endl;
+
+        ff.yvalue = mbv.y;
+        const double angleB = solve(zfn,0,Theta[nfit]);
+        std::cerr << "angleB=" << Rad2Deg(angleB) << std::endl;
+
+        const vertex touchA = ff.computeV(angleA);
+        const vertex touchB = ff.computeV(angleB);
+
+        draw_disk(tgt,touchA.x, touchA.y, 2, named_color::fetch(YGFX_YELLOW), 100);
+        draw_disk(tgt,touchB.x, touchB.y, 2, named_color::fetch(YGFX_YELLOW), 100);
+
+
+        derivative<double> drvs;
+        numeric<double>::function dfx( &ff, & Fitter::computeX);
+        numeric<double>::function dfy( &ff, & Fitter::computeY);
+
+        const double dfxA = drvs(dfx,angleA,1e-4);
+        const double dfyA = drvs(dfy,angleA,1e-4);
+        const double thA  = Atan2(dfxA,dfyA);
+        std::cerr << "thA=" << Rad2Deg(thA) << std::endl;
+        const Point  arrA = (ff.radius/2)*Point(cos(thA+numeric<double>::pi),sin(thA+numeric<double>::pi));
+        draw_line(tgt,touchA.x, touchA.y, touchA.x + unit_t(arrA.x), touchA.y+unit_t(arrA.y), named_color::fetch(YGFX_MAGENTA), 200 );
+
+
+        const double dfxB = drvs(dfx,angleB,1e-4);
+        const double dfyB = drvs(dfy,angleB,1e-4);
+        const double thB  = Atan2(dfxB,dfyB);
+        std::cerr << "thB=" << Rad2Deg(thB) << std::endl;
+        const Point  arrB = (ff.radius/2)*Point(cos(thB),sin(thB));
+        draw_line(tgt,touchB.x, touchB.y, touchB.x + unit_t(arrB.x), touchB.y+unit_t(arrB.y), named_color::fetch(YGFX_MAGENTA), 200 );
+
+        const double wetB = Rad2Deg(numeric<double>::pi-thB);
+        const double wetA = Rad2Deg(numeric<double>::pi+thA);
+        std::cerr << "WettingA=" << wetA << std::endl;
+        std::cerr << "WettingB=" << wetB << std::endl;
+
+        IMG.save("img-result.png",tgt,0);
+
 
 
     }

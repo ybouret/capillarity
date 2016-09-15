@@ -25,6 +25,12 @@ FOREACH(item IN LISTS to_remove)
 	EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E remove -f ${item})
 ENDFOREACH(item)
 
+IF(IS_DIRECTORY bin)
+	MESSAGE("=======> Removing bin")
+        EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E remove_directory bin )
+ENDIF()
+
+
 MESSAGE("")
 
 

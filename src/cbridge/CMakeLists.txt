@@ -17,7 +17,7 @@ TARGET_LINK_YOCTO(extheta mk)
 TARGET_LINK_LIBRARIES(extheta bridge)
 
 ADD_EXECUTABLE(extheta_raw extheta_raw.cpp setup.hpp setup.cpp)
-TARGET_LINK_YOCTO(extheta_raw mk)
+TARGET_LINK_YOCTO(extheta_raw mk seem)
 TARGET_LINK_LIBRARIES(extheta_raw bridge)
 
 INSTALL( TARGETS cbridge abacus heuristic extheta extheta_raw RUNTIME DESTINATION bin )

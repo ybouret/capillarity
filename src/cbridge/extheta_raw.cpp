@@ -7,6 +7,7 @@
 #include "yocto/math/fit/glsf-spec.hpp"
 #include "yocto/container/utils.hpp"
 #include "yocto/math/stat/descr.hpp"
+#include "yocto/seem/evaluator.hpp"
 
 YOCTO_PROGRAM_START()
 {
@@ -15,10 +16,19 @@ YOCTO_PROGRAM_START()
         throw exception("usage: %s R0 capillary_length datafiles", program);
     }
 
+    Seem::Evaluator seem;
+    const string    expr_R0     = argv[1];
+    const string    expr_caplen = argv[2];
+    const double    seem_R0     = seem.run(expr_R0);
+    const double    seem_caplen = seem.run(expr_caplen);
+
+    std::cerr << "R0=" << seem_R0 << std::endl;
+    std::cerr << "caplen=" << seem_caplen << std::endl;
+
 
     Application app(new threading::crew(true),
-                    strconv::to<double>(argv[1],"R0"),
-                    strconv::to<double>(argv[2],"capillary_length")
+                    seem_R0,
+                    seem_caplen
                     );
 
 
@@ -69,6 +79,7 @@ YOCTO_PROGRAM_START()
         theta.free();
         dzeta.free();
         znew.free();
+        vector<double> area(N0,as_capacity);
 
         const double   S0 = setup.S0;
         for(size_t i=1;i<=N0;++i)
@@ -88,6 +99,7 @@ YOCTO_PROGRAM_START()
             if(ss>1)
                 throw exception("surface is too high");
             alpha.push_back( asin( sqrt(ss) ) );
+            area.push_back(s);
         }
         const size_t N = zeta.size();
         std::cerr << "using #data=" << N << std::endl;
@@ -119,11 +131,11 @@ YOCTO_PROGRAM_START()
             string outname = rootname;
             vfs::change_extension(outname, "theta.dat");
             ios::wcstream fp(outname);
-            fp("#H theta alpha\n");
+            fp("#area theta h\n");
             for(size_t i=1;i<=N;++i)
             {
                 const double t = Rad2Deg(theta[i]);
-                fp("%.15g %.15g %.15g\n", setup.R0 * zeta0[i] , t , Rad2Deg(alpha[i]) );
+                fp("%.15g %.15g %.15g\n", area[i], t, setup.R0 * zeta0[i]  );
             }
         }
 

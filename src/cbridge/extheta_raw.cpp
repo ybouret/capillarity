@@ -129,7 +129,7 @@ YOCTO_PROGRAM_START()
 
         {
             string outname = rootname;
-            vfs::change_extension(outname, "theta.dat");
+            vfs::change_extension(outname, "theta_raw.dat");
             ios::wcstream fp(outname);
             fp("#area theta h\n");
             for(size_t i=1;i<=N;++i)

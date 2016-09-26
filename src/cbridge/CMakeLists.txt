@@ -1,7 +1,6 @@
 ADD_LIBRARY(bridge STATIC 
 bridge.hpp bridge.cpp 
 application.hpp application.cpp
-processor.hpp processor.cpp
 )
 
 IF(FALSE)

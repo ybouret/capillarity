@@ -30,6 +30,14 @@ YOCTO_PROGRAM_START()
         app.build_reduced_variables();
         std::cerr << "-- computing theta" << std::endl;
         app.compute_theta_using(par);
+
+        {
+            ios::wcstream fp("theta.dat");
+            for(size_t i=1;i<=app.h.size();++i)
+            {
+                fp("%.15g %.15g %.15g\n", app.A[i], app.h[i], app.theta[i]);
+            }
+        }
     }
 }
 YOCTO_PROGRAM_END()

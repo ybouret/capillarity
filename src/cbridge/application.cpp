@@ -49,7 +49,7 @@ void Application:: build_reduced_variables()
         }
         alpha[i] = Asin(ss);
         //std::cerr << "h=" << h [i] << " -> zeta=" << zeta[i] << std::endl;
-        std::cerr << "A=" << A[i] << " => alpha=" << alpha[i] << std::endl;
+        //std::cerr << "A=" << A[i] << " => alpha=" << alpha[i] << std::endl;
     }
 
 }

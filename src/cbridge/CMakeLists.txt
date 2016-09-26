@@ -28,3 +28,8 @@ INSTALL( TARGETS cbridge abacus heuristic extheta extheta_raw RUNTIME DESTINATIO
 ENDIF()
 
 
+ADD_EXECUTABLE(compute_theta_v1 compute_theta_v1.cpp)
+TARGET_LINK_YOCTO(compute_theta_v1 mk seem)
+TARGET_LINK_LIBRARIES(compute_theta_v1 bridge)
+
+INSTALL( TARGETS compute_theta_v1 RUNTIME DESTINATION bin )

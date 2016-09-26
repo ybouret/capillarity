@@ -5,10 +5,13 @@
 #include "yocto/threading/kernel-executor.hpp"
 #include "yocto/ios/icstream.hpp"
 #include "yocto/ios/ocstream.hpp"
+#include "yocto/container/manager.hpp"
 
-typedef threading::kernel          Kernel;
-typedef threading::kernel_executor KernelExecutor;
-typedef threading::context         Context;
+typedef threading::kernel             Kernel;
+typedef threading::kernel_executor    KernelExecutor;
+typedef threading::context            Context;
+typedef vector<double>                Vector;
+typedef container_manager_for<Vector> VecMgr;
 
 class Application
 {
@@ -26,15 +29,17 @@ public:
     vector<double> h;       //!< height in mm
     vector<double> zeta;    //!< h/R0
     vector<double> alpha;   //!< alpha=asin( sqrt(A/A0) );
+    VecMgr         vecs; //A,h,zeta,alpha
+    VecMgr         subs; //!< zeta, alpha to setup memory
 
     void build_reduced_variables();
-
     void load_from(const string &filename);
-
+    void compute_theta_using(KernelExecutor &kExec);
 
 
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Application);
+    void compute_theta_kernel( Context & );
 
 };
 

@@ -1,4 +1,4 @@
-ADD_LIBRARY(bridge STATIC bridge.hpp bridge.cpp)
+ADD_LIBRARY(bridge STATIC bridge.hpp bridge.cpp application.hpp application.cpp)
 
 IF(FALSE)
 ADD_EXECUTABLE(cbridge main.cpp)

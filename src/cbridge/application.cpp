@@ -16,6 +16,8 @@ subs()
     vecs.enroll(h);
     vecs.enroll(zeta);    subs.enroll(zeta);
     vecs.enroll(alpha);   subs.enroll(alpha);
+    vecs.enroll(theta);   subs.enroll(theta);
+
 }
 
 Bridge & Application:: initialize(KernelExecutor &kExec,const double user_R0, const double user_capillary_length)
@@ -46,6 +48,8 @@ void Application:: build_reduced_variables()
             throw exception("invalid area in build_reduced_variables");
         }
         alpha[i] = Asin(ss);
+        //std::cerr << "h=" << h [i] << " -> zeta=" << zeta[i] << std::endl;
+        std::cerr << "A=" << A[i] << " => alpha=" << alpha[i] << std::endl;
     }
 
 }
@@ -54,9 +58,14 @@ void Application:: compute_theta_using(KernelExecutor &kExec)
 {
     Kernel K(this, & Application::compute_theta_kernel);
     kExec(K);
+    if(kExec.failure>0)
+    {
+        throw exception("failure in compute_theta");
+    }
+
 }
 
-#define COMPUTE_THETA(I)
+#define COMPUTE_THETA(I) theta[I] = b.find_theta(alpha[I],zeta[I])
 
 
 void Application:: compute_theta_kernel( Context &ctx )
@@ -64,6 +73,7 @@ void Application:: compute_theta_kernel( Context &ctx )
     size_t offset = 1;
     size_t length = h.size();
     ctx.split(offset,length);
+    Bridge &b = ctx.as<DefaultBridge>();
     YOCTO_LOOP_FUNC(length,COMPUTE_THETA,offset);
 }
 

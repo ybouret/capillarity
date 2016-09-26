@@ -30,7 +30,6 @@ YOCTO_PROGRAM_START()
         app.build_reduced_variables();
         std::cerr << "-- computing theta" << std::endl;
         app.compute_theta_using(par);
-
     }
 }
 YOCTO_PROGRAM_END()

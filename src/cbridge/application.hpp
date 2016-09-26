@@ -29,6 +29,7 @@ public:
     vector<double> h;       //!< height in mm
     vector<double> zeta;    //!< h/R0
     vector<double> alpha;   //!< alpha=asin( sqrt(A/A0) );
+    vector<double> theta;
     VecMgr         vecs; //A,h,zeta,alpha
     VecMgr         subs; //!< zeta, alpha to setup memory
 

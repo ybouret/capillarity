@@ -41,3 +41,10 @@ void Application:: build_reduced_variables()
     }
 
 }
+
+
+
+void Application:: load_from(const string &filename)
+{
+    
+}

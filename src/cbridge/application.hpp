@@ -3,6 +3,8 @@
 
 #include "bridge.hpp"
 #include "yocto/threading/kernel-executor.hpp"
+#include "yocto/ios/icstream.hpp"
+#include "yocto/ios/ocstream.hpp"
 
 typedef threading::kernel          Kernel;
 typedef threading::kernel_executor KernelExecutor;
@@ -26,6 +28,9 @@ public:
     vector<double> alpha;   //!< alpha=asin( sqrt(A/A0) );
 
     void build_reduced_variables();
+
+    void load_from(const string &filename);
+
 
 
 private:

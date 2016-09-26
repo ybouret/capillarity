@@ -8,6 +8,7 @@ Application:: Application() :
 R0(0),
 cap_len(0),
 A0(0),
+rate(0),
 A(),h(),zeta(),alpha(),
 vecs(),
 subs()
@@ -65,7 +66,7 @@ void Application:: compute_theta_using(KernelExecutor &kExec)
 
 }
 
-#define COMPUTE_THETA(I) theta[I] = b.find_theta(alpha[I],zeta[I])
+#define COMPUTE_THETA(I) theta[I] = b.find_theta(alpha[I],zeta[I]-(rate*I)/R0)
 
 
 void Application:: compute_theta_kernel( Context &ctx )

@@ -24,6 +24,7 @@ public:
     double         R0;
     double         cap_len;
     double         A0;      //!< pi * R0^2 in mm2
+    double         rate;
     
     vector<double> A;       //!< area in mm2
     vector<double> h;       //!< height in mm

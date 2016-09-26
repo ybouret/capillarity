@@ -13,6 +13,8 @@ __ADD_PATTERN(*.dat)
 __ADD_PATTERN(*.bin)
 __ADD_PATTERN(*.png)
 __ADD_PATTERN(*.jpg)
+__ADD_PATTERN(*.stl)
+
 
 IF(APPLE)
 MESSAGE("=======> collecting MacOS dumps")
@@ -20,16 +22,16 @@ FILE(GLOB_RECURSE tmp .DS_Store)
 SET(to_remove ${to_remove} ${tmp})
 ENDIF()
 
+#specific stuff
+LIST( APPEND to_remove "src/R++/rcode.so"  )
+LIST( APPEND to_remove "src/R++/rcode.dll" )
+
 FOREACH(item IN LISTS to_remove)
-	MESSAGE("removing ${item}")
-	EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E remove -f ${item})
+	IF(EXISTS "${item}")
+		MESSAGE("removing ${item}")
+		EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E remove -f ${item})
+	ENDIF()
 ENDFOREACH(item)
-
-IF(IS_DIRECTORY bin)
-	MESSAGE("=======> Removing bin")
-        EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E remove_directory bin )
-ENDIF()
-
 
 MESSAGE("")
 

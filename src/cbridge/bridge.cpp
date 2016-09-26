@@ -719,6 +719,7 @@ double Bridge:: find_zeta( const double alpha, const double theta )
     return zeta;
 }
 
+#if 0
 void Bridge:: run(threading::context  &ctx,
                   array<double>       &target,
                   const array<double> &source,
@@ -740,5 +741,7 @@ void Bridge:: run(threading::context  &ctx,
             break;
     }
 }
+#endif
+
 
 

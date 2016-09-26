@@ -87,7 +87,7 @@ public:
     Function fn_of_zeta;
     optimize1D<double>::event check0;
 
-    void run(threading::context &ctx, array<double> &target, const array<double> &source, void *args);
+    //void run(threading::context &ctx, array<double> &target, const array<double> &source, void *args);
 
 
 private:

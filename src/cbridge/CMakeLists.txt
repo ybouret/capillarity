@@ -1,5 +1,6 @@
 ADD_LIBRARY(bridge STATIC bridge.hpp bridge.cpp)
 
+IF(FALSE)
 ADD_EXECUTABLE(cbridge main.cpp)
 TARGET_LINK_YOCTO(cbridge mk)
 TARGET_LINK_LIBRARIES(cbridge bridge)
@@ -21,4 +22,6 @@ TARGET_LINK_YOCTO(extheta_raw mk seem)
 TARGET_LINK_LIBRARIES(extheta_raw bridge)
 
 INSTALL( TARGETS cbridge abacus heuristic extheta extheta_raw RUNTIME DESTINATION bin )
+ENDIF()
+
 

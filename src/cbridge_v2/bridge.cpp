@@ -95,7 +95,9 @@ double Bridge:: profile(const double alpha,
 
     //__________________________________________________________________________
     //
+    //
     // initialize parameters
+    //
     //__________________________________________________________________________
 
     compute_start(alpha,theta,zeta);
@@ -103,7 +105,13 @@ double Bridge:: profile(const double alpha,
     const double v0 = param[BRIDGE_V];
 
 
+    //__________________________________________________________________________
+    //
+    //
     // loop
+    //
+    //__________________________________________________________________________
+
     double       tau      = 0;
     double       ctl      = SAFETY * shift_control;
     if(fp) (*fp)("%.15g %.15g %.15g\n", param[BRIDGE_U],param[BRIDGE_V], param[BRIDGE_A]);
@@ -111,14 +119,18 @@ double Bridge:: profile(const double alpha,
     {
         //______________________________________________________________________
         //
+        //
         // initialize dtau according to position
+        //
         //______________________________________________________________________
         double       dtau         = min_of(shift_control,param[BRIDGE_U]*SAFETY);
 
 
         //______________________________________________________________________
         //
+        //
         // compute the angular rate and correct dtau
+        //
         //______________________________________________________________________
         const double angular_rate = Fabs(mu2 *param[BRIDGE_V] - sin( param[BRIDGE_A] ) / param[BRIDGE_U]);
         if( angular_rate * dtau > angle_control )
@@ -128,29 +140,96 @@ double Bridge:: profile(const double alpha,
 
         //______________________________________________________________________
         //
+        //
         // take the step
+        //
         //______________________________________________________________________
         const double tau_next = tau + dtau;
         ctl = min_of(ctl,dtau);
         odeint(profEq,param,tau,tau_next,ctl,NULL);
         if(!status)
         {
+            // something went wrong
             tao::set(param,pprev);
-            const double u   = pprev[BRIDGE_U];
-            const double v   = pprev[BRIDGE_V];
-            const double phi = pprev[BRIDGE_V];
-
-
-            if(fp) (*fp)("%.15g %.15g %.15g\n", u,v,phi);
-            return GetValue(v0,v);
+            if(fp) (*fp)("%.15g %.15g %.15g\n",param[BRIDGE_U],param[BRIDGE_V],param[BRIDGE_A]);
+            return GetValue(v0,param[BRIDGE_V]);
         }
 
 
 
         //______________________________________________________________________
         //
+        //
         // check if profile is done...
+        //
         //______________________________________________________________________
+
+        //______________________________________________________________________
+        //
+        // check zero crossing
+        //______________________________________________________________________
+        if(true)
+        {
+
+
+            const double v_prev = pprev[BRIDGE_V];
+            const double v_curr = param[BRIDGE_V];
+            if(v_curr*v_prev<=0)
+            {
+                const double X  = clamp<double>(0,-v_prev/(v_curr-v_prev),1);
+                param[BRIDGE_V] = 0;
+                param[BRIDGE_U] = pprev[BRIDGE_U] + X*(param[BRIDGE_U]-pprev[BRIDGE_U]);
+                param[BRIDGE_A] = pprev[BRIDGE_A] + X*(param[BRIDGE_A]-pprev[BRIDGE_A]);
+                if(fp) (*fp)("%.15g %.15g %.15g\n",param[BRIDGE_U],param[BRIDGE_V],param[BRIDGE_A]);
+                return 0;
+            }
+        }
+
+        //______________________________________________________________________
+        //
+        // if u was increasing then decreases => invalid u extremum
+        //______________________________________________________________________
+        if(true)
+        {
+            const double du_prev = cos( pprev[BRIDGE_A] );
+            const double du_curr = cos( param[BRIDGE_A] );
+            if(du_prev>=0&&du_curr<0)
+            {
+                //std::cerr << "u-returning!" << std::endl;
+                const double X   = clamp<double>(0.0,-du_prev/(du_curr-du_prev),1.0);
+                const double v   = pprev[BRIDGE_V] + X * (param[BRIDGE_V]-pprev[BRIDGE_V]);
+                const double u   = pprev[BRIDGE_U] + X * (param[BRIDGE_U]-pprev[BRIDGE_U]);
+                const double phi = pprev[BRIDGE_A] + X * (param[BRIDGE_A]-pprev[BRIDGE_A]);
+                param[BRIDGE_V] = v;
+                param[BRIDGE_U] = u;
+                param[BRIDGE_A] = phi;
+                if(fp) (*fp)("%.15g %.15g %.15g\n", u,v,phi);
+                return GetValue(v0,v);
+            }
+        }
+
+        //______________________________________________________________________
+        //
+        // if dv is zero => v extremum
+        //______________________________________________________________________
+        if(true)
+        {
+            const double dv_prev = sin( pprev[BRIDGE_A] );
+            const double dv_curr = sin( param[BRIDGE_A] );
+            if(dv_prev*dv_curr<=0)
+            {
+                assert(Fabs(dv_prev)>0||Fabs(dv_curr)>0);
+                const double X   = clamp<double>(0.0,-dv_prev/(dv_curr-dv_prev),1.0);
+                const double v   = pprev[BRIDGE_V] + X * (param[BRIDGE_V]-pprev[BRIDGE_V]);
+                const double u   = pprev[BRIDGE_U] + X * (param[BRIDGE_U]-pprev[BRIDGE_U]);
+                const double phi = pprev[BRIDGE_A] + X * (param[BRIDGE_A]-pprev[BRIDGE_A]);
+                param[BRIDGE_V] = v;
+                param[BRIDGE_U] = u;
+                param[BRIDGE_A] = phi;
+                if(fp) (*fp)("%.15g %.15g %.15g\n", u,v,phi);
+                return GetValue(v0,v);
+            }
+        }
 
 
         //______________________________________________________________________
@@ -159,7 +238,6 @@ double Bridge:: profile(const double alpha,
         //______________________________________________________________________
         tau = tau_next;
         tao::set(pprev,param);
-        std::cerr << "tau=" << tau << std::endl;
         if(fp) (*fp)("%.15g %.15g %.15g\n",param[BRIDGE_U],param[BRIDGE_V],param[BRIDGE_A]);
         if(tau>1)
         {
@@ -169,12 +247,7 @@ double Bridge:: profile(const double alpha,
     }
 
     // end of simulation
-    {
-        //const double u   = pprev[BRIDGE_U];
-        const double v   = pprev[BRIDGE_V];
-        //const double phi = pprev[BRIDGE_V];
+    return GetValue(v0,param[BRIDGE_V]);
 
-        return GetValue(v0,v);
-    }
 }
 

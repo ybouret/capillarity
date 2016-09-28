@@ -162,3 +162,47 @@ double Bridge:: find_alpha(const double theta, const double zeta)
 
     return -1;
 }
+
+#include "yocto/sort/quick.hpp"
+#include "yocto/math/dat/linear.hpp"
+
+double  Bridge:: get_user_rise(const double alpha, const double zeta)
+{
+
+    const size_t n = heights.size(); assert(n==radii.size());
+    std::cerr << "#heights=" << n << std::endl;
+    co_qsort(heights,radii);
+    slices.make(n);
+    volume.make(n);
+    if(zeta>=0)
+    {
+        // compute each slice area
+        for(size_t i=1;i<=n;++i)
+        {
+            const double zz = heights[i];
+            const double rr = radii[i];
+            slices[i] = rr*rr;
+            if(zz>zeta)
+            {
+                const double ri2 = max_of<double>(0,1.0-Square(1.0+zeta-zz));
+                slices[i] -= ri2;
+            }
+        }
+        slices[n] = 0;
+        volume[1] = 0;
+    }
+    else
+    {
+        return zeta;
+    }
+
+    for(size_t i=2;i<=n;++i)
+    {
+        volume[i] = volume[i-1] + 0.5*(heights[i]-heights[i-1]) * (slices[i]+slices[i-1]);
+    }
+    const double vhalf = 0.5*volume[n];
+    const double urise = linear(vhalf,volume,heights);
+    std::cerr << "urise=" << urise << "/zeta=" << zeta << std::endl;
+    return urise;
+}
+

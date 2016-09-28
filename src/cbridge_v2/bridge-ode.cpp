@@ -80,12 +80,13 @@ double Bridge:: profile(const double alpha,
     compute_start(alpha,theta,zeta);
     tao::set(pprev,param);
     const double v0 = param[BRIDGE_V];
-    slice.free();
-    height.free();
+    heights.free();
+    radii.free();
+
     if(store_data)
     {
-        slice.ensure(1000);
-        height.ensure(1000);
+        heights.ensure(1000);
+        radii.ensure(1000);
     }
     //__________________________________________________________________________
     //
@@ -95,7 +96,7 @@ double Bridge:: profile(const double alpha,
     //__________________________________________________________________________
 #define SAVE_STATUS() do { \
 if(fp) (*fp)("%.15g %.15g %.15g\n", param[BRIDGE_U],param[BRIDGE_V], param[BRIDGE_A]);\
-if(store_data) { slice.push_back(param[BRIDGE_U]); height.push_back(param[BRIDGE_V]); } \
+if(store_data) { radii.push_back(param[BRIDGE_U]); heights.push_back(param[BRIDGE_V]); } \
 } while(false)
 
     double       tau      = 0;

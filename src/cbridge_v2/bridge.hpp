@@ -85,7 +85,12 @@ private:
     double __zeta;
 
 public:
-    Vector slice,height;
+    Vector heights;
+    Vector radii;
+    Vector slices;
+    Vector volume;
+    
+    double   get_user_rise(const double alpha, const double zeta);
 
 };
 

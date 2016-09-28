@@ -52,7 +52,17 @@ YOCTO_PROGRAM_START()
         B.profile(alpha_opt,theta,zeta,&ap);
     }
 
-    
+    {
+        ios::wcstream ap("a_of_theta.dat");
+        for(double th=1;th<=180;++th)
+        {
+            const double alpha = B.find_alpha(Deg2Rad(th),zeta);
+            if(alpha>0)
+            {
+                ap("%.15g %.15g\n", th,Rad2Deg(alpha));
+            }
+        }
+    }
 
 
 }

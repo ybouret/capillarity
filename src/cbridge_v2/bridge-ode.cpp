@@ -62,7 +62,7 @@ typedef point2d<double> P2D;
 //! compute a profile
 double Bridge:: profile(const double alpha,
                         const double theta,
-                        const double zeta, ios::ostream *fp )
+                        const double zeta, ios::ostream *fp, bool store_data)
 {
     const double SAFETY = 0.1;
 
@@ -80,18 +80,28 @@ double Bridge:: profile(const double alpha,
     compute_start(alpha,theta,zeta);
     tao::set(pprev,param);
     const double v0 = param[BRIDGE_V];
-
-
+    slice.free();
+    height.free();
+    if(store_data)
+    {
+        slice.ensure(1000);
+        height.ensure(1000);
+    }
     //__________________________________________________________________________
     //
     //
     // loop
     //
     //__________________________________________________________________________
-#define SAVE_STATUS() do { if(fp) (*fp)("%.15g %.15g %.15g\n", param[BRIDGE_U],param[BRIDGE_V], param[BRIDGE_A]); } while(false)
+#define SAVE_STATUS() do { \
+if(fp) (*fp)("%.15g %.15g %.15g\n", param[BRIDGE_U],param[BRIDGE_V], param[BRIDGE_A]);\
+if(store_data) { slice.push_back(param[BRIDGE_U]); height.push_back(param[BRIDGE_V]); } \
+} while(false)
+
     double       tau      = 0;
     double       ctl      = SAFETY * shift_control;
     SAVE_STATUS();
+
     while(true)
     {
         //______________________________________________________________________

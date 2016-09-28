@@ -58,7 +58,7 @@ public:
      - return GetValue(v0,final_v) or exactly zero
      - the last param are always computed
      */
-    double profile( const double alpha, const double theta, const double zeta, ios::ostream *fp );
+    double profile( const double alpha, const double theta, const double zeta, ios::ostream *fp, bool store_data=false);
 
     //! debug function
     double reduced_rate( const array<double> &arr ) const throw();
@@ -83,6 +83,9 @@ private:
     double __alpha;
     double __theta;
     double __zeta;
+
+public:
+    Vector slice,height;
 
 };
 

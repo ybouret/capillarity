@@ -54,7 +54,21 @@ public:
     void compute_start(const double alpha, const double theta, const double zeta);
 
     //! compute a profile...
+    /**
+     - return GetValue(v0,final_v) or exactly zero
+     - the last param are always computed
+     */
     double profile( const double alpha, const double theta, const double zeta, ios::ostream *fp );
+
+
+    //! this is the function to get a continuous level indicator
+    /**
+     - if (v0>=0) return Fabs(min_of(v0,v));
+     - if (v0<0) return  Fabs(max_of(v0,v));
+     */
+    static double GetValue(const double v0, const double v) throw();
+
+    static void SaveLens(const string &filename, const double zeta );
 
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Bridge);

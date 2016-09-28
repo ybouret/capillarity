@@ -8,9 +8,6 @@
 #include "yocto/math/opt/minimize.hpp"
 #include "yocto/math/core/tao.hpp"
 
-//#include "yocto/threading/crew.hpp"
-
-
 using namespace yocto;
 using namespace math;
 
@@ -24,7 +21,8 @@ typedef numeric<double>::function    Function;
 typedef ode::Field<double>::Equation Equation;
 typedef ode::Field<double>::Callback Callback;
 typedef ode::driverCK<double>::type  DEsolver;
-typedef vector<double> Vector;
+typedef vector<double>               Vector;
+typedef triplet<double>              Triplet;
 
 class Bridge
 {
@@ -37,12 +35,13 @@ public:
     Equation     profEq;   //!< differential equation
     bool         status;   //!< no error during integration
 
-    double         mu;         //!< scaling
-    double         mu2;        //!< mu^2...
-    Vector         pprev;      //!< starting point for integration
-    Vector         param;      //!< current point for intergation
+    double         mu;             //!< scaling
+    double         mu2;            //!< mu^2...
+    Vector         pprev;          //!< starting point for integration
+    Vector         param;          //!< current point for intergation
     double         center_v;       //!< center of lens pos, 1.0+zeta
-    const double   angle_control;  //!< angle control in radians
+    const double   resolution;     //!< angle resolution: seach between resolution and PI-resolution
+    const double   angle_control;  //!< angle control in radians (converted from L->angle_control)
     const double   shift_control;  //!< max speed = tau max
     Function       fn_of_alpha;    //!< ProfileOfAlpha
 
@@ -71,10 +70,11 @@ public:
      */
     static double GetValue(const double v0, const double v) throw();
 
-    //! save a drwaing of the lens
+    //! save a drawing of the lens
     static void SaveLens(const string &filename, const double zeta );
 
-
+    //! finding alpha...
+    double find_alpha(const double theta, const double zeta);
 
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Bridge);

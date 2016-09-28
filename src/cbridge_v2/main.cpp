@@ -42,8 +42,12 @@ YOCTO_PROGRAM_START()
         fp << "\n";
         //rp("%.15g %.15g %.15g\n", alpha_deg, ans, (B.param[BRIDGE_A]) );
         rp("%.15g %.15g %.15g\n", alpha_deg, ans, B.reduced_rate(B.param) );
-
     }
+
+    B.find_alpha(theta,zeta);
+
+
+    
 
 
 }

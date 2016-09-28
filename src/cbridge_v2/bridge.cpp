@@ -23,6 +23,7 @@ mu2(1),
 pprev(nvar),
 param(nvar),
 center_v(0),
+INI_FROM_LUA(resolution),
 INI_FROM_LUA(angle_control),
 INI_FROM_LUA(shift_control),
 fn_of_alpha(this, & Bridge:: ProfileOfAlpha),
@@ -32,10 +33,14 @@ __zeta(0)
 {
     odeint.start(nvar);
     std::cerr << "ftol="       << odeint.eps  << std::endl;
+    std::cerr << "resolution(deg)   =" << resolution << std::endl;
+    (double&)resolution = Deg2Rad(resolution);
+    std::cerr << "resolution(rad)   =" << resolution << std::endl;
     std::cerr << "shift_control(tau)=" << shift_control << std::endl;
     std::cerr << "angle_control(deg)=" << angle_control << std::endl;
     (double&)angle_control = Deg2Rad(angle_control);
     std::cerr << "angle_control(rad)=" << angle_control << std::endl;
+
     const double INI_FROM_LUA(R0);
     const double INI_FROM_LUA(lambda);
     std::cerr << "R0=" << R0 << std::endl;

@@ -44,6 +44,7 @@ public:
     double         center_v;       //!< center of lens pos, 1.0+zeta
     const double   angle_control;  //!< angle control in radians
     const double   shift_control;  //!< max speed = tau max
+    Function       fn_of_alpha;    //!< ProfileOfAlpha
 
     static size_t  curvature_coeff;
 
@@ -60,6 +61,8 @@ public:
      */
     double profile( const double alpha, const double theta, const double zeta, ios::ostream *fp );
 
+    //! debug function
+    double reduced_rate( const array<double> &arr ) const throw();
 
     //! this is the function to get a continuous level indicator
     /**
@@ -68,12 +71,19 @@ public:
      */
     static double GetValue(const double v0, const double v) throw();
 
+    //! save a drwaing of the lens
     static void SaveLens(const string &filename, const double zeta );
+
+
 
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Bridge);
     void ProfileEq( array<double> &dYds, double, const array<double> &Y );
-    
+    double ProfileOfAlpha(const double alpha);
+    double __alpha;
+    double __theta;
+    double __zeta;
+
 };
 
 

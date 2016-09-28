@@ -24,7 +24,11 @@ pprev(nvar),
 param(nvar),
 center_v(0),
 INI_FROM_LUA(angle_control),
-INI_FROM_LUA(shift_control)
+INI_FROM_LUA(shift_control),
+fn_of_alpha(this, & Bridge:: ProfileOfAlpha),
+__alpha(0),
+__theta(0),
+__zeta(0)
 {
     odeint.start(nvar);
     std::cerr << "ftol="       << odeint.eps  << std::endl;

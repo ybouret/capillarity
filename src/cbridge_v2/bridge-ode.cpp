@@ -43,6 +43,18 @@ void Bridge::ProfileEq(array<double> &dYds, double, const array<double> &Y)
     
 }
 
+double Bridge:: reduced_rate( const array<double> &Y ) const throw()
+{
+    assert(Y.size()>=nvar);
+    const double u   = Y[BRIDGE_U];
+    const double v   = Y[BRIDGE_V];
+    const double phi = Y[BRIDGE_A];
+    const double S   = sin(phi);
+
+    return (mu2*v-S/u)/mu2;
+}
+
+
 #include "yocto/math/round.hpp"
 #include "yocto/math/point2d.hpp"
 typedef point2d<double> P2D;
@@ -201,12 +213,35 @@ double Bridge:: profile(const double alpha,
         //______________________________________________________________________
         if(true)
         {
-            const P2D OB(param[BRIDGE_U],param[BRIDGE_V]-center_v);
+            const P2D B(param[BRIDGE_U],param[BRIDGE_V]);
+            const P2D OB(B.x,B.y-center_v);
             const double OB2 = OB.norm2();
             if(OB2<=1)
             {
-                std::cerr << "INSIDE LENS" << std::endl;
-                exit(1);
+                const P2D A(pprev[BRIDGE_U],pprev[BRIDGE_V]);
+                const P2D BA(B,A);
+                const P2D OA(A.x,A.y-center_v);
+                const double a = BA.norm2();
+                const double b = OB*BA;
+                const double c = OB2-1.0;
+
+
+
+                // compute reduced discriminant
+                const double sD   = sqrt(max_of(0.0,b*b - a*c));
+                const double beta = clamp<double>(0,(-b + sD)/a,1);
+                std::cerr << "inside, beta=" << beta << std::endl;
+                //const P2D I = OB + X * BA;
+                const double X   = 1.0 - beta;
+                const double u   = pprev[BRIDGE_U] + X * (param[BRIDGE_U]-pprev[BRIDGE_U]);
+                const double v   = pprev[BRIDGE_V] + X * (param[BRIDGE_V]-pprev[BRIDGE_V]);
+                const double phi = pprev[BRIDGE_A] + X * (param[BRIDGE_A]-pprev[BRIDGE_A]);
+                param[BRIDGE_U]  = u;
+                param[BRIDGE_V]  = v;
+                param[BRIDGE_A]  = phi;
+                SAVE_STATUS();
+                //if(fp) (*fp)("%g %g %g\n",B.x,B.y,phi);
+                return GetValue(v0,v);
             }
         }
 
@@ -218,10 +253,12 @@ double Bridge:: profile(const double alpha,
         tau = tau_next;
         tao::set(pprev,param);
         SAVE_STATUS();
+#if 0
         if(tau>1)
         {
             break;
         }
+#endif
         
     }
     

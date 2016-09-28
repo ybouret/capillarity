@@ -44,8 +44,13 @@ YOCTO_PROGRAM_START()
         rp("%.15g %.15g %.15g\n", alpha_deg, ans, B.reduced_rate(B.param) );
     }
 
-    B.find_alpha(theta,zeta);
-
+    double alpha_opt = B.find_alpha(theta,zeta);
+    if(alpha_opt>0)
+    {
+        std::cerr << "alpha_opt=" << Rad2Deg(alpha_opt) << std::endl;
+        ios::wcstream ap("alpha_opt.dat");
+        B.profile(alpha_opt,theta,zeta,&ap);
+    }
 
     
 

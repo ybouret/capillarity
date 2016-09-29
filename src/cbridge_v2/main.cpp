@@ -34,14 +34,16 @@ YOCTO_PROGRAM_START()
     const double theta     = Deg2Rad(theta_deg);
     const double zeta      = Lua::Config::Get<lua_Number>(L,"zeta");
 
+    std::cerr << "theta=" << theta_deg << std::endl;
+    std::cerr << "zeta="  << zeta  << std::endl;
     B.SaveLens("lens.dat", zeta);
 
-    for(double alpha_deg=0.1;alpha_deg<=30;alpha_deg+=0.1)
+    for(double alpha_deg=0.2;alpha_deg<=50;alpha_deg+=0.2)
     {
         const double ans = B.profile(Deg2Rad(alpha_deg), theta, zeta, &fp);
         fp << "\n";
-        //rp("%.15g %.15g %.15g\n", alpha_deg, ans, (B.param[BRIDGE_A]) );
-        rp("%.15g %.15g %.15g\n", alpha_deg, ans, B.reduced_rate(B.param) );
+        rp("%.15g %.15g %.15g\n", alpha_deg, ans, B.param[BRIDGE_U] );
+        //rp("%.15g %.15g %.15g\n", alpha_deg, ans, B.reduced_rate(B.param) );
     }
 
     double alpha_opt = B.find_alpha(theta,zeta);
@@ -51,7 +53,7 @@ YOCTO_PROGRAM_START()
         {
             ios::wcstream ap("alpha_opt.dat");
             (void)B.profile(alpha_opt,theta,zeta,&ap,true);
-            const double urise = B.get_user_rise(alpha_opt,zeta);
+            const double urise = B.get_user_rise(alpha_opt,theta,zeta);
             ap << "\n";
             ap("%.15g %.15g 0\n",  -1.0,       urise );
             ap("%.15g %.15g 0\n",  B.radii[1], urise );

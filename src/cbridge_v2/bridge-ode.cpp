@@ -241,7 +241,6 @@ if(store_data) { radii.push_back(param[BRIDGE_U]); heights.push_back(param[BRIDG
                 // compute reduced discriminant
                 const double sD   = sqrt(max_of(0.0,b*b - a*c));
                 const double beta = clamp<double>(0,(-b + sD)/a,1);
-                std::cerr << "inside, beta=" << beta << std::endl;
                 //const P2D I = OB + X * BA;
                 const double X   = 1.0 - beta;
                 const double u   = pprev[BRIDGE_U] + X * (param[BRIDGE_U]-pprev[BRIDGE_U]);

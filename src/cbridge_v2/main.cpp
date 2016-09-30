@@ -26,6 +26,8 @@ YOCTO_PROGRAM_START()
 
     Bridge B(L);
 
+    const double R0 = Lua::Config::Get<lua_Number>(L, "R0" );
+
     //B.compute_mu(82,2.7);
     ios::wcstream rp("result.dat");
     ios::wcstream fp("profile.dat");
@@ -57,7 +59,11 @@ YOCTO_PROGRAM_START()
             ap << "\n";
             ap("%.15g %.15g 0\n",  -1.0,       urise );
             ap("%.15g %.15g 0\n",  B.radii[1], urise );
+            const double uzeta = zeta-urise;
+            std::cerr << "User zeta=" << zeta-urise << std::endl;
 
+            std::cerr << "H=" << zeta  * R0 << std::endl;
+            std::cerr << "h=" << uzeta * R0 << std::endl;
         }
 
         if(false)

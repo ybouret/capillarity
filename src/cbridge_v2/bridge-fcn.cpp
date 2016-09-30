@@ -54,9 +54,9 @@ double __find_bot( Function &F, double p_lo, double p_up, const double res)
 #include "yocto/fs/local-fs.hpp"
 #include "yocto/ios/ocstream.hpp"
 
-#define HAS_TOP 0x01
-#define HAS_BOT 0x02
-#define OUT_ALPHA 0
+#define HAS_TOP   0x01
+#define HAS_BOT   0x02
+#define OUT_ALPHA 1
 
 double Bridge:: find_alpha(const double theta, const double zeta)
 {
@@ -196,19 +196,22 @@ double  Bridge:: get_user_rise(const double alpha, const double theta, const dou
         }
         slices[n] = 0;
         volume[1] = 0;
+
+        for(size_t i=2;i<=n;++i)
+        {
+            volume[i] = volume[i-1] + 0.5*(heights[i]-heights[i-1]) * (slices[i]+slices[i-1]);
+        }
+        const double vhalf = 0.5*volume[n];
+        const double urise = linear(vhalf,volume,heights);
+        std::cerr << "urise=" << urise << "/zeta=" << zeta << std::endl;
+        return urise;
+
+
     }
     else
     {
         return 0;
     }
 
-    for(size_t i=2;i<=n;++i)
-    {
-        volume[i] = volume[i-1] + 0.5*(heights[i]-heights[i-1]) * (slices[i]+slices[i-1]);
-    }
-    const double vhalf = 0.5*volume[n];
-    const double urise = linear(vhalf,volume,heights);
-    std::cerr << "urise=" << urise << "/zeta=" << zeta << std::endl;
-    return urise;
 }
 

@@ -37,6 +37,7 @@ YOCTO_PROGRAM_START()
     const double Xi        = Lua::Config::Get<lua_Number>(L,"Xi");
     double       alpha_min = 0;
     double       zeta_max  = 0;
+#if 0
     const double Xi_max    = B.find_Xi_max(theta,alpha_min,zeta_max);
     std::cerr << "Xi_max   =" << Xi_max    << std::endl;
     std::cerr << "alpha_min=" << Rad2Deg(alpha_min) << std::endl;
@@ -51,7 +52,7 @@ YOCTO_PROGRAM_START()
         fp("%g %g 0\n",B.radii.front(),usink);
     }
     B.SaveLens("lensmax.dat", Xi_max);
-
+#endif
     
 
     {
@@ -61,7 +62,7 @@ YOCTO_PROGRAM_START()
         {
             const double ans = B.profile(Deg2Rad(alpha_deg), theta, Xi, &fp);
             fp << "\n";
-            rp("%g %g %g\n",alpha_deg,ans,B.param[BRIDGE_U]);
+            rp("%g %g %g\n",alpha_deg,ans,sin(B.param[BRIDGE_A]));
         }
     }
 

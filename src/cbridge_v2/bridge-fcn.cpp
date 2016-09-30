@@ -177,42 +177,36 @@ double  Bridge:: get_user_rise(const double alpha, const double theta, const dou
     const size_t n = heights.size(); assert(n==radii.size());
     std::cerr << "#heights=" << n << std::endl;
     co_qsort(heights,radii);
+
     slices.make(n);
     volume.make(n);
-    const double phi0 = alpha+theta-numeric<double>::pi;
-    if(phi0<=0)
+    //const double phi0 = alpha+theta-numeric<double>::pi;
+    //std::cerr << "phi0=" << phi0 << std::endl;
+
+    // compute each slice area, disk or couronne
+    for(size_t i=1;i<=n;++i)
     {
-        // compute each slice area
-        for(size_t i=1;i<=n;++i)
-        {
-            const double zz = heights[i];
-            const double rr = radii[i];
-            slices[i] = rr*rr;
-            if(zz>Xi)
-            {
-                const double ri2 = max_of<double>(0,1.0-Square(1.0+Xi-zz));
-                slices[i] -= ri2;
-            }
-        }
-        slices[n] = 0;
-        volume[1] = 0;
+        const double zz = heights[i];
+        const double rr = radii[i];
+        slices[i] = rr*rr;
 
-        for(size_t i=2;i<=n;++i)
-        {
-            volume[i] = volume[i-1] + 0.5*(heights[i]-heights[i-1]) * (slices[i]+slices[i-1]);
-        }
-        const double vhalf = 0.5*volume[n];
-        const double urise = linear(vhalf,volume,heights);
-        std::cerr << "urise=" << urise << "/Xi=" << Xi << std::endl;
-        return urise;
-
-
+        const double ri2 = max_of<double>(0,1.0-Square(1.0+Xi-zz));
+        slices[i] -= ri2;
     }
-    else
+    volume[1] = 0;
+
+    for(size_t i=2;i<=n;++i)
     {
-        return 0;
+        volume[i] = volume[i-1] + 0.5*(heights[i]-heights[i-1]) * (slices[i]+slices[i-1]);
     }
 
+    //std::cerr << "Volume=" << volume[n] << std::endl;
+    const double vhalf = 0.5*volume[n];
+    const double urise = linear(vhalf,volume,heights);
+    //std::cerr << "urise=" << urise << std::endl;
+
+    return urise;
+    
 }
 
 double Bridge:: find_XiMax(const double theta, double &alphaLo)

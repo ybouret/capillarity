@@ -64,7 +64,8 @@ double Bridge:: profile(const double  alpha,
                         const double  theta,
                         const double  Xi,
                         ios::ostream *fp,
-                        bool store_data)
+                        const bool    store_data,
+                        const double  shift)
 {
     const double SAFETY = 0.1;
 
@@ -97,7 +98,7 @@ double Bridge:: profile(const double  alpha,
     //
     //__________________________________________________________________________
 #define SAVE_STATUS() do { \
-if(fp) (*fp)("%.15g %.15g %.15g\n", param[BRIDGE_U],param[BRIDGE_V], param[BRIDGE_A]);\
+if(fp) (*fp)("%.15g %.15g %.15g\n", param[BRIDGE_U],param[BRIDGE_V]+shift, param[BRIDGE_A]);\
 if(store_data) { radii.push_back(param[BRIDGE_U]); heights.push_back(param[BRIDGE_V]); } \
 } while(false)
 

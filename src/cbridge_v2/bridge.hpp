@@ -24,6 +24,7 @@ typedef ode::driverCK<double>::type  DEsolver;
 typedef vector<double>               Vector;
 typedef triplet<double>              Triplet;
 
+
 class Bridge
 {
 public:
@@ -58,7 +59,7 @@ public:
      - return GetValue(v0,final_v) or exactly zero
      - the last param are always computed
      */
-    double profile( const double alpha, const double theta, const double Xi, ios::ostream *fp, bool store_data=false);
+    double profile( const double alpha, const double theta, const double Xi, ios::ostream *fp, const bool store_data=false, const double shift=0);
 
     //! debug function
     double reduced_rate( const array<double> &arr ) const throw();

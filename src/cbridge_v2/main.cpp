@@ -46,13 +46,12 @@ YOCTO_PROGRAM_START()
         const double urise = B.get_user_rise(alpha_min,theta,XiMax);
         fp << "\n";
         fp("-1 %g 0\n",urise);
+        fp("0  %g 0\n",urise);
         fp("%g %g 0\n",B.radii.front(),urise);
     }
-
     B.SaveLens("lensmax.dat", XiMax);
 
-
-    return 0;
+    
 
     {
         ios::wcstream fp("profile.dat");
@@ -70,17 +69,26 @@ YOCTO_PROGRAM_START()
     const double alpha_opt = B.find_alpha(theta,Xi);
     if(alpha_opt>0)
     {
+        double urise = 0;
         std::cerr << "alpha_opt=" << Rad2Deg(alpha_opt) << std::endl;
-        ios::wcstream fp("alpha_opt.dat");
-        (void)B.profile(alpha_opt, theta, Xi, &fp, true);
-        assert(B.radii.size()>0);
-        const double rmax  = B.radii.back();
-        const double urise = B.get_user_rise(alpha_opt,theta,Xi);
-        std::cerr << "urise=" << urise << std::endl;
-        fp << "\n";
-        fp("-1 %g 0\n",urise);
-        fp("%g %g 0\n",rmax,urise);
+        {
+            ios::wcstream fp("alpha_opt.dat");
+            (void)B.profile(alpha_opt, theta, Xi, &fp, true);
 
+            urise = B.get_user_rise(alpha_opt,theta,Xi);
+            std::cerr << "urise=" << urise << ",zeta=" << Xi-urise << std::endl;
+            fp << "\n";
+            for(double xx=-1;xx<=1;xx+=0.1)
+            {
+                fp("%g %g 0\n",xx,urise);
+            }
+        }
+        if(false)
+        {
+            B.SaveLens("real_lens.dat",Xi-urise);
+            ios::wcstream fp("real_alpha.dat");
+            (void)B.profile(alpha_opt, theta, Xi, &fp, true,-urise);
+        }
     }
 
 }

@@ -29,7 +29,7 @@ INI_FROM_LUA(shift_control),
 fn_of_alpha(this, & Bridge:: ProfileOfAlpha),
 __alpha(0),
 __theta(0),
-__zeta(0)
+__Xi(0)
 {
     odeint.start(nvar);
     std::cerr << "ftol="       << odeint.eps  << std::endl;
@@ -43,7 +43,7 @@ __zeta(0)
 
     const double INI_FROM_LUA(R0);
     const double INI_FROM_LUA(lambda);
-    std::cerr << "R0=" << R0 << std::endl;
+    std::cerr << "R0="     << R0 << std::endl;
     std::cerr << "lambda=" << lambda << std::endl;
     compute_mu(R0,lambda);
 }
@@ -61,10 +61,10 @@ void Bridge:: compute_mu(const double R0, const double capillary_length)
 
 
 #include "yocto/ios/ocstream.hpp"
-void Bridge:: SaveLens(const string &filename, const double zeta )
+void Bridge:: SaveLens(const string &filename, const double shift )
 {
     ios::wcstream fp(filename);
-    const double vc = 1.0 + zeta;
+    const double vc = 1.0 + shift;
     for(double alpha=0;alpha<=360;alpha+=0.1)
     {
         const double angle = Deg2Rad(alpha);

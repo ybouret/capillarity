@@ -1,11 +1,11 @@
 #include "bridge.hpp"
 
-void Bridge:: compute_start(const double alpha, const double theta, const double zeta)
+void Bridge:: compute_start(const double alpha, const double theta, const double Xi)
 {
     status          = true;
-    center_v        = 1.0 + zeta;
+    center_v        = 1.0 + Xi;
     param[BRIDGE_U] = sin(alpha);
-    param[BRIDGE_V] = zeta + (1.0-cos(alpha));
+    param[BRIDGE_V] = Xi + (1.0-cos(alpha));
     param[BRIDGE_A] = alpha+theta-numeric<double>::pi;
 }
 
@@ -60,9 +60,11 @@ double Bridge:: reduced_rate( const array<double> &Y ) const throw()
 typedef point2d<double> P2D;
 
 //! compute a profile
-double Bridge:: profile(const double alpha,
-                        const double theta,
-                        const double zeta, ios::ostream *fp, bool store_data)
+double Bridge:: profile(const double  alpha,
+                        const double  theta,
+                        const double  Xi,
+                        ios::ostream *fp,
+                        bool store_data)
 {
     const double SAFETY = 0.1;
 
@@ -77,7 +79,7 @@ double Bridge:: profile(const double alpha,
     //
     //__________________________________________________________________________
 
-    compute_start(alpha,theta,zeta);
+    compute_start(alpha,theta,Xi);
     tao::set(pprev,param);
     const double v0 = param[BRIDGE_V];
     heights.free();
@@ -112,7 +114,6 @@ if(store_data) { radii.push_back(param[BRIDGE_U]); heights.push_back(param[BRIDG
         //
         //______________________________________________________________________
         double       dtau         = min_of(shift_control,param[BRIDGE_U]*SAFETY);
-
 
         //______________________________________________________________________
         //
@@ -236,12 +237,9 @@ if(store_data) { radii.push_back(param[BRIDGE_U]); heights.push_back(param[BRIDG
                 const double b = OB*BA;
                 const double c = OB2-1.0;
 
-
-
                 // compute reduced discriminant
                 const double sD   = sqrt(max_of(0.0,b*b - a*c));
                 const double beta = clamp<double>(0,(-b + sD)/a,1);
-                //const P2D I = OB + X * BA;
                 const double X   = 1.0 - beta;
                 const double u   = pprev[BRIDGE_U] + X * (param[BRIDGE_U]-pprev[BRIDGE_U]);
                 const double v   = pprev[BRIDGE_V] + X * (param[BRIDGE_V]-pprev[BRIDGE_V]);
@@ -250,7 +248,6 @@ if(store_data) { radii.push_back(param[BRIDGE_U]); heights.push_back(param[BRIDG
                 param[BRIDGE_V]  = v;
                 param[BRIDGE_A]  = phi;
                 SAVE_STATUS();
-                //if(fp) (*fp)("%g %g %g\n",B.x,B.y,phi);
                 return GetValue(v0,v);
             }
         }
@@ -263,13 +260,6 @@ if(store_data) { radii.push_back(param[BRIDGE_U]); heights.push_back(param[BRIDG
         tau = tau_next;
         tao::set(pprev,param);
         SAVE_STATUS();
-#if 0
-        if(tau>1)
-        {
-            break;
-        }
-#endif
-        
     }
     
     // end of simulation

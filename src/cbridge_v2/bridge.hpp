@@ -30,17 +30,17 @@ public:
     virtual ~Bridge() throw();
     explicit Bridge( lua_State *L );
 
-    const size_t nvar;     //!< BRIDGE_N
-    DEsolver     odeint;   //!< adaptive solve, initialized with L->ftol (should be 1e-4-1e-7)
-    Equation     profEq;   //!< differential equation
-    bool         status;   //!< no error during integration
+    const size_t   nvar;     //!< BRIDGE_N
+    DEsolver       odeint;   //!< adaptive solve, initialized with L->ftol (should be 1e-4-1e-7)
+    Equation       profEq;   //!< differential equation
+    bool           status;   //!< no error during integration
 
     double         mu;             //!< scaling
     double         mu2;            //!< mu^2...
     Vector         pprev;          //!< starting point for integration
     Vector         param;          //!< current point for intergation
     double         center_v;       //!< center of lens pos, 1.0+zeta
-    const double   resolution;     //!< angle resolution: seach between resolution and PI-resolution
+    const double   resolution;     //!< angle resolution: search between resolution and PI-resolution
     const double   angle_control;  //!< angle control in radians (converted from L->angle_control)
     const double   shift_control;  //!< max speed = tau max
     Function       fn_of_alpha;    //!< ProfileOfAlpha
@@ -51,14 +51,14 @@ public:
     void compute_mu(const double R0, const double capillary_length);
 
     //! initialize param and center_v
-    void compute_start(const double alpha, const double theta, const double zeta);
+    void compute_start(const double alpha, const double theta, const double Xi);
 
     //! compute a profile...
     /**
      - return GetValue(v0,final_v) or exactly zero
      - the last param are always computed
      */
-    double profile( const double alpha, const double theta, const double zeta, ios::ostream *fp, bool store_data=false);
+    double profile( const double alpha, const double theta, const double Xi, ios::ostream *fp, bool store_data=false);
 
     //! debug function
     double reduced_rate( const array<double> &arr ) const throw();
@@ -71,18 +71,22 @@ public:
     static double GetValue(const double v0, const double v) throw();
 
     //! save a drawing of the lens
-    static void SaveLens(const string &filename, const double zeta );
+    static void SaveLens(const string &filename, const double shift );
 
     //! finding alpha...
-    double find_alpha(const double theta, const double zeta);
+    double find_alpha(const double theta, const double Xi);
+
+    //!
+    double find_XiMax(const double theta,double &alphaLo);
+    
 
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Bridge);
-    void ProfileEq( array<double> &dYds, double, const array<double> &Y );
+    void   ProfileEq( array<double> &dYds, double, const array<double> &Y );
     double ProfileOfAlpha(const double alpha);
     double __alpha;
     double __theta;
-    double __zeta;
+    double __Xi;
 
 public:
     Vector heights;

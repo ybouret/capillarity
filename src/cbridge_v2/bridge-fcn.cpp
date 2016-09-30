@@ -3,7 +3,7 @@
 
 double Bridge:: ProfileOfAlpha(const double alpha)
 {
-    return profile(alpha, __theta, __zeta, NULL);
+    return profile(alpha, __theta, __Xi, NULL);
 }
 
 
@@ -58,10 +58,10 @@ double __find_bot( Function &F, double p_lo, double p_up, const double res)
 #define HAS_BOT   0x02
 #define OUT_ALPHA 1
 
-double Bridge:: find_alpha(const double theta, const double zeta)
+double Bridge:: find_alpha(const double theta, const double Xi)
 {
     __theta = theta;
-    __zeta  = zeta;
+    __Xi    = Xi;
 
 
     int       flag = 0;
@@ -117,7 +117,7 @@ double Bridge:: find_alpha(const double theta, const double zeta)
 
 #if 1 == OUT_ALPHA
         ios::wcstream fp("alpha_top.dat");
-        profile(alpha_top, theta, zeta, &fp);
+        profile(alpha_top, theta, Xi, &fp);
         std::cerr << "alpha_top=" << Rad2Deg(alpha_top) << std::endl;
         std::cerr << "arate_top=" << arate_top << std::endl;
 #endif
@@ -135,7 +135,7 @@ double Bridge:: find_alpha(const double theta, const double zeta)
         
 #if 1 == OUT_ALPHA
         ios::wcstream fp("alpha_bot.dat");
-        profile(alpha_bot, theta, zeta, &fp);
+        profile(alpha_bot, theta, Xi, &fp);
         std::cerr << "alpha_bot=" << Rad2Deg(alpha_bot) << std::endl;
         std::cerr << "arate_bot=" << arate_bot << std::endl;
 #endif
@@ -171,7 +171,7 @@ double Bridge:: find_alpha(const double theta, const double zeta)
 #include "yocto/sort/quick.hpp"
 #include "yocto/math/dat/linear.hpp"
 
-double  Bridge:: get_user_rise(const double alpha, const double theta, const double zeta)
+double  Bridge:: get_user_rise(const double alpha, const double theta, const double Xi)
 {
 
     const size_t n = heights.size(); assert(n==radii.size());
@@ -188,9 +188,9 @@ double  Bridge:: get_user_rise(const double alpha, const double theta, const dou
             const double zz = heights[i];
             const double rr = radii[i];
             slices[i] = rr*rr;
-            if(zz>zeta)
+            if(zz>Xi)
             {
-                const double ri2 = max_of<double>(0,1.0-Square(1.0+zeta-zz));
+                const double ri2 = max_of<double>(0,1.0-Square(1.0+Xi-zz));
                 slices[i] -= ri2;
             }
         }
@@ -203,7 +203,7 @@ double  Bridge:: get_user_rise(const double alpha, const double theta, const dou
         }
         const double vhalf = 0.5*volume[n];
         const double urise = linear(vhalf,volume,heights);
-        std::cerr << "urise=" << urise << "/zeta=" << zeta << std::endl;
+        std::cerr << "urise=" << urise << "/Xi=" << Xi << std::endl;
         return urise;
 
 
@@ -214,4 +214,52 @@ double  Bridge:: get_user_rise(const double alpha, const double theta, const dou
     }
 
 }
+
+double Bridge:: find_XiMax(const double theta, double &alphaLo)
+{
+    std::cerr << "Computing XiMax(theta=" << Rad2Deg(theta) << ")" << std::endl;
+    double XiLo    = 0.0;
+    alphaLo = find_alpha(theta, XiLo);
+    if( alphaLo < 0 )
+    {
+        throw exception("Unexpected Failure");
+    }
+
+    double XiHi = 1.0;
+    while( find_alpha(theta, XiHi) >= 0 )
+    {
+        XiHi += 1;
+    }
+
+    while(true)
+    {
+        const double Xi = 0.5 * (XiLo+XiHi);
+        const double alpha = find_alpha(theta,Xi);
+        if(alpha>=0)
+        {
+            XiLo    = Xi;
+            alphaLo = alpha;
+        }
+        else
+        {
+            XiHi = Xi;
+        }
+
+        std::cerr << "XiMax in [" << XiLo << "," << XiHi << "]" << std::endl;
+        const double err = (XiHi-XiLo)/(XiHi+XiLo);
+        std::cerr << "\terr=" << err << std::endl;
+        if(err<=numeric<double>::sqrt_ftol)
+        {
+            break;
+        }
+    }
+
+    return XiLo;
+}
+
+
+
+
+
+
 

@@ -143,7 +143,7 @@ Variables (here in the pulling way)
 	\item $h$ is the user's imposed pull/push depth
 	\item $H$ is the real distance between the apex of the lens and the free surface
 	\item $\theta$ is the wetting angle
-	\item $\omega$ is the 
+	\item $\omega$ is the tangent angle
 \end{itemize}
 
 For a given $(\theta,\alpha)$, the initial coordinates are
@@ -177,7 +177,8 @@ to get
 	\partial_\tau v & = & \sin\phi\\
 	\partial_\tau \phi & = &  \mu^2 v - \dfrac{\sin\phi}{u}\\
 	\\
-	\zeta              & = & \dfrac{H}{R_0}\\
+	\Xi            & = & \dfrac{H}{R_0}\\
+	\xi            & = & \dfrac{h}{R_0}\\
 	\\
 	\mu^2                & = & m\dfrac{R_0^2}{\lambda^2}\\
 	\end{array}
@@ -189,7 +190,7 @@ We hence get the reduced initial conditions (for a spherical lens)
 \left\lbrace
 \begin{array}{rcl}
 	u_0    & = & \sin\alpha\\
-	v_0    & = & \zeta + (1-\cos\alpha)\\
+	v_0    & = & \Xi + (1-\cos\alpha)\\
 	\phi_0 & = & \alpha+\theta-\pi\\
 \end{array}
 \right.

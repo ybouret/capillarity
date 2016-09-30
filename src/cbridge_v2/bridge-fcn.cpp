@@ -171,11 +171,13 @@ double Bridge:: find_alpha(const double theta, const double Xi)
 #include "yocto/sort/quick.hpp"
 #include "yocto/math/dat/linear.hpp"
 
-double  Bridge:: compute_user_rise(const double alpha, const double theta, const double Xi)
+double  Bridge:: compute_user_sink(const double alpha,
+                                   const double theta,
+                                   const double Xi)
 {
 
     const size_t n = heights.size(); assert(n==radii.size());
-    std::cerr << "#heights=" << n << std::endl;
+    //std::cerr << "#heights=" << n << std::endl;
     co_qsort(heights,radii);
 
     slices.make(n);
@@ -202,10 +204,10 @@ double  Bridge:: compute_user_rise(const double alpha, const double theta, const
 
     //std::cerr << "Volume=" << volume[n] << std::endl;
     const double vhalf = 0.5*volume[n];
-    const double urise = linear(vhalf,volume,heights);
+    const double usink = linear(vhalf,volume,heights);
     //std::cerr << "urise=" << urise << std::endl;
 
-    return urise;
+    return usink;
     
 }
 
@@ -249,8 +251,8 @@ double Bridge:: find_Xi_max(const double theta, double &alpha_min, double &zeta_
     }
     const double Xi_max = XiLo;
     (void) profile(alpha_min, theta, Xi_max, NULL, true);
-    const double urise = compute_user_rise(alpha_min, theta, Xi_max);
-    zeta_max = Xi_max - urise;
+    const double usink = compute_user_sink(alpha_min, theta, Xi_max);
+    zeta_max = Xi_max - usink;
     return Xi_max;
 }
 

@@ -3,7 +3,7 @@
 
 #include "yocto/lua/lua-config.hpp"
 #include "yocto/math/ode/explicit/driver-ck.hpp"
-#include "yocto/ios/ostream.hpp"
+#include "yocto/ios/ocstream.hpp"
 #include "yocto/math/trigconv.hpp"
 #include "yocto/math/opt/minimize.hpp"
 #include "yocto/math/core/tao.hpp"
@@ -94,7 +94,7 @@ public:
     Vector slices;
     Vector volume;
     
-    double   compute_user_rise(const double alpha, const double theta, const double zeta);
+    double   compute_user_sink(const double alpha, const double theta, const double Xi);
 
 };
 

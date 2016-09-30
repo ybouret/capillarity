@@ -56,7 +56,7 @@ double __find_bot( Function &F, double p_lo, double p_up, const double res)
 
 #define HAS_TOP   0x01
 #define HAS_BOT   0x02
-#define OUT_ALPHA 0
+#define OUT_ALPHA 1
 
 double Bridge:: find_alpha(const double theta, const double Xi)
 {

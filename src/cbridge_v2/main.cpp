@@ -11,14 +11,14 @@ YOCTO_PROGRAM_START()
     Lua::State VM;
     lua_State *L = VM();
 
-    Lua::Config::DoString(L,"ftol=1e-5;");
-    Lua::Config::DoString(L,"angle_control=5;");
+    Lua::Config::DoString(L,"ftol=1e-7;");
+    Lua::Config::DoString(L,"angle_control=1;");
     Lua::Config::DoString(L,"shift_control=0.1;");
     Lua::Config::DoString(L,"R0=80;");
     Lua::Config::DoString(L,"lambda=2.72;");
     Lua::Config::DoString(L,"theta=150;");
     Lua::Config::DoString(L,"Xi=0.0;");
-    Lua::Config::DoString(L,"resolution=0.01");
+    Lua::Config::DoString(L,"resolution=1e-3");
     
     for(int i=1;i<argc;++i)
     {
@@ -90,6 +90,10 @@ YOCTO_PROGRAM_START()
             ios::wcstream fp("real_alpha.dat");
             (void)B.profile(alpha_opt, theta, Xi, &fp, true,-usink);
         }
+    }
+    else
+    {
+        std::cerr << "\t\tNO BRIDGE!" << std::endl;
     }
 
 }

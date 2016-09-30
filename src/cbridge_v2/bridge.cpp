@@ -18,8 +18,10 @@ nvar(BRIDGE_N),
 odeint( Lua::Config::Get<lua_Number>(L,"ftol") ),
 profEq( this, & Bridge::ProfileEq ),
 status(false),
-mu(1),
-mu2(1),
+INI_FROM_LUA(R0),
+INI_FROM_LUA(lambda),
+mu2((curvature_coeff * Square(R0)) / Square(lambda)),
+mu(sqrt(mu2)),
 pprev(nvar),
 param(nvar),
 center_v(0),
@@ -41,23 +43,14 @@ __Xi(0)
     (double&)angle_control = Deg2Rad(angle_control);
     std::cerr << "angle_control(rad)=" << angle_control << std::endl;
 
-    const double INI_FROM_LUA(R0);
-    const double INI_FROM_LUA(lambda);
-    std::cerr << "R0="     << R0 << std::endl;
+    std::cerr << "R0    =" << R0 << std::endl;
     std::cerr << "lambda=" << lambda << std::endl;
-    compute_mu(R0,lambda);
+    std::cerr << "mu    =" << mu << std::endl;
+
 }
 
 size_t Bridge:: curvature_coeff = 1;
 
-
-
-void Bridge:: compute_mu(const double R0, const double capillary_length)
-{
-    mu2 = (curvature_coeff * Square(R0)) / Square(capillary_length);
-    mu  = Sqrt(mu2);
-    std::cerr << "mu=" << mu << std::endl;
-}
 
 
 #include "yocto/ios/ocstream.hpp"

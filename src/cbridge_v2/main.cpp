@@ -36,20 +36,21 @@ YOCTO_PROGRAM_START()
 
     const double Xi        = Lua::Config::Get<lua_Number>(L,"Xi");
     double       alpha_min = 0;
-    const double XiMax     = B.find_XiMax(theta,alpha_min);
-    std::cerr << "XiMax    ="     << XiMax     << std::endl;
+    double       zeta_max  = 0;
+    const double Xi_max    = B.find_Xi_max(theta,alpha_min,zeta_max);
+    std::cerr << "Xi_max   =" << Xi_max    << std::endl;
     std::cerr << "alpha_min=" << Rad2Deg(alpha_min) << std::endl;
-
+    std::cerr << "zeta_max =" << zeta_max << ", " << zeta_max * B.R0 << " mm" << std::endl;
     {
         ios::wcstream fp("profmax.dat");
-        (void)B.profile(alpha_min, theta, XiMax, &fp, true);
-        const double urise = B.get_user_rise(alpha_min,theta,XiMax);
+        (void)B.profile(alpha_min, theta, Xi_max, &fp, true);
+        const double urise = B.compute_user_rise(alpha_min,theta,Xi_max);
         fp << "\n";
         fp("-1 %g 0\n",urise);
         fp("0  %g 0\n",urise);
         fp("%g %g 0\n",B.radii.front(),urise);
     }
-    B.SaveLens("lensmax.dat", XiMax);
+    B.SaveLens("lensmax.dat", Xi_max);
 
     
 
@@ -75,7 +76,7 @@ YOCTO_PROGRAM_START()
             ios::wcstream fp("alpha_opt.dat");
             (void)B.profile(alpha_opt, theta, Xi, &fp, true);
 
-            urise = B.get_user_rise(alpha_opt,theta,Xi);
+            urise = B.compute_user_rise(alpha_opt,theta,Xi);
             std::cerr << "urise=" << urise << ",zeta=" << Xi-urise << std::endl;
             fp << "\n";
             for(double xx=-1;xx<=1;xx+=0.1)

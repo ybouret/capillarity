@@ -35,9 +35,10 @@ public:
     DEsolver       odeint;   //!< adaptive solve, initialized with L->ftol (should be 1e-4-1e-7)
     Equation       profEq;   //!< differential equation
     bool           status;   //!< no error during integration
-
-    double         mu;             //!< scaling
-    double         mu2;            //!< mu^2...
+    const double   R0;       //!< radius
+    const double   lambda;   //!< capillary length
+    const double   mu2;            //!< mu^2...
+    const double   mu;             //!< scaling
     Vector         pprev;          //!< starting point for integration
     Vector         param;          //!< current point for intergation
     double         center_v;       //!< center of lens pos, 1.0+zeta
@@ -48,8 +49,6 @@ public:
 
     static size_t  curvature_coeff;
 
-    //! compute mu and mu2
-    void compute_mu(const double R0, const double capillary_length);
 
     //! initialize param and center_v
     void compute_start(const double alpha, const double theta, const double Xi);
@@ -77,8 +76,8 @@ public:
     //! finding alpha...
     double find_alpha(const double theta, const double Xi);
 
-    //!
-    double find_XiMax(const double theta,double &alphaLo);
+    //! finding Xi_max
+    double find_Xi_max(const double theta,double &alpha_min,double &zeta_max);
     
 
 private:
@@ -95,7 +94,7 @@ public:
     Vector slices;
     Vector volume;
     
-    double   get_user_rise(const double alpha, const double theta, const double zeta);
+    double   compute_user_rise(const double alpha, const double theta, const double zeta);
 
 };
 

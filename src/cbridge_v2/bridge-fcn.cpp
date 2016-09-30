@@ -56,7 +56,7 @@ double __find_bot( Function &F, double p_lo, double p_up, const double res)
 
 #define HAS_TOP   0x01
 #define HAS_BOT   0x02
-#define OUT_ALPHA 1
+#define OUT_ALPHA 0
 
 double Bridge:: find_alpha(const double theta, const double Xi)
 {
@@ -171,7 +171,7 @@ double Bridge:: find_alpha(const double theta, const double Xi)
 #include "yocto/sort/quick.hpp"
 #include "yocto/math/dat/linear.hpp"
 
-double  Bridge:: get_user_rise(const double alpha, const double theta, const double Xi)
+double  Bridge:: compute_user_rise(const double alpha, const double theta, const double Xi)
 {
 
     const size_t n = heights.size(); assert(n==radii.size());
@@ -209,12 +209,12 @@ double  Bridge:: get_user_rise(const double alpha, const double theta, const dou
     
 }
 
-double Bridge:: find_XiMax(const double theta, double &alphaLo)
+double Bridge:: find_Xi_max(const double theta, double &alpha_min, double &zeta_max)
 {
     std::cerr << "Computing XiMax(theta=" << Rad2Deg(theta) << ")" << std::endl;
     double XiLo    = 0.0;
-    alphaLo = find_alpha(theta, XiLo);
-    if( alphaLo < 0 )
+    alpha_min = find_alpha(theta, XiLo);
+    if( alpha_min < 0 )
     {
         throw exception("Unexpected Failure");
     }
@@ -231,24 +231,27 @@ double Bridge:: find_XiMax(const double theta, double &alphaLo)
         const double alpha = find_alpha(theta,Xi);
         if(alpha>=0)
         {
-            XiLo    = Xi;
-            alphaLo = alpha;
+            XiLo      = Xi;
+            alpha_min = alpha;
         }
         else
         {
             XiHi = Xi;
         }
 
-        std::cerr << "XiMax in [" << XiLo << "," << XiHi << "]" << std::endl;
+        //std::cerr << "XiMax in [" << XiLo << "," << XiHi << "]" << std::endl;
         const double err = (XiHi-XiLo)/(XiHi+XiLo);
-        std::cerr << "\terr=" << err << std::endl;
+        //std::cerr << "\terr=" << err << std::endl;
         if(err<=numeric<double>::sqrt_ftol)
         {
             break;
         }
     }
-
-    return XiLo;
+    const double Xi_max = XiLo;
+    (void) profile(alpha_min, theta, Xi_max, NULL, true);
+    const double urise = compute_user_rise(alpha_min, theta, Xi_max);
+    zeta_max = Xi_max - urise;
+    return Xi_max;
 }
 
 

@@ -24,6 +24,6 @@ TARGET_LINK_YOCTO(cut_area_height mk)
 
 INSTALL( TARGETS contact_angle cut_area_height RUNTIME DESTINATION bin )
 
-ADD_SUBDIRECTORY(cbridge)
+#ADD_SUBDIRECTORY(cbridge)
 ADD_SUBDIRECTORY(cbridge_v2)
 

@@ -36,7 +36,7 @@ YOCTO_PROGRAM_START()
 
     const double Xi        = Lua::Config::Get<lua_Number>(L,"Xi");
     double       alpha_min = 0;
-    const double XiMax = B.find_XiMax(theta,alpha_min);
+    const double XiMax     = B.find_XiMax(theta,alpha_min);
     std::cerr << "XiMax    ="     << XiMax     << std::endl;
     std::cerr << "alpha_min=" << Rad2Deg(alpha_min) << std::endl;
 

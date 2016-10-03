@@ -8,6 +8,7 @@
 #include "yocto/math/opt/minimize.hpp"
 #include "yocto/math/core/tao.hpp"
 #include "yocto/math/round.hpp"
+#include "yocto/container/tuple.hpp"
 
 using namespace yocto;
 using namespace math;
@@ -26,9 +27,13 @@ typedef vector<double>               Vector;
 typedef triplet<double>              Triplet;
 
 
+
+
 class Bridge
 {
 public:
+
+
     virtual ~Bridge() throw();
     explicit Bridge( lua_State *L );
 
@@ -52,19 +57,26 @@ public:
 
 
     //! initialize param and center_v
-    void compute_start(const double alpha, const double theta, const double Xi);
+    void compute_start(const double alpha,
+                       const double theta,
+                       const double Xi);
 
     //! compute a profile...
     /**
      - return GetValue(v0,final_v) or exactly zero
-     - the last param are always computed
+     - the last param are always compute
      */
-    double profile( const double alpha, const double theta, const double Xi, ios::ostream *fp, const bool store_data=false, const double shift=0);
+    double profile(const double alpha,
+                   const double theta,
+                   const double Xi,
+                   ios::ostream *fp,
+                   const bool    store_data=false,
+                   const double  shift=0.0);
 
-    //! get dphi/dtau
+    //! debug, get dphi/dtau
     double reduced_rate( const array<double> &arr ) const throw();
 
-    //! get d^2phi/dtau^2
+    //! debug, get d^2phi/dtau^2
     double reduced_curv( const array<double> &arr ) const throw();
 
 
@@ -78,8 +90,10 @@ public:
     //! save a drawing of the lens
     static void SaveLens(const string &filename, const double shift );
 
+    static double CriticalXi(const double theta)  throw();
+
     //! finding alpha...
-    double find_alpha(const double theta, const double Xi);
+    double find_alpha(const double theta, const double Xi, bool *is_flat=0);
 
     //! finding Xi_max
     double find_Xi_max(const double theta,double &alpha_min,double &zeta_max);

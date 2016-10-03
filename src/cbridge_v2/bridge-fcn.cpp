@@ -58,11 +58,13 @@ double __find_bot( Function &F, double p_lo, double p_up, const double res)
 #define HAS_BOT   0x02
 #define OUT_ALPHA 1
 
-double Bridge:: find_alpha(const double theta, const double Xi)
+double Bridge:: find_alpha(const double theta,
+                           const double Xi,
+                           bool        *is_flat)
 {
     __theta = theta;
     __Xi    = Xi;
-
+    if(is_flat) *is_flat = false;
 
     int       flag = 0;
     Function &F    = fn_of_alpha;
@@ -106,7 +108,8 @@ double Bridge:: find_alpha(const double theta, const double Xi)
     // computing critical Xi to know what to do
     //
     //__________________________________________________________________________
-    Triplet critical_Xi = { -(1.0+cos(theta+resolution/2)), -(1.0+cos(theta)), -(1.0+cos(theta-resolution/2)) };
+    //Triplet critical_Xi = { -(1.0+cos(theta+resolution/2)), -(1.0+cos(theta)), -(1.0+cos(theta-resolution/2)) };
+    Triplet critical_Xi = { CriticalXi(theta+resolution/2), CriticalXi(theta), CriticalXi(theta-resolution/2) };
     critical_Xi.sort(); // just to be sure
     const double upper_Xi = critical_Xi.c;
     const double lower_Xi = critical_Xi.a;
@@ -165,6 +168,7 @@ double Bridge:: find_alpha(const double theta, const double Xi)
         else
         {
             // planar !
+            if(is_flat) *is_flat = true;
             return numeric<double>::pi-theta;
         }
     }
@@ -173,94 +177,6 @@ double Bridge:: find_alpha(const double theta, const double Xi)
 
     return -1;
 
-#if 0
-    Triplet alpha = { alpha_lo,0,alpha_up };
-    Triplet value = { value_lo,0,value_up };
-
-    bracket<double>::inside(F,alpha,value);
-    optimize1D<double>::run(F, alpha, value, resolution);
-
-    {
-        const double alpha_mid = Rad2Deg(alpha.b);
-        const double value_mid = value.b;
-        std::cerr << "alpha_mid=" << alpha_mid << std::endl;
-        std::cerr << "value_mid=" << value_mid << std::endl;
-    }
-
-    if(value.b>0)
-    {
-        return -1; // no minium => no bridge !
-    }
-
-
-#if 1 == OUT_ALPHA
-    vfs &fs = local_fs::instance();
-    try { fs.remove_file("alpha_top.dat"); } catch(...) {}
-    try { fs.remove_file("alpha_bot.dat"); } catch(...) {}
-#endif
-
-    double alpha_top = -1;
-    double arate_top  = 0;
-    if(0!=(flag&HAS_TOP))
-    {
-        alpha_top = __find_top(F, alpha.b, alpha_up, resolution);
-        (void)F(alpha_top);
-        //arate_top = Fabs(reduced_rate(param));
-        //arate_top = Fabs(sin(param[BRIDGE_A]));
-        arate_top = param[BRIDGE_U];
-
-#if 1 == OUT_ALPHA
-        ios::wcstream fp("alpha_top.dat");
-        profile(alpha_top, theta, Xi, &fp);
-        std::cerr << "alpha_top=" << Rad2Deg(alpha_top) << std::endl;
-        std::cerr << "arate_top=" << arate_top << std::endl;
-#endif
-    }
-
-    double alpha_bot = -1;
-    double arate_bot =  0;
-    if(0!=(flag&HAS_BOT))
-    {
-        alpha_bot = __find_bot(F,alpha_lo,alpha.b,resolution);
-        (void)F(alpha_bot);
-        //arate_bot = Fabs(reduced_rate(param));
-        //arate_bot = Fabs(sin(param[BRIDGE_A]));
-        arate_bot = param[BRIDGE_U];
-        
-#if 1 == OUT_ALPHA
-        ios::wcstream fp("alpha_bot.dat");
-        profile(alpha_bot, theta, Xi, &fp);
-        std::cerr << "alpha_bot=" << Rad2Deg(alpha_bot) << std::endl;
-        std::cerr << "arate_bot=" << arate_bot << std::endl;
-#endif
-    }
-
-    switch(flag)
-    {
-        case HAS_BOT: return alpha_bot;
-        case HAS_TOP: return alpha_top;
-        case HAS_TOP|HAS_BOT:
-            if(arate_top>arate_bot)
-            {
-                return alpha_top;
-            }
-            else
-            {
-                if(arate_bot>arate_top)
-                {
-                    return alpha_bot;
-                }
-                else
-                {
-                    return 0.5*(alpha_bot+alpha_top);
-                }
-            }
-        default:
-            break;
-    }
-
-    return -1;
-#endif
 
 }
 
@@ -311,7 +227,7 @@ double Bridge:: find_Xi_max(const double theta, double &alpha_min, double &zeta_
 {
     std::cerr << "Computing XiMax(theta=" << Rad2Deg(theta) << ")" << std::endl;
     double XiLo    = 0.0;
-    alpha_min = find_alpha(theta, XiLo);
+    alpha_min = find_alpha(theta, XiLo,0);
     if( alpha_min < 0 )
     {
         throw exception("Unexpected Failure");

@@ -34,7 +34,7 @@ YOCTO_PROGRAM_START()
     std::cerr << "theta=" << theta_deg << std::endl;
     const double Xi        = Lua::Config::Get<lua_Number>(L,"Xi");
 
-#if 1
+#if 0
     double       alpha_min = 0;
     double       zeta_max  = 0;
     const double Xi_max    = B.find_Xi_max(theta,alpha_min,zeta_max);
@@ -53,12 +53,11 @@ YOCTO_PROGRAM_START()
     B.SaveLens("lensmax.dat", Xi_max);
 #endif
     
-    return 0;
 
     {
         ios::wcstream fp("profile.dat");
         ios::wcstream rp("results.dat");
-        for(double alpha_deg=0.1;alpha_deg<=90;alpha_deg+=0.02)
+        for(double alpha_deg=0.1;alpha_deg<=90;alpha_deg+=0.1)
         {
             const double ans = B.profile(Deg2Rad(alpha_deg), theta, Xi, &fp);
             fp << "\n";
@@ -70,11 +69,13 @@ YOCTO_PROGRAM_START()
 
     B.SaveLens("lens.dat", Xi);
 
-    const double alpha_opt = B.find_alpha(theta,Xi);
+    bool is_flat = false;
+    const double alpha_opt = B.find_alpha(theta,Xi,&is_flat);
     if(alpha_opt>0)
     {
         double usink = 0;
         std::cerr << "alpha_opt=" << Rad2Deg(alpha_opt) << std::endl;
+        if(!is_flat)
         {
             ios::wcstream fp("alpha_opt.dat");
             (void)B.profile(alpha_opt, theta, Xi, &fp, true);
@@ -87,6 +88,16 @@ YOCTO_PROGRAM_START()
                 fp("%g %g 0\n",xx,usink);
             }
         }
+        else
+        {
+            ios::wcstream fp("alpha_opt.dat");
+            B.compute_start(alpha_opt, theta, Xi);
+            for(double xx=0;xx<=1.4;xx+=0.1)
+            {
+                fp("%g %g\n", xx+B.param[BRIDGE_U], B.param[BRIDGE_V]);
+            }
+        }
+
         if(false)
         {
             B.SaveLens("real_lens.dat",Xi-usink);

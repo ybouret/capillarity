@@ -3,7 +3,10 @@ bridge.hpp
 bridge.cpp 
 bridge-ode.cpp 
 bridge-alpha.cpp
-bridge-theta.cpp)
+bridge-theta.cpp
+par_bridge.hpp
+par_bridge.cpp
+)
 
 ADD_EXECUTABLE(cbridge_v2 main.cpp)
 TARGET_LINK_LIBRARIES(cbridge_v2 bridge_v2)
@@ -13,9 +16,9 @@ ADD_EXECUTABLE(abacus_v2 abacus_v2.cpp)
 TARGET_LINK_LIBRARIES(abacus_v2 bridge_v2)
 TARGET_LINK_YOCTO(abacus_v2 mk lua++)
 
-ADD_EXECUTABLE(h_of_xi h_of_xi.cpp)
-TARGET_LINK_LIBRARIES(h_of_xi bridge_v2)
-TARGET_LINK_YOCTO(h_of_xi mk lua++)
+ADD_EXECUTABLE(extract_v2 extract_v2.cpp)
+TARGET_LINK_LIBRARIES(extract_v2 bridge_v2)
+TARGET_LINK_YOCTO(extract_v2 mk lua++)
 
-INSTALL( TARGETS cbridge_v2 abacus_v2 h_of_xi RUNTIME DESTINATION bin )
+INSTALL( TARGETS cbridge_v2 abacus_v2 extract_v2 RUNTIME DESTINATION bin )
 

@@ -1,4 +1,5 @@
-#include "bridge.hpp"
+#include "par_bridge.hpp"
+
 #include "yocto/lua/lua-state.hpp"
 #include "yocto/lua/lua-config.hpp"
 
@@ -9,7 +10,7 @@ YOCTO_PROGRAM_START()
     Lua::State VM;
     lua_State *L = VM();
 
-    Lua::Config::DoString(L,"ftol=1e-7;");
+    Lua::Config::DoString(L,"ftol=1e-5;");
     Lua::Config::DoString(L,"angle_control=1;");
     Lua::Config::DoString(L,"shift_control=0.1;");
     Lua::Config::DoString(L,"R0=80;");
@@ -21,13 +22,9 @@ YOCTO_PROGRAM_START()
         Lua::Config::DoString(L,argv[i]);
     }
 
-    //Bridge::curvature_coeff = 1;
-    const double theta = Lua::Config::Get<lua_Number>(L,"theta");
-    Bridge B(L);
-
-    
-
-
+    ParBridge Bridges(L);
+    Bridge   &B = Bridges[0].as<Bridge>();
+    (void)B;
 
 }
 YOCTO_PROGRAM_END()

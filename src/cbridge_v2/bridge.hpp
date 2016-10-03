@@ -93,14 +93,16 @@ public:
     static double CriticalThetaXi(const double theta)  throw();
     static double CriticalAlphaXi(const double alpha)  throw();
 
-    //! finding alpha...
+    //! finding alpha for a given theta and and Xi
     double find_alpha(const double theta, const double Xi, bool *is_flat=0);
 
-    //! finding Xi_max
+    //! finding Xi_max(theta)
     double find_Xi_max(const double theta,double &alpha_min,double &zeta_max);
 
-
+    //! finding theta for a given theta and Xi
     double find_theta(const double alpha, const double Xi, bool *id_flat=0);
+
+    
 
 
 private:

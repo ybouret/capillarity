@@ -13,5 +13,9 @@ ADD_EXECUTABLE(abacus_v2 abacus_v2.cpp)
 TARGET_LINK_LIBRARIES(abacus_v2 bridge_v2)
 TARGET_LINK_YOCTO(abacus_v2 mk lua++)
 
-INSTALL( TARGETS cbridge_v2 abacus_v2 RUNTIME DESTINATION bin )
+ADD_EXECUTABLE(h_of_xi h_of_xi.cpp)
+TARGET_LINK_LIBRARIES(h_of_xi bridge_v2)
+TARGET_LINK_YOCTO(h_of_xi mk lua++)
+
+INSTALL( TARGETS cbridge_v2 abacus_v2 h_of_xi RUNTIME DESTINATION bin )
 

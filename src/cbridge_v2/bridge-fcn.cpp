@@ -92,7 +92,14 @@ double Bridge:: find_alpha(const double theta, const double Xi)
 
     bracket<double>::inside(F,alpha,value);
     optimize1D<double>::run(F, alpha, value, resolution);
-    
+
+    {
+        const double alpha_mid = Rad2Deg(alpha.b);
+        const double value_mid = value.b;
+        std::cerr << "alpha_mid=" << alpha_mid << std::endl;
+        std::cerr << "value_mid=" << value_mid << std::endl;
+    }
+
     if(value.b>0)
     {
         return -1; // no minium => no bridge !

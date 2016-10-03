@@ -58,7 +58,7 @@ YOCTO_PROGRAM_START()
     {
         ios::wcstream fp("profile.dat");
         ios::wcstream rp("results.dat");
-        for(double alpha_deg=1;alpha_deg<=90;alpha_deg+=0.02)
+        for(double alpha_deg=0.1;alpha_deg<=90;alpha_deg+=0.02)
         {
             const double ans = B.profile(Deg2Rad(alpha_deg), theta, Xi, &fp);
             fp << "\n";

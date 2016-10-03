@@ -87,6 +87,93 @@ double Bridge:: find_alpha(const double theta, const double Xi)
         throw exception("Bridge.find_alpha: invalid setting!");
     }
 
+    //__________________________________________________________________________
+    //
+    //
+    // bracket potential minimun
+    //
+    //__________________________________________________________________________
+    Triplet alpha = { alpha_lo,0,alpha_up };
+    Triplet value = { value_lo,0,value_up };
+
+    bracket<double>::inside(F,alpha,value);
+    optimize1D<double>::run(F, alpha, value, resolution);
+
+
+    //__________________________________________________________________________
+    //
+    //
+    // computing critical Xi to know what to do
+    //
+    //__________________________________________________________________________
+    Triplet critical_Xi = { -(1.0+cos(theta+resolution/2)), -(1.0+cos(theta)), -(1.0+cos(theta-resolution/2)) };
+    critical_Xi.sort(); // just to be sure
+    const double upper_Xi = critical_Xi.c;
+    const double lower_Xi = critical_Xi.a;
+    assert(upper_Xi>=lower_Xi);
+
+    //__________________________________________________________________________
+    //
+    //
+    // check cases
+    //
+    //__________________________________________________________________________
+
+    if(Xi>upper_Xi)
+    {
+        //______________________________________________________________________
+        //
+        // check sanity
+        //______________________________________________________________________
+        if(0==(flag&HAS_TOP))
+        {
+            throw exception("Bridge.find_alpha: should have a TOP value!");
+        }
+
+        //______________________________________________________________________
+        //
+        // do we intercept ?
+        //______________________________________________________________________
+        if(value.b>0)
+        {
+            return -1; // too high !
+        }
+
+        return  __find_top(F, alpha.b, alpha_up, resolution);
+    }
+    else
+    {
+        if(Xi<lower_Xi)
+        {
+
+            //______________________________________________________________________
+            //
+            // check sanity
+            //______________________________________________________________________
+            if(0==(flag&HAS_BOT))
+            {
+                throw exception("Bridge.find_alpha: should have a BOTTOM value!");
+            }
+
+            if(value.b>0)
+            {
+                return -1; // too low, shouldn't happen !
+            }
+
+            return __find_bot(F,alpha_lo,alpha.b,resolution);
+        }
+        else
+        {
+            // planar !
+            return numeric<double>::pi-theta;
+        }
+    }
+
+
+
+    return -1;
+
+#if 0
     Triplet alpha = { alpha_lo,0,alpha_up };
     Triplet value = { value_lo,0,value_up };
 
@@ -173,6 +260,8 @@ double Bridge:: find_alpha(const double theta, const double Xi)
     }
 
     return -1;
+#endif
+
 }
 
 #include "yocto/sort/quick.hpp"

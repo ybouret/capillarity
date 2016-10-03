@@ -5,7 +5,6 @@
 
 #include "yocto/ios/ocstream.hpp"
 
-
 YOCTO_PROGRAM_START()
 {
     Lua::State VM;
@@ -16,7 +15,7 @@ YOCTO_PROGRAM_START()
     Lua::Config::DoString(L,"shift_control=0.1;");
     Lua::Config::DoString(L,"R0=80;");
     Lua::Config::DoString(L,"lambda=2.72;");
-    Lua::Config::DoString(L,"theta=150;");
+    Lua::Config::DoString(L,"theta=120;");
     Lua::Config::DoString(L,"Xi=0.0;");
     Lua::Config::DoString(L,"resolution=1e-3");
     
@@ -33,9 +32,9 @@ YOCTO_PROGRAM_START()
     const double theta_deg = Lua::Config::Get<lua_Number>(L,"theta");
     const double theta     = Deg2Rad(theta_deg);
     std::cerr << "theta=" << theta_deg << std::endl;
-
     const double Xi        = Lua::Config::Get<lua_Number>(L,"Xi");
-#if 0
+
+#if 1
     double       alpha_min = 0;
     double       zeta_max  = 0;
     const double Xi_max    = B.find_Xi_max(theta,alpha_min,zeta_max);
@@ -54,6 +53,7 @@ YOCTO_PROGRAM_START()
     B.SaveLens("lensmax.dat", Xi_max);
 #endif
     
+    return 0;
 
     {
         ios::wcstream fp("profile.dat");

@@ -11,6 +11,7 @@ Bridge:: ~Bridge() throw()
 {
 }
 
+
 #define GET_FROM_LUA(ID) Lua::Config::Get<lua_Number>(L,#ID)
 #define INI_FROM_LUA(ID) ID(GET_FROM_LUA(ID))
 Bridge:: Bridge( lua_State *L ) :
@@ -46,6 +47,8 @@ __Xi(0)
     std::cerr << "R0    =" << R0 << std::endl;
     std::cerr << "lambda=" << lambda << std::endl;
     std::cerr << "mu    =" << mu << std::endl;
+
+
 
 }
 

@@ -7,6 +7,7 @@
 #include "yocto/math/trigconv.hpp"
 #include "yocto/math/opt/minimize.hpp"
 #include "yocto/math/core/tao.hpp"
+#include "yocto/math/round.hpp"
 
 using namespace yocto;
 using namespace math;

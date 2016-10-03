@@ -29,7 +29,7 @@ YOCTO_PROGRAM_START()
     ios::ocstream::overwrite(filename);
 
     const size_t N      = 80;
-    for(int theta_deg = 120; theta_deg <= 120; theta_deg += 10 )
+    for(int theta_deg = 60; theta_deg <= 170; theta_deg += 10 )
     {
         std::cerr << std::endl;
         std::cerr << "theta=" << theta_deg << std::endl;
@@ -48,7 +48,7 @@ YOCTO_PROGRAM_START()
         {
             const double Xi    = Xi_min + double(i)*(Xi_max-Xi_min)/N;
             const double alpha = B.find_alpha(theta,Xi);
-            std::cerr << "Xi=" << Xi << ", alpha=" << Rad2Deg(alpha) << std::endl;
+            //std::cerr << "Xi=" << Xi << ", alpha=" << Rad2Deg(alpha) << std::endl;
 
             if(alpha<0) throw exception("invalid Xi=%g for theta=%g\n", Xi, double(theta_deg) );
             (void) B.profile(alpha, theta, Xi, NULL, true);

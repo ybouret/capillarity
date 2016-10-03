@@ -35,9 +35,9 @@ YOCTO_PROGRAM_START()
     std::cerr << "theta=" << theta_deg << std::endl;
 
     const double Xi        = Lua::Config::Get<lua_Number>(L,"Xi");
+#if 0
     double       alpha_min = 0;
     double       zeta_max  = 0;
-#if 0
     const double Xi_max    = B.find_Xi_max(theta,alpha_min,zeta_max);
     std::cerr << "Xi_max   =" << Xi_max    << std::endl;
     std::cerr << "alpha_min=" << Rad2Deg(alpha_min) << std::endl;
@@ -58,11 +58,13 @@ YOCTO_PROGRAM_START()
     {
         ios::wcstream fp("profile.dat");
         ios::wcstream rp("results.dat");
-        for(double alpha_deg=1;alpha_deg<=90;alpha_deg+=0.2)
+        for(double alpha_deg=1;alpha_deg<=90;alpha_deg+=0.02)
         {
             const double ans = B.profile(Deg2Rad(alpha_deg), theta, Xi, &fp);
             fp << "\n";
-            rp("%g %g %g\n",alpha_deg,ans,sin(B.param[BRIDGE_A]));
+            //rp("%g %g %g\n",alpha_deg,ans,sin(B.param[BRIDGE_A]));
+            //rp("%g %g %g\n",alpha_deg,ans,B.reduced_curv(B.param));
+            rp("%.15g %.15g %.15g %.15g %.15g %.15g %.15g\n",alpha_deg,ans,B.param[BRIDGE_U],B.param[BRIDGE_V],B.param[BRIDGE_A],B.reduced_rate(B.param),B.reduced_curv(B.param));
         }
     }
 

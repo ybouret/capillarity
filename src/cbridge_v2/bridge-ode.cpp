@@ -54,6 +54,21 @@ double Bridge:: reduced_rate( const array<double> &Y ) const throw()
     return (mu2*v-S/u)/mu2;
 }
 
+double Bridge:: reduced_curv( const array<double> &Y ) const throw()
+{
+    assert(Y.size()>=nvar);
+    const double u   = Y[BRIDGE_U];
+    const double v   = Y[BRIDGE_V];
+    const double phi = Y[BRIDGE_A];
+    const double S   = sin(phi);
+    const double C   = cos(phi);
+
+    const double lhs = mu2 *(S-v*C/u);
+    const double rhs = (C*S)/(u*u);
+    return (lhs+rhs+rhs)/mu2;
+}
+
+
 
 #include "yocto/math/round.hpp"
 #include "yocto/math/point2d.hpp"
@@ -173,6 +188,7 @@ if(store_data) { radii.push_back(param[BRIDGE_U]); heights.push_back(param[BRIDG
                 return 0;
             }
         }
+
 
         //______________________________________________________________________
         //

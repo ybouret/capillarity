@@ -60,8 +60,12 @@ public:
      */
     double profile( const double alpha, const double theta, const double Xi, ios::ostream *fp, const bool store_data=false, const double shift=0);
 
-    //! debug function
+    //! get dphi/dtau
     double reduced_rate( const array<double> &arr ) const throw();
+
+    //! get d^2phi/dtau^2
+    double reduced_curv( const array<double> &arr ) const throw();
+
 
     //! this is the function to get a continuous level indicator
     /**

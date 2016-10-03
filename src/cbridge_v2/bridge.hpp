@@ -90,7 +90,8 @@ public:
     //! save a drawing of the lens
     static void SaveLens(const string &filename, const double shift );
 
-    static double CriticalXi(const double theta)  throw();
+    static double CriticalThetaXi(const double theta)  throw();
+    static double CriticalAlphaXi(const double alpha)  throw();
 
     //! finding alpha...
     double find_alpha(const double theta, const double Xi, bool *is_flat=0);
@@ -110,6 +111,8 @@ private:
     double __alpha;
     double __theta;
     double __Xi;
+    static double __find_top( Function &F, double p_lo, double p_up, const double res);
+    static double __find_bot( Function &F, double p_lo, double p_up, const double res);
 
 public:
     Vector heights;

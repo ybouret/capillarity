@@ -49,6 +49,42 @@ YOCTO_PROGRAM_START()
     }
     B.SaveLens("lens.dat", Xi);
 
+    bool   is_flat   = false;
+    double theta_opt = B.find_theta(alpha, Xi, &is_flat );
+    if(theta_opt>0)
+    {
+        std::cerr << "theta_opt=" << Rad2Deg(theta_opt) << std::endl;
+        double usink = 0;
+        if(!is_flat)
+        {
+            ios::wcstream fp("theta_opt.dat");
+            (void)B.profile(alpha, theta_opt, Xi, &fp, true);
+
+            usink = B.compute_user_sink(alpha,theta_opt,Xi);
+            std::cerr << "usink=" << usink << ",zeta=" << Xi-usink << std::endl;
+            fp << "\n";
+            for(double xx=-1;xx<=1;xx+=0.1)
+            {
+                fp("%g %g 0\n",xx,usink);
+            }
+        }
+        else
+        {
+            ios::wcstream fp("theta_opt.dat");
+            B.compute_start(alpha, theta_opt, Xi);
+            for(double xx=0;xx<=1.4;xx+=0.1)
+            {
+                fp("%g %g\n", xx+B.param[BRIDGE_U], B.param[BRIDGE_V]);
+            }
+        }
+
+    }
+    else
+    {
+        ios::ocstream::overwrite("theta_opt.dat");
+        std::cerr << "NO BRIDGE!!!!" << std::endl;
+    }
+
 
 #if 0
     const double theta_deg = Lua::Config::Get<lua_Number>(L,"theta");

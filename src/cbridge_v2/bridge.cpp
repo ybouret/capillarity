@@ -55,10 +55,16 @@ __Xi(0)
 
 size_t Bridge:: curvature_coeff = 1;
 
-double Bridge:: CriticalXi(const double theta)  throw()
+double Bridge:: CriticalThetaXi(const double theta)  throw()
 {
     return -(1.0+cos(theta));
 }
+
+double Bridge:: CriticalAlphaXi(const double alpha) throw()
+{
+    return cos(alpha)-1.0;
+}
+
 
 
 #include "yocto/ios/ocstream.hpp"

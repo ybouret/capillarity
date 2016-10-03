@@ -28,7 +28,7 @@ YOCTO_PROGRAM_START()
     const string filename = vformat("abacus_m%u.dat", unsigned(Bridge::curvature_coeff));
     ios::ocstream::overwrite(filename);
 
-    const size_t N      = 80;
+    const size_t N = 80;
     for(int theta_deg = 60; theta_deg <= 170; theta_deg += 10 )
     {
         std::cerr << std::endl;

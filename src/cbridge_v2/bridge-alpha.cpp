@@ -6,15 +6,10 @@ double Bridge:: ProfileOfAlpha(const double alpha)
     return profile(alpha, __theta, __Xi, NULL);
 }
 
-double Bridge:: ProfileOfTheta(const double theta)
-{
-    return profile(__alpha, __theta, __Xi, NULL );
-}
 
 
 //! assuming F(p_lo)=0, F(p_up)>0
-static inline
-double __find_top( Function &F, double p_lo, double p_up, const double res)
+double Bridge:: __find_top( Function &F, double p_lo, double p_up, const double res)
 {
     assert(p_up>=p_lo);
     while(p_up-p_lo>res)
@@ -35,8 +30,7 @@ double __find_top( Function &F, double p_lo, double p_up, const double res)
 
 //! assuming F(p_lo)>0, F(p_up)=0
 
-static inline
-double __find_bot( Function &F, double p_lo, double p_up, const double res)
+double Bridge::__find_bot( Function &F, double p_lo, double p_up, const double res)
 {
     assert(p_up>=p_lo);
     while(p_up-p_lo>res)
@@ -104,7 +98,7 @@ double Bridge:: find_alpha(const double theta,
     Triplet value = { value_lo,0,value_up };
 
     bracket<double>::inside(F,alpha,value);
-    optimize1D<double>::run(F, alpha, value, resolution);
+    optimize1D<double>::run(F,alpha,value,resolution);
 
 
     //__________________________________________________________________________
@@ -113,8 +107,7 @@ double Bridge:: find_alpha(const double theta,
     // computing critical Xi to know what to do
     //
     //__________________________________________________________________________
-    //Triplet critical_Xi = { -(1.0+cos(theta+resolution/2)), -(1.0+cos(theta)), -(1.0+cos(theta-resolution/2)) };
-    Triplet critical_Xi = { CriticalXi(theta+resolution/2), CriticalXi(theta), CriticalXi(theta-resolution/2) };
+    Triplet critical_Xi = { CriticalThetaXi(theta+resolution/2), CriticalThetaXi(theta), CriticalThetaXi(theta-resolution/2) };
     critical_Xi.sort(); // just to be sure
     const double upper_Xi = critical_Xi.c;
     const double lower_Xi = critical_Xi.a;

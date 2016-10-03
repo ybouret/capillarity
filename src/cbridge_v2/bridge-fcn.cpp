@@ -6,6 +6,11 @@ double Bridge:: ProfileOfAlpha(const double alpha)
     return profile(alpha, __theta, __Xi, NULL);
 }
 
+double Bridge:: ProfileOfTheta(const double theta)
+{
+    return profile(__alpha, __theta, __Xi, NULL );
+}
+
 
 //! assuming F(p_lo)=0, F(p_up)>0
 static inline

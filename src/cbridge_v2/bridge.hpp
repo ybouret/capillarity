@@ -52,7 +52,7 @@ public:
     const double   angle_control;  //!< angle control in radians (converted from L->angle_control)
     const double   shift_control;  //!< max speed = tau max
     Function       fn_of_alpha;    //!< ProfileOfAlpha
-
+    Function       fn_of_theta;
     static size_t  curvature_coeff;
 
 
@@ -97,12 +97,16 @@ public:
 
     //! finding Xi_max
     double find_Xi_max(const double theta,double &alpha_min,double &zeta_max);
-    
+
+
+    double find_theta(const double alpha, const double Xi, bool *id_flat=0);
+
 
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Bridge);
     void   ProfileEq( array<double> &dYds, double, const array<double> &Y );
     double ProfileOfAlpha(const double alpha);
+    double ProfileOfTheta(const double theta);
     double __alpha;
     double __theta;
     double __Xi;

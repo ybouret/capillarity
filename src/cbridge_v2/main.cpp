@@ -28,11 +28,32 @@ YOCTO_PROGRAM_START()
 
 
 
+    const double Xi        = Lua::Config::Get<lua_Number>(L,"Xi");
+    std::cerr << "Xi=" << Xi << std::endl;
 
+    const double alpha_deg = Lua::Config::Get<lua_Number>(L,"alpha");
+    const double alpha     = Deg2Rad(alpha_deg);
+    std::cerr << "alpha=" << alpha_deg << " (" << alpha << " rad)" << std::endl;
+
+    {
+        ios::wcstream fp("profile.dat");
+        ios::wcstream rp("results.dat");
+
+        for(double theta_deg=1;theta_deg<=179;theta_deg+=1)
+        {
+            const double ans = B.profile(alpha, Deg2Rad(theta_deg), Xi, &fp);
+            rp("%g %g\n",theta_deg,ans);
+            fp << "\n";
+        }
+
+    }
+    B.SaveLens("lens.dat", Xi);
+
+
+#if 0
     const double theta_deg = Lua::Config::Get<lua_Number>(L,"theta");
     const double theta     = Deg2Rad(theta_deg);
     std::cerr << "theta=" << theta_deg << std::endl;
-    const double Xi        = Lua::Config::Get<lua_Number>(L,"Xi");
 
 #if 0
     double       alpha_min = 0;
@@ -109,6 +130,7 @@ YOCTO_PROGRAM_START()
     {
         std::cerr << "\t\tNO BRIDGE!" << std::endl;
     }
+#endif
 
 }
 YOCTO_PROGRAM_END()

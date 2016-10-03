@@ -30,6 +30,7 @@ INI_FROM_LUA(resolution),
 INI_FROM_LUA(angle_control),
 INI_FROM_LUA(shift_control),
 fn_of_alpha(this, & Bridge:: ProfileOfAlpha),
+fn_of_theta(this, & Bridge:: ProfileOfTheta),
 __alpha(0),
 __theta(0),
 __Xi(0)
@@ -70,6 +71,8 @@ void Bridge:: SaveLens(const string &filename, const double shift )
         const double angle = Deg2Rad(alpha);
         fp("%.15g %.15g\n", sin(angle), vc - cos(angle));
     }
+    fp("%.15g %.15g\n", sin(0), vc - cos(0));
+
 }
 
 

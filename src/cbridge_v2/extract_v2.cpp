@@ -22,9 +22,12 @@ YOCTO_PROGRAM_START()
         Lua::Config::DoString(L,argv[i]);
     }
 
-    ParBridge Bridges(L);
-    Bridge   &B = Bridges[0].as<Bridge>();
+    ParBridge bridges(L);
+    Bridge   &B = bridges[0].as<Bridge>();
     (void)B;
+
+    bridges.extract_from(L);
+    
 
 }
 YOCTO_PROGRAM_END()

@@ -52,7 +52,8 @@ public:
     const double   angle_control;  //!< angle control in radians (converted from L->angle_control)
     const double   shift_control;  //!< max speed = tau max
     Function       fn_of_alpha;    //!< ProfileOfAlpha
-    Function       fn_of_theta;
+    Function       fn_of_theta;    //!< ProfileOfTheta
+    Function       delta_of_shift;  //!< for a given alpha
     static size_t  curvature_coeff;
 
 
@@ -100,9 +101,11 @@ public:
     double find_Xi_max(const double theta,double &alpha_min,double &zeta_max);
 
     //! finding theta for a given theta and Xi
-    double find_theta(const double alpha, const double Xi, bool *id_flat=0);
+    double find_theta(const double alpha, const double Xi, bool *is_flat=0);
 
-    
+    //! finding theta for a given theta anx zeta
+    double find_theta_v2(double alpha, const double zeta, bool *is_flat=0);
+
 
 
 private:
@@ -110,9 +113,12 @@ private:
     void   ProfileEq( array<double> &dYds, double, const array<double> &Y );
     double ProfileOfAlpha(const double alpha);
     double ProfileOfTheta(const double theta);
+    double DeltaOfShift(const double shift); // for a given alpha,zeta
     double __alpha;
     double __theta;
     double __Xi;
+    bool   __success;
+    double __zeta;
     static double __find_top( Function &F, double p_lo, double p_up, const double res);
     static double __find_bot( Function &F, double p_lo, double p_up, const double res);
 

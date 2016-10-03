@@ -77,12 +77,12 @@ void ParBridge:: extract_from(lua_State *L)
 
 void ParBridge:: run(Context &ctx)
 {
-    Bridge &B = ctx.as<Bridge>();
-    size_t i  = 1;
+    Bridge &B     = ctx.as<Bridge>();
+    size_t i      = 1;
     size_t length = alpha.size();
     ctx.split(i,length);
     for(;length>0;++i,--length)
     {
-        theta[i] = B.find_theta(alpha[i], zeta[i]);
+        theta[i] = B.find_theta(alpha[i],zeta[i]);
     }
 }

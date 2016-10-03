@@ -126,3 +126,63 @@ double Bridge:: find_theta(const double alpha,
 
     return -1;
 }
+
+double Bridge:: DeltaOfShift(const double shift)
+{
+    __success = true;
+    bool is_flat = false;
+    const double Xi    = __zeta+shift;
+    const double theta = find_theta(__alpha,Xi,&is_flat);
+
+    if(is_flat) return 0;
+
+    if(theta<0)
+    {
+        __success = false;
+        return 0;
+    }
+    
+    (void) profile(__alpha,theta,Xi,NULL,true);
+    double usink = compute_user_sink(__alpha,theta,Xi);
+    return Xi-usink;
+}
+
+double Bridge:: find_theta_v2(double alpha, const double zeta, bool *is_flat)
+{
+    std::cerr << "zeta="  << zeta << std::endl;
+    __alpha     = alpha;
+    __zeta      = zeta;
+    Function &F = delta_of_shift;
+
+    double shift = 0;
+    double dcurr = F(shift);
+   // int    count = 0;
+    std::cerr << "delta0=" << dcurr << std::endl;
+    while(true)
+    {
+        shift -= dcurr;
+        const double delta = F(shift);
+        std::cerr << "shift=" << shift << std::endl;
+        std::cerr << "delta=" << delta << std::endl;
+
+        if(Fabs(delta)>=Fabs(dcurr))
+        {
+            break;
+        }
+        dcurr = delta;
+    }
+
+    {
+        ios::wcstream fp("theta2.dat");
+        const double Xi    = __zeta+shift;
+        std::cerr << "Xi=" << Xi << std::endl;
+        const double theta = find_theta(__alpha,Xi);
+        (void) profile(__alpha,theta,Xi,NULL,true);
+        double usink = compute_user_sink(__alpha,theta,Xi);
+        (void)usink;
+        profile(alpha, theta, Xi, &fp,false,-shift);
+        SaveLens("shiftlens.dat",zeta);
+    }
+
+    return -1;
+}

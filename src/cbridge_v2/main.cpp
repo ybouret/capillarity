@@ -27,7 +27,14 @@ YOCTO_PROGRAM_START()
     Bridge B(L);
 
 
+    const double zeta      = Lua::Config::Get<lua_Number>(L,"zeta");
+    const double alpha_deg = Lua::Config::Get<lua_Number>(L,"alpha");
+    const double alpha     = Deg2Rad(alpha_deg);
+    std::cerr << "alpha=" << alpha << ", zeta=" << zeta << std::endl;
+    B.find_theta_v2(alpha,zeta);
 
+
+#if 0
     const double Xi        = Lua::Config::Get<lua_Number>(L,"Xi");
     std::cerr << "Xi=" << Xi << std::endl;
 
@@ -84,6 +91,7 @@ YOCTO_PROGRAM_START()
         ios::ocstream::overwrite("theta_opt.dat");
         std::cerr << "NO BRIDGE!!!!" << std::endl;
     }
+#endif
 
 
 #if 0

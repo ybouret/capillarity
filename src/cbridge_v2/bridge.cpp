@@ -31,9 +31,12 @@ INI_FROM_LUA(angle_control),
 INI_FROM_LUA(shift_control),
 fn_of_alpha(this, & Bridge:: ProfileOfAlpha),
 fn_of_theta(this, & Bridge:: ProfileOfTheta),
+delta_of_shift(this, & Bridge:: DeltaOfShift  ),
 __alpha(0),
 __theta(0),
-__Xi(0)
+__Xi(0),
+__success(false),
+__zeta(0)
 {
     odeint.start(nvar);
     std::cerr << "ftol="       << odeint.eps  << std::endl;

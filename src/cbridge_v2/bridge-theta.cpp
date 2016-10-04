@@ -129,25 +129,44 @@ double Bridge:: find_theta(const double alpha,
 
 double Bridge:: DeltaOfShift(const double shift)
 {
-    __success = true;
-    bool is_flat = false;
-    const double Xi    = __zeta+shift;
-    const double theta = find_theta(__alpha,Xi,&is_flat);
+    __success            = true;
+    bool         is_flat = false;
+    const double Xi      = __zeta+shift;
+    const double theta   = find_theta(__alpha,Xi,&is_flat);
 
-    if(is_flat) return 0;
+    if(is_flat) return 0; // the very special case
 
     if(theta<0)
     {
         __success = false;
         return 0;
     }
-    
+
+    // recompute, storing coordinates
     (void) profile(__alpha,theta,Xi,NULL,true);
+
+    // compute the sinking coefficient
     double usink = compute_user_sink(__alpha,theta,Xi);
-    return Xi-usink;
+    std::cerr << "usink=" << usink << std::endl;
+
+    Bridge::SaveLens("lens.dat", Xi);
+    {
+        ios::wcstream fp("v2.dat");
+        for(size_t i=1;i<=radii.size();++i)
+        {
+            fp("%g %g\n", radii[i], heights[i]);
+        }
+        fp << "\n";
+        for(double xx=-1;xx<=1;xx+=0.1)
+        {
+            fp("%g %g\n", xx, usink);
+        }
+    }
+
+    return (Xi-usink)-__zeta;
 }
 
-double Bridge:: find_theta_v2(double alpha, const double zeta, bool *is_flat)
+double Bridge:: find_theta_v2(double alpha, const double zeta, bool *global_is_flat)
 {
     std::cerr << "zeta="  << zeta << std::endl;
     __alpha     = alpha;
@@ -155,34 +174,36 @@ double Bridge:: find_theta_v2(double alpha, const double zeta, bool *is_flat)
     Function &F = delta_of_shift;
 
     double shift = 0;
-    double dcurr = F(shift);
-   // int    count = 0;
-    std::cerr << "delta0=" << dcurr << std::endl;
+    double delta = F(shift);
+    if(!__success)
+    {
+        std::cerr << "Cannot Initialize Search..." << std::endl;
+        return -1;
+    }
+
+    std::cerr << "shift=" << shift << ", delta=" << delta << std::endl;
+
+    int count=0;
     while(true)
     {
-        shift -= dcurr;
-        const double delta = F(shift);
-        std::cerr << "shift=" << shift << std::endl;
-        std::cerr << "delta=" << delta << std::endl;
-
-        if(Fabs(delta)>=Fabs(dcurr))
+        shift -= delta;
+        delta  = F(shift);
+        if(!__success)
         {
-            break;
+            std::cerr << "Cannot find theta for shift=" << shift << std::endl;
+            return -1;
         }
-        dcurr = delta;
+        std::cerr << "shift=" << shift << ", delta=" << delta << std::endl;
+
+        if(++count>30)
+        break;
+
     }
 
-    {
-        ios::wcstream fp("theta2.dat");
-        const double Xi    = __zeta+shift;
-        std::cerr << "Xi=" << Xi << std::endl;
-        const double theta = find_theta(__alpha,Xi);
-        (void) profile(__alpha,theta,Xi,NULL,true);
-        double usink = compute_user_sink(__alpha,theta,Xi);
-        (void)usink;
-        profile(alpha, theta, Xi, &fp,false,-shift);
-        SaveLens("shiftlens.dat",zeta);
-    }
-
-    return -1;
+    const double Xi      = zeta+shift;
+    bool         is_flat = false;
+    const double theta   = find_theta(alpha,Xi,&is_flat);
+    if(global_is_flat) *global_is_flat = is_flat;
+    std::cerr << "theta=" << Rad2Deg(theta) << std::endl;
+    return theta;
 }

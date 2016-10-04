@@ -106,7 +106,7 @@ public:
     //! finding theta for a given theta anx zeta
     double find_theta_v2(double alpha, const double zeta, bool *is_flat=0);
 
-
+    static double Immerged(const double Xi);
 
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Bridge);

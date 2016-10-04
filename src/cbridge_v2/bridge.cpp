@@ -68,7 +68,25 @@ double Bridge:: CriticalAlphaXi(const double alpha) throw()
     return cos(alpha)-1.0;
 }
 
-
+double Bridge:: Immerged(const double Xi)
+{
+    if(Xi>=0)
+    {
+        return 0;
+    }
+    else
+    {
+        if(Xi<=-2)
+        {
+            return 4.0*numeric<double>::pi/3;
+        }
+        else
+        {
+            const double hh = -Xi;
+            return numeric<double>::pi * hh*hh * (1.0 - hh/3.0 );
+        }
+    }
+}
 
 #include "yocto/ios/ocstream.hpp"
 void Bridge:: SaveLens(const string &filename, const double shift )

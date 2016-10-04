@@ -9,12 +9,15 @@ Crew(true),
 area(),
 height(),
 alpha(),
-zeta()
+zeta(),
+theta(),
+Theta(),
+rate( Lua::Config::Get<lua_Number>(L,"rate" ) )
 {
     for(size_t i=0;i<size;++i)
     {
         Context &ctx = (*this)[i];
-        ctx.build<Bridge,lua_State *>(L);
+        ctx.build<Bridge,lua_State *,double>(L,1);
     }
 }
 
@@ -58,7 +61,7 @@ void ParBridge:: extract_from(lua_State *L)
     const size_t n = alpha.size();
     std::cerr << "computed #alpha=" << n << std::endl;
     theta.make(n);
-
+    Theta.make(n);
 
     std::cerr << "Launching Extraction..." << std::endl;
     threading::kernel K(this, & ParBridge:: run );
@@ -68,7 +71,7 @@ void ParBridge:: extract_from(lua_State *L)
         ios::wcstream fp("output.dat");
         for(size_t i=1;i<=alpha.size();++i)
         {
-            fp("%g %g %g %g\n", zeta[i]*bridge.R0, a0 * Square( sin(alpha[i]) ), Rad2Deg(alpha[i]), Rad2Deg(theta[i]) );
+            fp("%g %g %g %g %g\n", zeta[i]*bridge.R0, a0 * Square( sin(alpha[i]) ), Rad2Deg(alpha[i]), Rad2Deg(theta[i]), Rad2Deg(Theta[i]) );
         }
     }
 
@@ -81,8 +84,13 @@ void ParBridge:: run(Context &ctx)
     size_t i      = 1;
     size_t length = alpha.size();
     ctx.split(i,length);
+    double shift = 0;
     for(;length>0;++i,--length)
     {
-        theta[i] = B.find_theta(alpha[i],zeta[i]);
+        //B.change_curv(1);
+        const double zz = zeta[i]+(rate*i)/B.R0;
+        theta[i] = B.find_theta(alpha[i],zz);
+        //B.change_curv(2);
+        Theta[i] = B.find_theta_v2(alpha[i],zz,shift);
     }
 }

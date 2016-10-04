@@ -174,7 +174,7 @@ double Bridge:: DeltaOfShift(const double shift)
 
 double Bridge:: find_theta_v2(double alpha, const double zeta, double &shift0, bool *global_is_flat)
 {
-    std::cerr << "zeta="  << zeta << std::endl;
+    //std::cerr << "zeta="  << zeta << std::endl;
     __alpha     = alpha;
     __zeta      = zeta;
     Function &F = delta_of_shift;

@@ -23,9 +23,9 @@ YOCTO_PROGRAM_START()
 
     //Bridge::curvature_coeff = 1;
 
-    Bridge B(L);
+    Bridge B(L,1);
     ios::ocstream::overwrite("xi_max.dat");
-    const string filename = vformat("abacus_m%u.dat", unsigned(Bridge::curvature_coeff));
+    const string filename = vformat("abacus_m%u.dat", unsigned(1));
     ios::ocstream::overwrite(filename);
 
     const size_t N = 80;

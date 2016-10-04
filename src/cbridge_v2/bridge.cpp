@@ -14,7 +14,7 @@ Bridge:: ~Bridge() throw()
 
 #define GET_FROM_LUA(ID) Lua::Config::Get<lua_Number>(L,#ID)
 #define INI_FROM_LUA(ID) ID(GET_FROM_LUA(ID))
-Bridge:: Bridge( lua_State *L ) :
+Bridge:: Bridge( lua_State *L, const double curvature_coeff) :
 nvar(BRIDGE_N),
 odeint( Lua::Config::Get<lua_Number>(L,"ftol") ),
 profEq( this, & Bridge::ProfileEq ),
@@ -56,7 +56,15 @@ __zeta(0)
 
 }
 
-size_t Bridge:: curvature_coeff = 1;
+void Bridge:: change_curv(const double curvature_coeff)
+{
+    (double&)mu2 = ((curvature_coeff * Square(R0)) / Square(lambda));
+    (double&)mu  = sqrt(mu2);
+    //std::cerr << "new mu=" << mu << std::endl;
+}
+
+
+//size_t Bridge:: curvature_coeff = 1;
 
 double Bridge:: CriticalThetaXi(const double theta)  throw()
 {

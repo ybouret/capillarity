@@ -35,7 +35,7 @@ public:
 
 
     virtual ~Bridge() throw();
-    explicit Bridge( lua_State *L );
+    explicit Bridge( lua_State *L, const double curvature_coeff);
 
     const size_t   nvar;     //!< BRIDGE_N
     DEsolver       odeint;   //!< adaptive solve, initialized with L->ftol (should be 1e-4-1e-7)
@@ -54,8 +54,9 @@ public:
     Function       fn_of_alpha;    //!< ProfileOfAlpha
     Function       fn_of_theta;    //!< ProfileOfTheta
     Function       delta_of_shift;  //!< for a given alpha
-    static size_t  curvature_coeff;
 
+
+    void change_curv(const double curvature_coeff);
 
     //! initialize param and center_v
     void compute_start(const double alpha,

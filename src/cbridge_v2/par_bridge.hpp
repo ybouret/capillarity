@@ -21,9 +21,10 @@ public:
     vector<double> alpha;  //!< angle, radians
     vector<double> zeta;   //!< h/R0
     vector<double> theta;  //!< theta..
+    vector<double> Theta;  //!< Theta...
 
-
-
+    double rate;
+    
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(ParBridge);
     void run( Context &ctx );

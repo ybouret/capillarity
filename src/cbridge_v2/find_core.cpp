@@ -19,7 +19,7 @@ for(int i=1;i<argc;++i)
 }
 
 // load bridge
-Bridge B(L);
+Bridge B(L,1);
 
 #if !defined(DISCARD_XI)
 // load other parameters

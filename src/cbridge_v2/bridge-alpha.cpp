@@ -204,8 +204,6 @@ double  Bridge:: compute_user_sink(const double alpha,
 
         const double ri2 = max_of<double>(0,1.0-Square(1.0+Xi-zz));
         slices[i] -= ri2;
-
-        //slices[i] *= numeric<double>::pi;
     }
     volume[1] = 0;
 
@@ -241,7 +239,7 @@ double Bridge:: find_Xi_max(const double theta, double &alpha_min, double &zeta_
 
     while(true)
     {
-        const double Xi = 0.5 * (XiLo+XiHi);
+        const double Xi    = 0.5 * (XiLo+XiHi);
         const double alpha = find_alpha(theta,Xi);
         if(alpha>=0)
         {

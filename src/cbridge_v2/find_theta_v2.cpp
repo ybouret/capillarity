@@ -14,8 +14,9 @@ YOCTO_PROGRAM_START()
     std::cerr << "alpha=" << alpha_deg << " (" << alpha << " rad)" << std::endl;
 
     const double zeta = Lua::Config::Get<lua_Number>(L,"zeta");
-
-    B.find_theta_v2(alpha, zeta);
+    double shift = 0;
+    bool   is_flat = 0;
+    B.find_theta_v2(alpha, zeta, shift, &is_flat);
     
 
 

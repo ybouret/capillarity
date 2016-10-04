@@ -166,13 +166,57 @@ double Bridge:: DeltaOfShift(const double shift)
     return (Xi-usink)-__zeta;
 }
 
-double Bridge:: find_theta_v2(double alpha, const double zeta, bool *global_is_flat)
+#include "yocto/math/fcn/zfind.hpp"
+
+double Bridge:: find_theta_v2(double alpha, const double zeta, double &shift0, bool *global_is_flat)
 {
     std::cerr << "zeta="  << zeta << std::endl;
     __alpha     = alpha;
     __zeta      = zeta;
     Function &F = delta_of_shift;
 
+    double shift_prev = 0;
+    double delta_prev = F(shift_prev);
+    if(!__success)
+    {
+        std::cerr << "Cannot Initialize Search..." << std::endl;
+        return -1;
+    }
+    const double dstep = -delta_prev * 0.1;
+
+    while(true)
+    {
+        const double shift_next = shift_prev + dstep;
+        const double delta_next = F(shift_next);
+        std::cerr << "shift_prev=" << shift_prev << ", delta_prev=" << delta_prev << std::endl;
+        std::cerr << "shift_next=" << shift_next << ", delta_next=" << delta_next << std::endl;
+
+        if(!__success)
+        {
+            std::cerr << "Cannot find theta for shift=" << shift_next << std::endl;
+            return -1;
+        }
+        if(delta_next*delta_prev<=0)
+        {
+            Triplet shift = { shift_prev, 0, shift_next };
+            Triplet delta = { delta_prev, 0, delta_next };
+            zfind<double> solve( shift_control * 0.1 );
+            shift0 = solve.run(F,shift,delta);
+            std::cerr << "shift0=" << shift0 << std::endl;
+            const double Xi      = zeta+shift0;
+            bool         is_flat = false;
+            const double theta   = find_theta(alpha,Xi,&is_flat);
+            if(global_is_flat) *global_is_flat = is_flat;
+            std::cerr << "theta=" << Rad2Deg(theta) << std::endl;
+            return theta;
+        }
+        shift_prev = shift_next;
+        delta_prev = delta_next;
+    }
+
+
+
+#if 0
     double shift = 0;
     double delta = F(shift);
     if(!__success)
@@ -209,4 +253,6 @@ double Bridge:: find_theta_v2(double alpha, const double zeta, bool *global_is_f
     if(global_is_flat) *global_is_flat = is_flat;
     std::cerr << "theta=" << Rad2Deg(theta) << std::endl;
     return theta;
+#endif
+
 }

@@ -104,7 +104,7 @@ public:
     double find_theta(const double alpha, const double Xi, bool *is_flat=0);
 
     //! finding theta for a given theta anx zeta
-    double find_theta_v2(double alpha, const double zeta, bool *is_flat=0);
+    double find_theta_v2(double alpha, const double zeta, double &shift0, bool *is_flat=0);
 
     static double Immerged(const double Xi);
 

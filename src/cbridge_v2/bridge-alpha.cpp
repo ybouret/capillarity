@@ -205,7 +205,7 @@ double  Bridge:: compute_user_sink(const double alpha,
         const double ri2 = max_of<double>(0,1.0-Square(1.0+Xi-zz));
         slices[i] -= ri2;
 
-        slices[i] *= numeric<double>::pi;
+        //slices[i] *= numeric<double>::pi;
     }
     volume[1] = 0;
 

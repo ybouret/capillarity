@@ -183,20 +183,23 @@ double Bridge:: find_theta_v2(double alpha, const double zeta, bool *global_is_f
 
     std::cerr << "shift=" << shift << ", delta=" << delta << std::endl;
 
-    int count=0;
     while(true)
     {
         shift -= delta;
-        delta  = F(shift);
+        const double delta_new  = F(shift);
         if(!__success)
         {
             std::cerr << "Cannot find theta for shift=" << shift << std::endl;
             return -1;
         }
+        std::cerr << "delta=" << delta_new << std::endl;
+        if(Fabs(delta_new)>=Fabs(delta))
+        {
+            std::cerr << "STOP" << std::endl;
+            break;
+        }
+        delta = delta_new;
         std::cerr << "shift=" << shift << ", delta=" << delta << std::endl;
-
-        if(++count>30)
-        break;
 
     }
 

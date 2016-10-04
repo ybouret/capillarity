@@ -40,7 +40,7 @@ double Bridge:: find_theta(const double alpha,
     {
         throw exception("Bridge.find_theta: invalid setting!");
     }
-    
+
     //__________________________________________________________________________
     //
     //
@@ -122,7 +122,7 @@ double Bridge:: find_theta(const double alpha,
             return numeric<double>::pi-alpha;
         }
     }
-    
+
 
     return -1;
 }
@@ -147,22 +147,26 @@ double Bridge:: DeltaOfShift(const double shift)
 
     // compute the sinking coefficient
     double usink = compute_user_sink(__alpha,theta,Xi);
-    std::cerr << "usink=" << usink << std::endl;
+    //std::cerr << "usink=" << usink << std::endl;
 
-    Bridge::SaveLens("lens.dat", Xi);
+#if 0
+    if(false)
     {
-        ios::wcstream fp("v2.dat");
-        for(size_t i=1;i<=radii.size();++i)
+        Bridge::SaveLens("lens.dat", Xi);
         {
-            fp("%g %g\n", radii[i], heights[i]);
-        }
-        fp << "\n";
-        for(double xx=-1;xx<=1;xx+=0.1)
-        {
-            fp("%g %g\n", xx, usink);
+            ios::wcstream fp("v2.dat");
+            for(size_t i=1;i<=radii.size();++i)
+            {
+                fp("%g %g\n", radii[i], heights[i]);
+            }
+            fp << "\n";
+            for(double xx=-1;xx<=1;xx+=0.1)
+            {
+                fp("%g %g\n", xx, usink);
+            }
         }
     }
-
+#endif
     return (Xi-usink)-__zeta;
 }
 
@@ -179,7 +183,7 @@ double Bridge:: find_theta_v2(double alpha, const double zeta, double &shift0, b
     double delta_prev = F(shift_prev);
     if(!__success)
     {
-        std::cerr << "Cannot Initialize Search..." << std::endl;
+        //std::cerr << "Cannot Initialize Search..." << std::endl;
         return -1;
     }
     const double dstep = -delta_prev * 0.1;
@@ -188,12 +192,12 @@ double Bridge:: find_theta_v2(double alpha, const double zeta, double &shift0, b
     {
         const double shift_next = shift_prev + dstep;
         const double delta_next = F(shift_next);
-        std::cerr << "shift_prev=" << shift_prev << ", delta_prev=" << delta_prev << std::endl;
-        std::cerr << "shift_next=" << shift_next << ", delta_next=" << delta_next << std::endl;
+        //std::cerr << "shift_prev=" << shift_prev << ", delta_prev=" << delta_prev << std::endl;
+        //std::cerr << "shift_next=" << shift_next << ", delta_next=" << delta_next << std::endl;
 
         if(!__success)
         {
-            std::cerr << "Cannot find theta for shift=" << shift_next << std::endl;
+            //std::cerr << "Cannot find theta for shift=" << shift_next << std::endl;
             return -1;
         }
         if(delta_next*delta_prev<=0)
@@ -202,12 +206,12 @@ double Bridge:: find_theta_v2(double alpha, const double zeta, double &shift0, b
             Triplet delta = { delta_prev, 0, delta_next };
             zfind<double> solve( shift_control * 0.1 );
             shift0 = solve.run(F,shift,delta);
-            std::cerr << "shift0=" << shift0 << std::endl;
+            //std::cerr << "shift0=" << shift0 << std::endl;
             const double Xi      = zeta+shift0;
             bool         is_flat = false;
             const double theta   = find_theta(alpha,Xi,&is_flat);
             if(global_is_flat) *global_is_flat = is_flat;
-            std::cerr << "theta=" << Rad2Deg(theta) << std::endl;
+            //std::cerr << "theta=" << Rad2Deg(theta) << std::endl;
             return theta;
         }
         shift_prev = shift_next;
@@ -216,43 +220,5 @@ double Bridge:: find_theta_v2(double alpha, const double zeta, double &shift0, b
 
 
 
-#if 0
-    double shift = 0;
-    double delta = F(shift);
-    if(!__success)
-    {
-        std::cerr << "Cannot Initialize Search..." << std::endl;
-        return -1;
-    }
-
-    std::cerr << "shift=" << shift << ", delta=" << delta << std::endl;
-
-    while(true)
-    {
-        shift -= delta;
-        const double delta_new  = F(shift);
-        if(!__success)
-        {
-            std::cerr << "Cannot find theta for shift=" << shift << std::endl;
-            return -1;
-        }
-        std::cerr << "delta=" << delta_new << std::endl;
-        if(Fabs(delta_new)>=Fabs(delta))
-        {
-            std::cerr << "STOP" << std::endl;
-            break;
-        }
-        delta = delta_new;
-        std::cerr << "shift=" << shift << ", delta=" << delta << std::endl;
-
-    }
-
-    const double Xi      = zeta+shift;
-    bool         is_flat = false;
-    const double theta   = find_theta(alpha,Xi,&is_flat);
-    if(global_is_flat) *global_is_flat = is_flat;
-    std::cerr << "theta=" << Rad2Deg(theta) << std::endl;
-    return theta;
-#endif
 
 }

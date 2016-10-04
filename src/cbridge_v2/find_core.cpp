@@ -21,6 +21,8 @@ for(int i=1;i<argc;++i)
 // load bridge
 Bridge B(L);
 
+#if !defined(DISCARD_XI)
 // load other parameters
 const double Xi = Lua::Config::Get<lua_Number>(L,"Xi");
 std::cerr << "Xi=" << Xi << std::endl;
+#endif

@@ -10,6 +10,7 @@ YOCTO_PROGRAM_START()
 #define DISCARD_XI 1
 #include "find_core.cpp"
 
+    //B.change_curv(2);
     const double alpha_deg = Lua::Config::Get<lua_Number>(L,"alpha");
     const double alpha     = Deg2Rad(alpha_deg);
     std::cerr << "alpha=" << alpha_deg << " (" << alpha << " rad)" << std::endl;

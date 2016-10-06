@@ -24,6 +24,7 @@ public:
     vector<double> Theta;  //!< Theta...
 
     double rate;
+    double delta_h;
     
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(ParBridge);

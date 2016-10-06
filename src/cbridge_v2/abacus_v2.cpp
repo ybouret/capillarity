@@ -29,7 +29,7 @@ YOCTO_PROGRAM_START()
     ios::ocstream::overwrite(filename);
 
     const size_t N = 80;
-    for(int theta_deg = 60; theta_deg <= 170; theta_deg += 10 )
+    for(int theta_deg = 120; theta_deg <= 178; theta_deg += 2 )
     {
         std::cerr << std::endl;
         std::cerr << "theta=" << theta_deg << std::endl;
@@ -42,7 +42,7 @@ YOCTO_PROGRAM_START()
             fp("%.15g %.15g %.15g\n", double(theta_deg), Xi_max, zeta_max);
         }
 
-        const double Xi_min = -Xi_max/2;
+        const double Xi_min = -Xi_max;
         //const double Xi_min = 0;
         for(size_t i=0;i<=N;++i)
         {
@@ -55,7 +55,7 @@ YOCTO_PROGRAM_START()
             const double usink = B.compute_user_sink(alpha, theta, Xi);
             const double zeta  = Xi - usink;
             ios::acstream fp(filename);
-            fp("%.15g %.15g %.15g\n", Xi, Square(sin(alpha)), zeta );
+            fp("%.15g %.15g %.15g\n", B.R0*Xi, numeric<double>::pi * Square( B.R0 * sin(alpha)), B.R0 * zeta );
         }
 
         {

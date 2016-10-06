@@ -87,10 +87,11 @@ void ParBridge:: run(Context &ctx)
     double shift = 0;
     for(;length>0;++i,--length)
     {
-        //B.change_curv(1);
+        B.change_curv(1);
         const double zz = zeta[i]+(rate*i)/B.R0;
         theta[i] = B.find_theta(alpha[i],zz);
-        //B.change_curv(2);
-        Theta[i] = B.find_theta_v2(alpha[i],zz,shift);
+        B.change_curv(2);
+        //Theta[i] = B.find_theta_v2(alpha[i],zz,shift);
+        Theta[i] = B.find_theta(alpha[i],zz);
     }
 }

@@ -21,8 +21,8 @@ profEq( this, & Bridge::ProfileEq ),
 status(false),
 INI_FROM_LUA(R0),
 INI_FROM_LUA(lambda),
-mu2((curvature_coeff * Square(R0)) / Square(lambda)),
-mu(sqrt(mu2)),
+mu2(0),
+mu(0),
 pprev(nvar),
 param(nvar),
 center_v(0),
@@ -50,6 +50,7 @@ __zeta(0)
 
     std::cerr << "R0    =" << R0 << std::endl;
     std::cerr << "lambda=" << lambda << std::endl;
+    change_curv(curvature_coeff);
     std::cerr << "mu    =" << mu << std::endl;
 
 
@@ -60,7 +61,6 @@ void Bridge:: change_curv(const double curvature_coeff)
 {
     (double&)mu2 = ((curvature_coeff * Square(R0)) / Square(lambda));
     (double&)mu  = sqrt(mu2);
-    //std::cerr << "new mu=" << mu << std::endl;
 }
 
 

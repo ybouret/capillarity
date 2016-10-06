@@ -26,12 +26,12 @@ YOCTO_PROGRAM_START()
         std::cerr << "shift=" << shift << std::endl;
         if(!is_flat)
         {
-            ios::wcstream fp("theta_opt.dat");
+            ios::wcstream fp("theta_opt_v2.dat");
             (void)B.profile(alpha, theta_opt, Xi, &fp,false,-shift);
         }
         else
         {
-            ios::wcstream fp("theta_opt.dat");
+            ios::wcstream fp("theta_opt_v2.dat");
             B.compute_start(alpha, theta_opt, Xi);
             for(double xx=0;xx<=1.4;xx+=0.1)
             {
@@ -42,7 +42,7 @@ YOCTO_PROGRAM_START()
     }
     else
     {
-        ios::ocstream::overwrite("theta_opt.dat");
+        ios::ocstream::overwrite("theta_opt_v2.dat");
         std::cerr << "NO BRIDGE!!!!" << std::endl;
     }
 

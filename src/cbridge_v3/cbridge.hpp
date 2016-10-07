@@ -98,6 +98,8 @@ public:
                       const double zeta,
                       bool        *is_flat);
 
+    double find_zeta_max(const double theta);
+
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Bridge);
     double __alpha; //!< for functions

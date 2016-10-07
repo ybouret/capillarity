@@ -174,3 +174,32 @@ double Bridge:: find_alpha(const double theta,
     
     return -1;
 }
+
+double Bridge:: find_zeta_max(const double theta)
+{
+    double zeta_lo = 0.0;
+    if( find_alpha(theta, zeta_lo, NULL) < 0 )
+    {
+        throw exception("Cannot find alpha for zeta=0");
+    }
+    double zeta_up = 1.0;
+    while(find_alpha(theta,zeta_up,NULL)>=0)
+    {
+        zeta_up += 1.0;
+    }
+
+    while( Fabs(zeta_up-zeta_lo) >= numeric<double>::ftol * ( Fabs(zeta_lo) + Fabs(zeta_up) ) )
+    {
+        const double zeta_mid = 0.5*(zeta_lo+zeta_up);
+        if(find_alpha(theta,zeta_mid,NULL) < 0 )
+        {
+            zeta_up = zeta_mid;
+        }
+        else
+        {
+            zeta_lo = zeta_mid;
+        }
+    }
+
+    return zeta_lo;
+}

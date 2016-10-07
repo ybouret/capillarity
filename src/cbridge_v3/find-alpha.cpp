@@ -48,7 +48,7 @@ YOCTO_PROGRAM_START()
             (void)B.profile(alpha_opt, theta, zeta, &fp);
         }
         std::cerr << "Q=" << B.param[BRIDGE_Q] << std::endl;
-        std::cerr << "q=" << B.param[BRIDGE_q] << std::endl;
+        std::cerr << "q=" << B.param[BRIDGE_q] << "/" << B.last_cylinder_space() <<  std::endl;
         std::cerr << "start_u=" << B.start_u << std::endl;
         std::cerr << "start_v=" << B.start_v << std::endl;
     }

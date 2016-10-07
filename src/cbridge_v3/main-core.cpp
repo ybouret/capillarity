@@ -4,8 +4,8 @@ Lua::State VM;
 lua_State *L = VM();
 
 // default parameters
-Lua::Config::DoString(L,"ftol=1e-5;");
-Lua::Config::DoString(L,"angle_control=1;");
+Lua::Config::DoString(L,"ftol=1e-6;");
+Lua::Config::DoString(L,"angle_control=0.5;");
 Lua::Config::DoString(L,"shift_control=0.001;");
 Lua::Config::DoString(L,"R0=80;");
 Lua::Config::DoString(L,"lambda=2.72;");

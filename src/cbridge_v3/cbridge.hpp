@@ -102,6 +102,9 @@ public:
     double find_zeta_max(const double theta);
     double last_space() const throw();
 
+    static double CapVolume(const double hh);
+    double last_cylinder_space() const throw();
+
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Bridge);
     double __alpha; //!< for functions

@@ -82,4 +82,8 @@ void Bridge:: SaveLens(const string &filename, const double shift )
 
 }
 
+double Bridge:: CapVolume(const double hh)
+{
+    return numeric<double>::pi * hh * hh * (1.0 - hh/3.0);
+}
 

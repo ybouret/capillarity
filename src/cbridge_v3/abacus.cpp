@@ -51,7 +51,19 @@ YOCTO_PROGRAM_START()
             const double A     = numeric<double>::pi * Square( B.R0 * sin(alpha) );
             const double V     = B.last_space();// * R3;
             ios::acstream fp(filename);
-            fp("%.15g %.15g %.15g %.15g %.15g\n",h,A,V, B.param[BRIDGE_Q], B.param[BRIDGE_q] );
+
+#if 0
+            double cvol = 0;
+            if(zeta>=0)
+            {
+                cvol = Bridge::CapVolume(B.start_v-zeta);
+            }
+            else
+            {
+                cvol = Bridge::CapVolume(B.start_v-zeta)-Bridge::CapVolume(-zeta);
+            }
+#endif
+            fp("%.15g %.15g %.15g %.15g %.15g %.15g\n",h,A,V, B.param[BRIDGE_Q], B.param[BRIDGE_q], B.last_cylinder_space());
         }
         std::cerr << std::endl;
         

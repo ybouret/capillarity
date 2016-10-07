@@ -30,7 +30,19 @@ double Bridge:: GetValue(const double v0, const double v) throw()
 
 double Bridge:: last_space() const throw()
 {
-    return  (param[BRIDGE_Q] - param[BRIDGE_q]);
+    return  (param[BRIDGE_Q] - last_cylinder_space());
+}
+
+double Bridge:: last_cylinder_space() const throw()
+{
+    if(__zeta>=0)
+    {
+        return  CapVolume(start_v - __zeta);
+    }
+    else
+    {
+        return CapVolume(start_v - __zeta) - CapVolume(-__zeta);
+    }
 }
 
 

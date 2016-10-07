@@ -76,7 +76,8 @@ public:
     double profile(const double  alpha,
                    const double  theta,
                    const double  zeta,
-                   ios::ostream *fp);
+                   ios::ostream *fp,
+                   const bool    record = false);
 
     //! this is the function to get a continuous level indicator
     /**
@@ -119,7 +120,10 @@ private:
 
 public:
     size_t last_counts;
+    Vector heights;
+    Vector volumes;
 
+    double compute_shift(const double alpha, const double theta, const double zeta);
 };
 
 #endif

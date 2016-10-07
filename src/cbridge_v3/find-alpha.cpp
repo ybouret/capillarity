@@ -28,7 +28,7 @@ YOCTO_PROGRAM_START()
         }
     }
 
-    bool is_flat = false;
+    bool         is_flat   = false;
     const double alpha_opt = B.find_alpha(theta,zeta,&is_flat);
     if(alpha_opt>=0)
     {
@@ -51,6 +51,13 @@ YOCTO_PROGRAM_START()
         std::cerr << "q=" << B.param[BRIDGE_q] << "/" << B.last_cylinder_space() <<  std::endl;
         std::cerr << "start_u=" << B.start_u << std::endl;
         std::cerr << "start_v=" << B.start_v << std::endl;
+        const double shift = B.compute_shift(alpha_opt, theta, zeta);
+        std::cerr << "shift=" << shift << std::endl;
+        fp << "\n";
+        for(double xx=-1;xx<=1;xx+=0.1)
+        {
+            fp("%.15g %.15g 0\n", xx, shift);
+        }
     }
     else
     {

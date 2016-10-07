@@ -90,7 +90,8 @@ typedef point2d<double> P2D;
 double Bridge:: profile(const double  alpha,
                         const double  theta,
                         const double  zeta,
-                        ios::ostream *fp)
+                        ios::ostream *fp,
+                        const bool    record)
 {
     const double SAFETY = 0.1;
 
@@ -118,6 +119,7 @@ double Bridge:: profile(const double  alpha,
 #define SAVE_STATUS() do { \
 ++last_counts;\
 if(fp) (*fp)("%.15g %.15g %.15g\n", param[BRIDGE_U],param[BRIDGE_V], param[BRIDGE_A]);\
+if(record) { heights.push_back(param[BRIDGE_V]); volumes.push_back(param[BRIDGE_Q]-param[BRIDGE_q]); }\
 } while(false)
 
     double       tau      = 0;
@@ -270,3 +272,38 @@ if(fp) (*fp)("%.15g %.15g %.15g\n", param[BRIDGE_U],param[BRIDGE_V], param[BRIDG
     return GetValue(v0,param[BRIDGE_V]);
     
 }
+
+#include "yocto/sort/quick.hpp"
+#include "yocto/math/dat/linear.hpp"
+
+double Bridge:: compute_shift(const double alpha, const double theta, const double zeta)
+{
+    heights.free();
+    volumes.free();
+    if( profile(alpha, theta, zeta, NULL, false) > 0)
+    {
+        throw exception("compute_shift: NO BRIDGE!");
+    }
+    heights.ensure(last_counts);
+    volumes.ensure(last_counts);
+    (void)profile(alpha, theta, zeta, NULL, true);
+    if(heights.size()<=3)
+    {
+        throw exception("compute_shift: not enought stored points!");
+    }
+    co_qsort(volumes,heights);
+    if(false)
+    {
+        ios::wcstream fp("shift.dat");
+        for(size_t i=1;i<=volumes.size();++i)
+        {
+            fp("%g %g\n", volumes[i], heights[i]);
+        }
+    }
+    const double shift = linear((volumes.back()+volumes.front())*0.5, volumes, heights);
+
+    //std::cerr << "volume=" << volumes.back() << std::endl;
+    //std::cerr << "shift =" << shift << "/zeta=" << zeta << std::endl;
+    return shift;
+}
+

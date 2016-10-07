@@ -7,12 +7,13 @@ YOCTO_PROGRAM_START()
 
     const double hmin = Lua::Config::Get<lua_Number>(L,"hmin");
 
-    const size_t N    = 100;
+    const size_t N    = 200;
     const string filename = "abacus.dat";
     ios::ocstream::overwrite(filename);
 
-    //const double R3 = Cube(B.R0);
+    const double R3 = Cube(B.R0);
     for(int theta_deg = 60; theta_deg <= 170; theta_deg += 10 )
+    //for(int theta_deg = 170; theta_deg <= 170; theta_deg += 10)
     {
         const double theta = Deg2Rad(double(theta_deg));
         std::cerr << std::endl;
@@ -50,21 +51,10 @@ YOCTO_PROGRAM_START()
             fflush(stderr);
             const double h     = zeta * B.R0;
             const double A     = numeric<double>::pi * Square( B.R0 * sin(alpha) );
-            const double V     = B.last_space();// * R3;
+            const double V     = B.last_space() * R3;
             ios::acstream fp(filename);
-
-#if 0
-            double cvol = 0;
-            if(zeta>=0)
-            {
-                cvol = Bridge::CapVolume(B.start_v-zeta);
-            }
-            else
-            {
-                cvol = Bridge::CapVolume(B.start_v-zeta)-Bridge::CapVolume(-zeta);
-            }
-#endif
-            fp("%.15g %.15g %.15g %.15g %.15g %.15g\n",h,A,V, B.param[BRIDGE_Q], B.param[BRIDGE_q], B.last_cylinder_space());
+            const double shift = B.compute_shift(alpha, theta, zeta);
+            fp("%.15g %.15g %.15g %.15g\n",h,A,V,shift*B.R0);
         }
         std::cerr << std::endl;
         

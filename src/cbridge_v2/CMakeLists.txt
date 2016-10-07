@@ -33,12 +33,14 @@ ADD_EXECUTABLE(extract_v2 extract_v2.cpp)
 TARGET_LINK_LIBRARIES(extract_v2 bridge_v2)
 TARGET_LINK_YOCTO(extract_v2 mk lua++)
 
+IF(OFF)
 INSTALL( TARGETS 
-#cbridge_v2 
 abacus_v2 
 extract_v2 
 find_alpha 
 find_theta 
 find_theta_v2
 RUNTIME DESTINATION bin )
+ENDIF()
+
 

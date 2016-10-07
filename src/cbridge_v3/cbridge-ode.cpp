@@ -287,9 +287,9 @@ double Bridge:: compute_shift(const double alpha, const double theta, const doub
     heights.ensure(last_counts);
     volumes.ensure(last_counts);
     (void)profile(alpha, theta, zeta, NULL, true);
-    if(heights.size()<=3)
+    if(heights.size()<=2)
     {
-        throw exception("compute_shift: not enought stored points!");
+        return 0; // must be flat...
     }
     co_qsort(volumes,heights);
     if(false)

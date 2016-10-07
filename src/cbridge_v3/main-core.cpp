@@ -9,7 +9,7 @@ Lua::Config::DoString(L,"angle_control=1;");
 Lua::Config::DoString(L,"shift_control=0.001;");
 Lua::Config::DoString(L,"R0=80;");
 Lua::Config::DoString(L,"lambda=2.72;");
-Lua::Config::DoString(L,"resolution=1e-3");
+Lua::Config::DoString(L,"resolution=1e-4");
 
 // modified
 for(int i=1;i<argc;++i)

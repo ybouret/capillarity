@@ -44,9 +44,10 @@ YOCTO_PROGRAM_START()
             }
             const double alpha = B.find_alpha(theta, zeta, NULL);
             std::cerr.flush();
-            fprintf(stderr,"\t\talpha=%10.6f   \r",Rad2Deg(alpha));
-            fflush(stderr);
+
             (void)B.profile(alpha,theta,zeta,NULL);
+            fprintf(stderr,"\t\talpha=%10.6f   | #counts=%10u\r",Rad2Deg(alpha),unsigned(B.last_counts));
+            fflush(stderr);
             const double h     = zeta * B.R0;
             const double A     = numeric<double>::pi * Square( B.R0 * sin(alpha) );
             const double V     = B.last_space();// * R3;

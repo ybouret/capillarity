@@ -14,6 +14,7 @@ void Bridge:: compute_start(const double alpha,
     param[BRIDGE_A] = alpha+theta-numeric<double>::pi;
     param[BRIDGE_Q] = 0;
     param[BRIDGE_q] = 0;
+    last_counts = 0;
 }
 
 double Bridge:: GetValue(const double v0, const double v) throw()
@@ -115,6 +116,7 @@ double Bridge:: profile(const double  alpha,
     //
     //__________________________________________________________________________
 #define SAVE_STATUS() do { \
+++last_counts;\
 if(fp) (*fp)("%.15g %.15g %.15g\n", param[BRIDGE_U],param[BRIDGE_V], param[BRIDGE_A]);\
 } while(false)
 

@@ -32,7 +32,8 @@ prof_alpha(this, & Bridge:: ProfileOfAlpha),
 prof_theta(this, & Bridge:: ProfileOfTheta),
 __alpha(0),
 __theta(0),
-__zeta(0)
+__zeta(0),
+last_counts(0)
 {
     odeint.start(nvar);
     std::cerr << "ftol="       << odeint.eps  << std::endl;

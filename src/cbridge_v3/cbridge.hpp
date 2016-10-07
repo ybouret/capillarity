@@ -117,7 +117,8 @@ private:
     double  __find_top( Function &F, double p_lo, double p_up, const double res);
     double  __find_bot( Function &F, double p_lo, double p_up, const double res);
 
-
+public:
+    size_t last_counts;
 
 };
 

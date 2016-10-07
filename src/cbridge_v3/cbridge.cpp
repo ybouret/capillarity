@@ -69,5 +69,17 @@ double Bridge:: CriticalZetaOfAlpha(const double alpha)  throw()
      return cos(alpha)-1.0;
 }
 
+void Bridge:: SaveLens(const string &filename, const double shift )
+{
+    ios::wcstream fp(filename);
+    const double vc = 1.0 + shift;
+    for(double alpha=0;alpha<360;alpha+=0.1)
+    {
+        const double angle = Deg2Rad(alpha);
+        fp("%.15g %.15g\n", sin(angle), vc - cos(angle));
+    }
+    fp("%.15g %.15g\n", sin(0), vc - cos(0));
+
+}
 
 

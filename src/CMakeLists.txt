@@ -25,7 +25,7 @@ TARGET_LINK_YOCTO(contact_angle gfx tiff png)
 INSTALL( TARGETS contact_angle RUNTIME DESTINATION bin )
 
 #ADD_SUBDIRECTORY(cbridge)
-ADD_SUBDIRECTORY(cbridge_v2)
+#ADD_SUBDIRECTORY(cbridge_v2)
 ADD_SUBDIRECTORY(cbridge_v3)
 
 

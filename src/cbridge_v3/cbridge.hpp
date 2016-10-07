@@ -2,8 +2,10 @@
 #define BRIDGE_INCLUDED 1
 
 #include "yocto/lua/lua-config.hpp"
+#include "yocto/lua/lua-state.hpp"
 #include "yocto/math/ode/explicit/driver-ck.hpp"
 #include "yocto/ios/ocstream.hpp"
+#include "yocto/ios/icstream.hpp"
 #include "yocto/math/trigconv.hpp"
 #include "yocto/math/opt/minimize.hpp"
 #include "yocto/math/core/tao.hpp"
@@ -72,7 +74,7 @@ public:
      */
     double profile(const double  alpha,
                    const double  theta,
-                   const double  Xi,
+                   const double  zeta,
                    ios::ostream *fp);
 
     //! this is the function to get a continuous level indicator
@@ -88,6 +90,13 @@ public:
     static double CriticalZetaOfTheta(const double theta)  throw();
     static double CriticalZetaOfAlpha(const double alpha)  throw();
 
+    double find_alpha(const double theta,
+                      const double zeta,
+                      bool        *is_flat);
+
+    double find_theta(const double alpha,
+                      const double zeta,
+                      bool        *is_flat);
 
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Bridge);
@@ -98,6 +107,9 @@ private:
     void   ProfileEq( array<double> &dYds, double, const array<double> &Y );
     double ProfileOfAlpha(const double alpha);
     double ProfileOfTheta(const double theta);
+    double  __find_top( Function &F, double p_lo, double p_up, const double res);
+    double  __find_bot( Function &F, double p_lo, double p_up, const double res);
+
 
 
 };

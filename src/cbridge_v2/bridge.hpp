@@ -16,6 +16,7 @@ using namespace math;
 #define BRIDGE_U 1
 #define BRIDGE_V 2
 #define BRIDGE_A 3
+#define BRIDGE_Q 4
 #define BRIDGE_N 3
 
 
@@ -130,7 +131,7 @@ public:
     Vector volume;
     
     double   compute_user_sink(const double alpha, const double theta, const double Xi);
-
+    double   compute_volume(const double alpha, const double theta, const double Xi);
 };
 
 

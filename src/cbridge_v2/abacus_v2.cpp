@@ -11,10 +11,11 @@ YOCTO_PROGRAM_START()
 
     Lua::Config::DoString(L,"ftol=1e-5;");
     Lua::Config::DoString(L,"angle_control=1;");
-    Lua::Config::DoString(L,"shift_control=0.1;");
+    Lua::Config::DoString(L,"shift_control=0.001;");
     Lua::Config::DoString(L,"R0=80;");
     Lua::Config::DoString(L,"lambda=2.72;");
     Lua::Config::DoString(L,"resolution=1e-3");
+    Lua::Config::DoString(L,"hmin=-1");
 
     for(int i=1;i<argc;++i)
     {
@@ -22,6 +23,7 @@ YOCTO_PROGRAM_START()
     }
 
     //Bridge::curvature_coeff = 1;
+    const double hmin = Lua::Config::Get<lua_Number>(L,"hmin");
 
     Bridge B(L,1);
     ios::ocstream::overwrite("xi_max.dat");
@@ -42,7 +44,7 @@ YOCTO_PROGRAM_START()
             fp("%.15g %.15g %.15g\n", double(theta_deg), Xi_max, zeta_max);
         }
 
-        const double Xi_min = -Xi_max;
+        const double Xi_min = hmin/B.R0;
         //const double Xi_min = 0;
         for(size_t i=0;i<=N;++i)
         {
@@ -52,10 +54,12 @@ YOCTO_PROGRAM_START()
 
             if(alpha<0) throw exception("invalid Xi=%g for theta=%g\n", Xi, double(theta_deg) );
             (void) B.profile(alpha, theta, Xi, NULL, true);
-            const double usink = B.compute_user_sink(alpha, theta, Xi);
-            const double zeta  = Xi - usink;
+            //const double usink = B.compute_user_sink(alpha, theta, Xi);
+            //const double zeta  = Xi - usink;
+            const double volume  = B.compute_volume(alpha, theta, Xi);
             ios::acstream fp(filename);
-            fp("%.15g %.15g %.15g\n", B.R0*Xi, numeric<double>::pi * Square( B.R0 * sin(alpha)), B.R0 * zeta );
+            //fp("%.15g %.15g %.15g\n", B.R0*Xi, numeric<double>::pi * Square( B.R0 * sin(alpha)), B.R0 * zeta );
+            fp("%.15g %.15g %.15g\n", B.R0*Xi, numeric<double>::pi * Square( B.R0 * sin(alpha)), B.R0*B.R0*B.R0 * volume );
         }
 
         {

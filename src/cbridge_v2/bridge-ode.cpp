@@ -7,6 +7,7 @@ void Bridge:: compute_start(const double alpha, const double theta, const double
     param[BRIDGE_U] = sin(alpha);
     param[BRIDGE_V] = Xi + (1.0-cos(alpha));
     param[BRIDGE_A] = alpha+theta-numeric<double>::pi;
+    //param[BRIDGE_Q] = 0;
 }
 
 double Bridge:: GetValue(const double v0, const double v) throw()
@@ -34,6 +35,7 @@ void Bridge::ProfileEq(array<double> &dYds, double, const array<double> &Y)
         dYds[BRIDGE_U] = C;
         dYds[BRIDGE_V] = S;
         dYds[BRIDGE_A] = mu2 * v - S/u;
+        //dYds[BRIDGE_Q] = 0;
     }
     else
     {

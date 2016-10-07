@@ -186,8 +186,8 @@ double  Bridge:: compute_user_sink(const double alpha,
                                    const double Xi)
 {
 
+#if 0
     const size_t n = heights.size(); assert(n==radii.size());
-    //std::cerr << "#heights=" << n << std::endl;
     co_qsort(heights,radii);
 
     slices.make(n);
@@ -213,13 +213,48 @@ double  Bridge:: compute_user_sink(const double alpha,
     }
 
     //std::cerr << "Volume=" << volume[n] << std::endl;
-    const double vhalf = 0.5*volume[n];
+#endif
+
+    const double vhalf = 0.5*compute_volume(alpha,theta,Xi);
     const double usink = linear(vhalf,volume,heights);
     //std::cerr << "urise=" << urise << std::endl;
 
     return usink;
     
 }
+
+
+double Bridge:: compute_volume(const double alpha, const double theta, const double Xi)
+{
+    // we ge s positive volume, heights are absolute
+    const size_t n = heights.size(); assert(n==radii.size());
+    co_qsort(heights,radii);
+
+    slices.make(n);
+    volume.make(n);
+
+    // compute each slice area, disk or couronne
+    for(size_t i=1;i<=n;++i)
+    {
+        const double zz = heights[i];
+        const double rr = radii[i];
+        slices[i] = rr*rr;
+
+        const double ri2 = max_of<double>(0,1.0-Square(1.0+Xi-zz));
+        slices[i] -= ri2;
+
+        slices[i] *= numeric<double>::pi;
+    }
+    volume[1] = 0;
+
+    for(size_t i=2;i<=n;++i)
+    {
+        volume[i] = volume[i-1] + 0.5*(heights[i]-heights[i-1]) * (slices[i]+slices[i-1]);
+    }
+    return volume[n];
+}
+
+
 
 double Bridge:: find_Xi_max(const double theta, double &alpha_min, double &zeta_max)
 {

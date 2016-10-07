@@ -188,7 +188,8 @@ double Bridge:: find_zeta_max(const double theta)
         zeta_up += 1.0;
     }
 
-    while( Fabs(zeta_up-zeta_lo) >= numeric<double>::ftol * ( Fabs(zeta_lo) + Fabs(zeta_up) ) )
+    const double zeta_ftol = numeric<double>::sqrt_ftol;
+    while( Fabs(zeta_up-zeta_lo) >= zeta_ftol * ( Fabs(zeta_lo) + Fabs(zeta_up) ) )
     {
         const double zeta_mid = 0.5*(zeta_lo+zeta_up);
         if(find_alpha(theta,zeta_mid,NULL) < 0 )

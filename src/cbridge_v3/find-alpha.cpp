@@ -37,6 +37,7 @@ YOCTO_PROGRAM_START()
         ios::wcstream fp("alpha_opt.dat");
         if(is_flat)
         {
+            (void)B.profile(alpha_opt, theta, zeta, NULL);
             for(double xx=0;xx<=1;xx+=0.1)
             {
                 fp("%g %g\n", B.start_u+xx, B.start_v );
@@ -46,6 +47,10 @@ YOCTO_PROGRAM_START()
         {
             (void)B.profile(alpha_opt, theta, zeta, &fp);
         }
+        std::cerr << "Q=" << B.param[BRIDGE_Q] << std::endl;
+        std::cerr << "q=" << B.param[BRIDGE_q] << std::endl;
+        std::cerr << "start_u=" << B.start_u << std::endl;
+        std::cerr << "start_v=" << B.start_v << std::endl;
     }
     else
     {

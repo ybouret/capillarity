@@ -4,6 +4,7 @@ void Bridge:: compute_start(const double alpha,
                             const double theta,
                             const double zeta)
 {
+    __zeta          = zeta;
     status          = true;
     center_v        = 1.0 + zeta;
     start_v         = zeta + (1.0-cos(alpha));
@@ -11,6 +12,8 @@ void Bridge:: compute_start(const double alpha,
     param[BRIDGE_U] = start_u;
     param[BRIDGE_V] = start_v;
     param[BRIDGE_A] = alpha+theta-numeric<double>::pi;
+    param[BRIDGE_Q] = 0;
+    param[BRIDGE_q] = 0;
 }
 
 double Bridge:: GetValue(const double v0, const double v) throw()
@@ -25,8 +28,15 @@ double Bridge:: GetValue(const double v0, const double v) throw()
     }
 }
 
+double Bridge:: last_space() const throw()
+{
+    return  (param[BRIDGE_Q] - param[BRIDGE_q]);
+}
+
+
 void Bridge::ProfileEq(array<double> &dYds, double, const array<double> &Y)
 {
+    static const double fac = -numeric<double>::pi;
     const double u   = Y[BRIDGE_U];
     const double v   = Y[BRIDGE_V];
     const double phi = Y[BRIDGE_A];
@@ -35,10 +45,20 @@ void Bridge::ProfileEq(array<double> &dYds, double, const array<double> &Y)
 
     if(u>0)
     {
-        dYds[BRIDGE_U] = C;
-        dYds[BRIDGE_V] = S;
-        dYds[BRIDGE_A] = mu2 * v - S/u;
-        //dYds[BRIDGE_Q] = 0;
+        dYds[BRIDGE_U]   = C;
+        dYds[BRIDGE_V]   = S;
+        dYds[BRIDGE_A]   = mu2 * v - S/u;
+        const double ff  = fac * S;
+        dYds[BRIDGE_Q]   = ff * (u*u);
+        if(v>=__zeta)
+        {
+            dYds[BRIDGE_q]   = ff * max_of<double>(0,1.0-Square(1.0+__zeta-v));
+        }
+        else
+        {
+            dYds[BRIDGE_q] = 0;
+        }
+        //std::cerr << "dq(" << v << ")=" << dYds[BRIDGE_q] << std::endl;
     }
     else
     {
@@ -150,9 +170,8 @@ if(fp) (*fp)("%.15g %.15g %.15g\n", param[BRIDGE_U],param[BRIDGE_V], param[BRIDG
             {
                 assert(Fabs(v_curr)>0 || Fabs(v_prev)>0);
                 const double X  = clamp<double>(0,-v_prev/(v_curr-v_prev),1);
-                param[BRIDGE_U] = pprev[BRIDGE_U] + X*(param[BRIDGE_U]-pprev[BRIDGE_U]);
+                tao::setbar(param,pprev,X,param);
                 param[BRIDGE_V] = 0;
-                param[BRIDGE_A] = pprev[BRIDGE_A] + X*(param[BRIDGE_A]-pprev[BRIDGE_A]);
                 SAVE_STATUS();
                 return 0;
             }
@@ -171,14 +190,9 @@ if(fp) (*fp)("%.15g %.15g %.15g\n", param[BRIDGE_U],param[BRIDGE_V], param[BRIDG
             {
                 //std::cerr << "u-returning!" << std::endl;
                 const double X   = clamp<double>(0.0,-du_prev/(du_curr-du_prev),1.0);
-                const double u   = pprev[BRIDGE_U] + X * (param[BRIDGE_U]-pprev[BRIDGE_U]);
-                const double v   = pprev[BRIDGE_V] + X * (param[BRIDGE_V]-pprev[BRIDGE_V]);
-                const double phi = pprev[BRIDGE_A] + X * (param[BRIDGE_A]-pprev[BRIDGE_A]);
-                param[BRIDGE_V] = v;
-                param[BRIDGE_U] = u;
-                param[BRIDGE_A] = phi;
+                tao::setbar(param,pprev,X,param);
                 SAVE_STATUS();
-                return GetValue(v0,v);
+                return GetValue(v0,param[BRIDGE_V]);
             }
         }
 
@@ -194,14 +208,9 @@ if(fp) (*fp)("%.15g %.15g %.15g\n", param[BRIDGE_U],param[BRIDGE_V], param[BRIDG
             {
                 assert(Fabs(dv_prev)>0||Fabs(dv_curr)>0);
                 const double X   = clamp<double>(0.0,-dv_prev/(dv_curr-dv_prev),1.0);
-                const double u   = pprev[BRIDGE_U] + X * (param[BRIDGE_U]-pprev[BRIDGE_U]);
-                const double v   = pprev[BRIDGE_V] + X * (param[BRIDGE_V]-pprev[BRIDGE_V]);
-                const double phi = pprev[BRIDGE_A] + X * (param[BRIDGE_A]-pprev[BRIDGE_A]);
-                param[BRIDGE_V]  = v;
-                param[BRIDGE_U]  = u;
-                param[BRIDGE_A]  = phi;
+                tao::setbar(param,pprev,X,param);
                 SAVE_STATUS();
-                return GetValue(v0,v);
+                return GetValue(v0,param[BRIDGE_V]);
             }
         }
 
@@ -226,15 +235,10 @@ if(fp) (*fp)("%.15g %.15g %.15g\n", param[BRIDGE_U],param[BRIDGE_V], param[BRIDG
                 // compute reduced discriminant
                 const double sD   = sqrt(max_of(0.0,b*b - a*c));
                 const double beta = clamp<double>(0,(-b + sD)/a,1);
-                const double X   = 1.0 - beta;
-                const double u   = pprev[BRIDGE_U] + X * (param[BRIDGE_U]-pprev[BRIDGE_U]);
-                const double v   = pprev[BRIDGE_V] + X * (param[BRIDGE_V]-pprev[BRIDGE_V]);
-                const double phi = pprev[BRIDGE_A] + X * (param[BRIDGE_A]-pprev[BRIDGE_A]);
-                param[BRIDGE_U]  = u;
-                param[BRIDGE_V]  = v;
-                param[BRIDGE_A]  = phi;
+                const double X    = 1.0 - beta;
+                tao::setbar(param,pprev,X,param);
                 SAVE_STATUS();
-                return GetValue(v0,v);
+                return GetValue(v0,param[BRIDGE_V]);
             }
         }
 

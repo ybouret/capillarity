@@ -19,7 +19,8 @@ using namespace math;
 #define BRIDGE_V 2
 #define BRIDGE_A 3
 #define BRIDGE_Q 4
-#define BRIDGE_N 3
+#define BRIDGE_q 5
+#define BRIDGE_N 5
 
 
 typedef numeric<double>::function    Function;
@@ -99,6 +100,7 @@ public:
                       bool        *is_flat);
 
     double find_zeta_max(const double theta);
+    double last_space() const throw();
 
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Bridge);

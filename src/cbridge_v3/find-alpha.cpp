@@ -9,8 +9,8 @@ YOCTO_PROGRAM_START()
     const double theta_deg = Lua::Config::Get<lua_Number>(L,"theta");
     const double theta     = Deg2Rad(theta_deg);
 
-    std::cerr << "theta=" << theta << std::endl;
-    std::cerr << "zeta =" << zeta  << std::endl;
+    std::cerr << "theta=" << theta_deg << std::endl;
+    std::cerr << "zeta =" << zeta      << std::endl;
 
     Bridge::SaveLens("lens.dat", zeta);
 

@@ -4,6 +4,8 @@ cbridge.cpp
 cbridge-ode.cpp
 cbridge-alpha.cpp
 cbridge-theta.cpp
+par-bridge.hpp
+par-bridge.cpp
 )
 
 ADD_EXECUTABLE(cbridge_v3 main.cpp)

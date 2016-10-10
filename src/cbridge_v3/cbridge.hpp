@@ -107,6 +107,10 @@ public:
     static double CapVolume(const double hh);
     double last_cylinder_space() const throw();
 
+    //! zeta must be set
+    double compute_dVdu(const double u,const double v,const double phi) const throw();
+
+
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Bridge);
     double __alpha; //!< for functions
@@ -124,7 +128,8 @@ public:
     Vector heights;
     Vector radii;
     Vector volumes;
-
+    Vector angles;
+    
     double compute_shift(const double alpha, const double theta, const double zeta);
 };
 

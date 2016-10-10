@@ -47,10 +47,15 @@ YOCTO_PROGRAM_START()
         {
             (void)B.profile(alpha, theta_opt, zeta, &fp, true);
             ios::wcstream fp2("theta_red.dat");
-            for(size_t i=1;i<B.heights.size();++i)
+            for(size_t i=1;i<=B.heights.size();++i)
             {
                 fp2("%.15g %.15g %.15g\n",B.radii[i]-B.start_u,B.heights[i]/B.start_v,B.volumes[i]);
             }
+            const double last_V  = B.volumes.back();
+            const double last_dV = B.compute_dVdu(B.radii.back(), B.heights.back(), B.angles.back() );
+            std::cerr << "last_U =" << B.radii.back()-B.start_u << std::endl;
+            std::cerr << "last_V =" << last_V  << std::endl;
+            std::cerr << "last_dV=" << last_dV << std::endl;
         }
     }
     else

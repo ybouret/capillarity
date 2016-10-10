@@ -81,6 +81,19 @@ void Bridge::ProfileEq(array<double> &dYds, double, const array<double> &Y)
 
 }
 
+double Bridge:: compute_dVdu(const double u,const double v,const double phi) const throw()
+{
+    static const double fac = -numeric<double>::pi;
+
+    const double S = sin(phi);
+    const double ff = S * fac;
+    double       dVdtau = ff * (u*u);
+    if(v>=__zeta)
+    {
+        dVdtau -= ff * max_of<double>(0,1.0-Square(1.0+__zeta-v));
+    }
+    return dVdtau / cos(phi);
+}
 
 #include "yocto/math/round.hpp"
 #include "yocto/math/point2d.hpp"
@@ -119,7 +132,7 @@ double Bridge:: profile(const double  alpha,
 #define SAVE_STATUS() do { \
 ++last_counts;\
 if(fp) (*fp)("%.15g %.15g %.15g\n", param[BRIDGE_U],param[BRIDGE_V], param[BRIDGE_A]);\
-if(record) { heights.push_back(param[BRIDGE_V]); radii.push_back(param[BRIDGE_U]); volumes.push_back(param[BRIDGE_Q]-param[BRIDGE_q]); }\
+if(record) { heights.push_back(param[BRIDGE_V]); radii.push_back(param[BRIDGE_U]); volumes.push_back(param[BRIDGE_Q]-param[BRIDGE_q]); angles.push_back(param[BRIDGE_A]); }\
 } while(false)
 
     double       tau      = 0;
@@ -281,6 +294,8 @@ double Bridge:: compute_shift(const double alpha, const double theta, const doub
     heights.free();
     radii.free();
     volumes.free();
+    angles.free();
+
     if( profile(alpha, theta, zeta, NULL, false) > 0)
     {
         throw exception("compute_shift: NO BRIDGE!");
@@ -288,6 +303,7 @@ double Bridge:: compute_shift(const double alpha, const double theta, const doub
     heights.ensure(last_counts);
     radii.ensure(last_counts);
     volumes.ensure(last_counts);
+    angles.ensure(last_counts);
     (void)profile(alpha, theta, zeta, NULL, true);
     if(heights.size()<=2)
     {

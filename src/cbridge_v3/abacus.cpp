@@ -54,7 +54,7 @@ YOCTO_PROGRAM_START()
             const double V     = B.last_space() * R3;
             ios::acstream fp(filename);
             const double shift = B.compute_shift(alpha, theta, zeta);
-            fp("%.15g %.15g %.15g %.15g\n",h,A,V,shift*B.R0);
+            fp("%.15g %.15g %.15g %.15g %.15g\n",h,A,V,shift*B.R0,(shift+zeta)*B.R0);
         }
         std::cerr << std::endl;
         

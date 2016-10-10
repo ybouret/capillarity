@@ -46,6 +46,7 @@ public:
     Equation       profEq;   //!< differential equation
     bool           status;   //!< no error during integration
     const double   R0;       //!< radius
+    const double   A0;       //!< pi * R0^2
     const double   lambda;   //!< capillary length
     const double   mu2;            //!< mu^2...
     const double   mu;             //!< scaling

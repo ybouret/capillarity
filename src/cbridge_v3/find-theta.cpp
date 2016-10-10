@@ -30,6 +30,7 @@ YOCTO_PROGRAM_START()
 
     bool         is_flat   = false;
     const double theta_opt = B.find_theta(alpha,zeta,&is_flat);
+    ios::ocstream::overwrite("theta_red.dat");
     if(theta_opt>=0)
     {
         std::cerr << "THETA=" << Rad2Deg(theta_opt) << std::endl;
@@ -44,7 +45,12 @@ YOCTO_PROGRAM_START()
         }
         else
         {
-            (void)B.profile(alpha, theta_opt, zeta, &fp);
+            (void)B.profile(alpha, theta_opt, zeta, &fp, true);
+            ios::wcstream fp2("theta_red.dat");
+            for(size_t i=1;i<B.heights.size();++i)
+            {
+                fp2("%.15g %.15g %.15g\n",B.radii[i]-B.start_u,B.heights[i]/B.start_v,B.volumes[i]);
+            }
         }
     }
     else

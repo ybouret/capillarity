@@ -122,6 +122,7 @@ private:
 public:
     size_t last_counts;
     Vector heights;
+    Vector radii;
     Vector volumes;
 
     double compute_shift(const double alpha, const double theta, const double zeta);

@@ -37,7 +37,8 @@ __theta(0),
 __zeta(0),
 __xi(0),
 __success(0),
-last_counts(0)
+last_counts(0),
+mgr()
 {
     odeint.start(nvar);
     std::cerr << "ftol="       << odeint.eps  << std::endl;
@@ -54,8 +55,10 @@ last_counts(0)
     change_curv(1.0);
     std::cerr << "mu    =" << mu << std::endl;
 
-
-
+    mgr.enroll(heights,1);
+    mgr.enroll(radii,1);
+    mgr.enroll(volumes,1);
+    mgr.enroll(angles,1);
 }
 
 void Bridge:: change_curv(const double curvature_coeff)

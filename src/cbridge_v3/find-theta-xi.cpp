@@ -28,10 +28,11 @@ YOCTO_PROGRAM_START()
         std::cerr << "shift=" << shift << std::endl;
         std::cerr << "zeta =" << zeta  << std::endl;
         std::cerr << "THETA_Xi=" << Rad2Deg(theta_xi) << std::endl;
-        B.compute_start(alpha,theta_xi,zeta);
+
         ios::wcstream fp("theta_xi.dat");
         if(is_flat)
         {
+            B.compute_start(alpha,theta_xi,zeta);
             for(double xx=0;xx<=1;xx+=0.1)
             {
                 //fp("%g %g\n", B.start_u+xx, B.start_v );
@@ -40,6 +41,10 @@ YOCTO_PROGRAM_START()
         else
         {
             (void)B.profile(alpha, theta_xi, zeta, NULL, true);
+            for(size_t i=1;i<=B.heights.size();++i)
+            {
+                fp("%.15g %.15g\n", B.radii[i], B.heights[i]-shift);
+            }
         }
     }
     else

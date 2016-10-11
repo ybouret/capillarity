@@ -110,7 +110,7 @@ double Bridge:: profile(const double  alpha,
 
     assert(alpha>0);
     assert(alpha<numeric<double>::pi);
-
+    mgr.free_all();
 
     //__________________________________________________________________________
     //
@@ -132,7 +132,12 @@ double Bridge:: profile(const double  alpha,
 #define SAVE_STATUS() do { \
 ++last_counts;\
 if(fp) (*fp)("%.15g %.15g %.15g\n", param[BRIDGE_U],param[BRIDGE_V], param[BRIDGE_A]);\
-if(record) { heights.push_back(param[BRIDGE_V]); radii.push_back(param[BRIDGE_U]); volumes.push_back(param[BRIDGE_Q]-param[BRIDGE_q]); angles.push_back(param[BRIDGE_A]); }\
+if(record) {\
+heights.push_back(param[BRIDGE_V]);                \
+radii.push_back(param[BRIDGE_U]);                  \
+volumes.push_back(param[BRIDGE_Q]-param[BRIDGE_q]);\
+angles.push_back(param[BRIDGE_A]);                 \
+}\
 } while(false)
 
     double       tau      = 0;
@@ -280,7 +285,7 @@ if(record) { heights.push_back(param[BRIDGE_V]); radii.push_back(param[BRIDGE_U]
         tao::set(pprev,param);
         SAVE_STATUS();
     }
-    
+
     // end of simulation
     return GetValue(v0,param[BRIDGE_V]);
     
@@ -291,19 +296,13 @@ if(record) { heights.push_back(param[BRIDGE_V]); radii.push_back(param[BRIDGE_U]
 
 double Bridge:: compute_shift(const double alpha, const double theta, const double zeta)
 {
-    heights.free();
-    radii.free();
-    volumes.free();
-    angles.free();
 
     if( profile(alpha, theta, zeta, NULL, false) > 0)
     {
         throw exception("compute_shift: NO BRIDGE!");
     }
-    heights.ensure(last_counts);
-    radii.ensure(last_counts);
-    volumes.ensure(last_counts);
-    angles.ensure(last_counts);
+    mgr.ensure_all(last_counts);
+
     (void)profile(alpha, theta, zeta, NULL, true);
     if(heights.size()<=2)
     {

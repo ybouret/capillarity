@@ -83,6 +83,7 @@ double Bridge:: find_theta_by_xi(const double alpha, const double xi, bool *glob
     const double zeta    = 0.5 * (zeta_a+zeta_b);
     double       theta   = find_theta(alpha,zeta,&is_flat);
     if(global_flat) *global_flat = is_flat;
+    shift                = compute_shift(alpha,theta,zeta);
 
     return theta;
 }

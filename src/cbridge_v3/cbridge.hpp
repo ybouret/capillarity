@@ -11,6 +11,7 @@
 #include "yocto/math/core/tao.hpp"
 #include "yocto/math/round.hpp"
 #include "yocto/container/tuple.hpp"
+#include "yocto/container/manager.hpp"
 
 using namespace yocto;
 using namespace math;
@@ -135,7 +136,7 @@ public:
     Vector radii;
     Vector volumes;
     Vector angles;
-    
+    container_manager_of<Vector> mgr;
     double compute_shift(const double alpha, const double theta, const double zeta);
 };
 

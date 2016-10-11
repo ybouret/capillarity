@@ -15,6 +15,7 @@ surf(),
 alpha(),
 theta(),
 Theta(),
+rate( Lua::Config::Get<lua_Number>(L,"rate") ),
 mgr()
 {
     Crew &self = *this;
@@ -31,6 +32,7 @@ mgr()
     mgr.enroll(Theta,__SUBS);
     mgr.enroll(Theta2,__SUBS);
 
+    std::cerr << "rate=" << rate << std::endl;
 }
 
 void ParBridge:: load( const string &filename )
@@ -73,17 +75,20 @@ void ParBridge:: FindTheta( Context &ctx )
     size_t length = zeta.size();
     ctx.split(i,length);
     Bridge &B     = ctx.as<Bridge>();
-    double shift = 0;
+    //double shift = 0;
     for(;length>0;++i,--length)
     {
         //std::cerr << "zeta=" << zeta[i] << std::endl;
+        const double zz = zeta[i] + (rate*i);
         B.change_curv(1);
-        theta[i] = B.find_theta(alpha[i],zeta[i], NULL);
+        theta[i] = B.find_theta(alpha[i],zz, NULL);
+#if 0
         Theta[i] = B.find_theta_by_xi(alpha[i],zeta[i], NULL, shift);
 
         B.change_curv(2);
         theta2[i] = B.find_theta(alpha[i],zeta[i], NULL);
         Theta2[i] = B.find_theta_by_xi(alpha[i],zeta[i], NULL, shift);
+#endif
 
     }
 }

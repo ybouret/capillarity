@@ -27,6 +27,7 @@ public:
 
 
     void find_theta(); //!< in parallel
+    double rate;
 
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(ParBridge);

@@ -20,9 +20,18 @@ YOCTO_PROGRAM_START()
 
     if(argc>1)
     {
+        //______________________________________________________________________
+        //
+        // loading original file, in colors
+        //______________________________________________________________________
         const string  filename = argv[1];
         const pixmap3 origin( IMG.load3(filename,NULL) );
         IMG.save("img-origin.png",origin,NULL);
+
+        //______________________________________________________________________
+        //
+        // making a black
+        //______________________________________________________________________
 
         pixmapf      img0(origin,RGB::to_float,origin);
         const unit_t h = origin.h;
@@ -33,7 +42,7 @@ YOCTO_PROGRAM_START()
 
         //______________________________________________________________________
         //
-        // image, raw or filtered
+        // image, raw or filtered if sigma>0
         //______________________________________________________________________
         if(sig>0)
         {

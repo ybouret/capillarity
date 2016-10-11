@@ -27,8 +27,12 @@ YOCTO_PROGRAM_START()
     std::cerr << "-- Processing..." << std::endl;
     B.find_theta();
 
+    string root = vfs::get_base_name(filename);
+    vfs::change_extension(root,"theta.dat");
+    std::cerr << "-- Saving into " << root << std::endl;
+    
     {
-        ios::wcstream fp("output.dat");
+        ios::wcstream fp(root);
         for(size_t i=1;i<=B.zeta.size();++i)
         {
             fp("%.15g %.15g %.15g %.15g %.15g %.15g %.15g\n",

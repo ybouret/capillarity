@@ -177,17 +177,21 @@ double Bridge:: find_alpha(const double theta,
 
 double Bridge:: find_zeta_max(const double theta)
 {
+    // a good value
     double zeta_lo = 0.0;
     if( find_alpha(theta, zeta_lo, NULL) < 0 )
     {
         throw exception("Cannot find alpha for zeta=0");
     }
+
+    // a bad balue
     double zeta_up = 1.0;
     while(find_alpha(theta,zeta_up,NULL)>=0)
     {
+        zeta_lo = zeta_up;
         zeta_up += 1.0;
     }
-
+    std::cerr << "Looking up between " << zeta_lo << " and " << zeta_up << std::endl;
     const double zeta_ftol = numeric<double>::sqrt_ftol;
     while( Fabs(zeta_up-zeta_lo) >= zeta_ftol * ( Fabs(zeta_lo) + Fabs(zeta_up) ) )
     {
@@ -202,5 +206,6 @@ double Bridge:: find_zeta_max(const double theta)
         }
     }
 
+    // highest good value
     return zeta_lo;
 }

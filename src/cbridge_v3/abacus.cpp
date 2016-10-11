@@ -7,12 +7,12 @@ YOCTO_PROGRAM_START()
 
     const double hmin = Lua::Config::Get<lua_Number>(L,"hmin");
 
-    const size_t N    = 200;
+    const size_t N        = 200;
     const string filename = "abacus.dat";
     ios::ocstream::overwrite(filename);
 
-    const double R3 = Cube(B.R0);
-    for(int theta_deg = 60; theta_deg <= 170; theta_deg += 10 )
+    const double  R3  = Cube(B.R0);
+    for(int theta_deg = 100; theta_deg <= 175; theta_deg += 5 )
     //for(int theta_deg = 170; theta_deg <= 170; theta_deg += 10)
     {
         const double theta = Deg2Rad(double(theta_deg));
@@ -54,7 +54,7 @@ YOCTO_PROGRAM_START()
             const double V     = B.last_space() * R3;
             ios::acstream fp(filename);
             const double shift = B.compute_shift(alpha, theta, zeta);
-            fp("%.15g %.15g %.15g %.15g %.15g\n",h,A,V,shift*B.R0,(shift+zeta)*B.R0);
+            fp("%.15g %.15g %.15g %.15g %.15g\n",h,A,V,shift*B.R0,(zeta-shift)*B.R0);
         }
         std::cerr << std::endl;
         

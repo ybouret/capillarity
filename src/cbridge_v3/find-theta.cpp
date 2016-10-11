@@ -19,7 +19,7 @@ YOCTO_PROGRAM_START()
         ios::wcstream fp("profile.dat");
         ios::wcstream rp("results.dat");
 
-        for(double theta_deg=1;theta_deg<=179; theta_deg += 1)
+        for(double theta_deg=1;theta_deg<=179; theta_deg += 2)
         {
             const double theta = Deg2Rad(theta_deg);
             const double ans   = B.profile(alpha,theta,zeta, &fp);

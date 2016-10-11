@@ -60,7 +60,8 @@ public:
     const double   shift_control;  //!< max speed = tau max
     Function       prof_alpha;
     Function       prof_theta;
-
+    Function       zprof_zeta;
+    
     //! re-compute mu2 and mu
     void change_curv(const double curvature_coeff);
 
@@ -110,18 +111,23 @@ public:
     //! zeta must be set
     double compute_dVdu(const double u,const double v,const double phi) const throw();
 
+    double find_theta_by_xi(const double alpha, const double zeta, bool *if_flat, double &shift);
+
 
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Bridge);
     double __alpha; //!< for functions
     double __theta; //!< for functions
     double __zeta;  //!< for functions
+    double __xi;    //!< for functions
+    bool   __success; //!< for xi...
     
     void   ProfileEq( array<double> &dYds, double, const array<double> &Y );
     double ProfileOfAlpha(const double alpha);
     double ProfileOfTheta(const double theta);
     double  __find_top( Function &F, double p_lo, double p_up, const double res);
     double  __find_bot( Function &F, double p_lo, double p_up, const double res);
+    double DeltaOfZeta(const double zeta);
 
 public:
     size_t last_counts;

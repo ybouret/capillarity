@@ -4,6 +4,7 @@ cbridge.cpp
 cbridge-ode.cpp
 cbridge-alpha.cpp
 cbridge-theta.cpp
+cbridge-xi.cpp
 par-bridge.hpp
 par-bridge.cpp
 )
@@ -20,6 +21,10 @@ ADD_EXECUTABLE(find-theta find-theta.cpp)
 TARGET_LINK_LIBRARIES(find-theta bridge_v3)
 TARGET_LINK_YOCTO(find-theta mk lua++)
 
+ADD_EXECUTABLE(find-theta-xi find-theta-xi.cpp)
+TARGET_LINK_LIBRARIES(find-theta-xi bridge_v3)
+TARGET_LINK_YOCTO(find-theta-xi mk lua++)
+
 ADD_EXECUTABLE(abacus abacus.cpp)
 TARGET_LINK_LIBRARIES(abacus bridge_v3)
 TARGET_LINK_YOCTO(abacus mk lua++)
@@ -27,7 +32,7 @@ TARGET_LINK_YOCTO(abacus mk lua++)
 INSTALL( TARGETS 
 cbridge_v3 
 find-alpha
-find-theta
+find-theta-xi
 abacus
 RUNTIME DESTINATION bin )
 

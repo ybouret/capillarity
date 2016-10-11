@@ -31,9 +31,12 @@ INI_FROM_LUA(angle_control),
 INI_FROM_LUA(shift_control),
 prof_alpha(this, & Bridge:: ProfileOfAlpha),
 prof_theta(this, & Bridge:: ProfileOfTheta),
+zprof_zeta(this, & Bridge::DeltaOfZeta    ),
 __alpha(0),
 __theta(0),
 __zeta(0),
+__xi(0),
+__success(0),
 last_counts(0)
 {
     odeint.start(nvar);

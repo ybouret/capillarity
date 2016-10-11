@@ -112,7 +112,7 @@ public:
     //! zeta must be set
     double compute_dVdu(const double u,const double v,const double phi) const throw();
 
-    double find_theta_by_xi(const double alpha, const double zeta, bool *if_flat, double &shift);
+    double find_theta_by_xi(const double alpha, const double xi, bool *if_flat, double &shift);
 
 
 private:

@@ -14,6 +14,7 @@ zeta(),
 surf(),
 alpha(),
 theta(),
+Theta(),
 mgr()
 {
     Crew &self = *this;
@@ -26,6 +27,10 @@ mgr()
     mgr.enroll(surf,__CORE);
     mgr.enroll(alpha,__SUBS);
     mgr.enroll(theta,__SUBS);
+    mgr.enroll(theta2,__SUBS);
+    mgr.enroll(Theta,__SUBS);
+    mgr.enroll(Theta2,__SUBS);
+
 }
 
 void ParBridge:: load( const string &filename )
@@ -56,6 +61,10 @@ void ParBridge:: find_theta()
     Crew &self = *this;
     threading::kernel k(this, & ParBridge::FindTheta );
     self(k);
+    for(size_t i=0;i<self.size;++i)
+    {
+        self[i].as<Bridge>().change_curv(1);
+    }
 }
 
 void ParBridge:: FindTheta( Context &ctx )
@@ -64,9 +73,18 @@ void ParBridge:: FindTheta( Context &ctx )
     size_t length = zeta.size();
     ctx.split(i,length);
     Bridge &B     = ctx.as<Bridge>();
+    double shift = 0;
     for(;length>0;++i,--length)
     {
+        //std::cerr << "zeta=" << zeta[i] << std::endl;
+        B.change_curv(1);
         theta[i] = B.find_theta(alpha[i],zeta[i], NULL);
+        Theta[i] = B.find_theta_by_xi(alpha[i],zeta[i], NULL, shift);
+
+        B.change_curv(2);
+        theta2[i] = B.find_theta(alpha[i],zeta[i], NULL);
+        Theta2[i] = B.find_theta_by_xi(alpha[i],zeta[i], NULL, shift);
+
     }
 }
 

@@ -3,7 +3,6 @@
 
 #include "cbridge.hpp"
 #include "yocto/threading/crew.hpp"
-#include "yocto/container/manager.hpp"
 
 typedef threading::context Context;
 typedef threading::crew    Crew;
@@ -21,6 +20,9 @@ public:
     Vector surf;   // area/A0
     Vector alpha;  // asin( sqrt(surf) )
     Vector theta;  // theta..
+    Vector theta2; // theta
+    Vector Theta;  //
+    Vector Theta2;
     void load( const string &filename );
 
 

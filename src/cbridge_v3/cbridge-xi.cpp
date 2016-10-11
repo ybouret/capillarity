@@ -54,11 +54,11 @@ double Bridge:: find_theta_by_xi(const double alpha, const double xi, bool *glob
         jump_a = jump_b;
     }
 
-    std::cerr << "Bracketed..." << std::endl;
-    std::cerr << "zeta  =" << zeta_a << " " << zeta_b << std::endl;
-    std::cerr << "jump  =" << jump_a << " " << jump_b << std::endl;
+    //std::cerr << "Bracketed..." << std::endl;
+    //std::cerr << "zeta  =" << zeta_a << " " << zeta_b << std::endl;
+    //std::cerr << "jump  =" << jump_a << " " << jump_b << std::endl;
 
-    const double dz = max_of<double>( numeric<double>::ftol, odeint.eps );
+    const double dz = max_of<double>( numeric<double>::sqrt_ftol, odeint.eps );
     while(Fabs(zeta_a-zeta_b)>dz)
     {
         const double zeta_m = 0.5 * (zeta_a+zeta_b);

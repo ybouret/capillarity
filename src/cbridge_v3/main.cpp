@@ -31,7 +31,15 @@ YOCTO_PROGRAM_START()
         ios::wcstream fp("output.dat");
         for(size_t i=1;i<=B.zeta.size();++i)
         {
-            fp("%g %g %g %g\n",B.zeta[i]*B.R0,B.surf[i]*B.A0,Rad2Deg(B.alpha[i]),Rad2Deg(B.theta[i]));
+            fp("%g %g %g %g %g %g %g\n",
+               B.zeta[i]*B.R0,
+               B.surf[i]*B.A0,
+               Rad2Deg(B.alpha[i]),
+               Rad2Deg(B.theta[i]),
+               Rad2Deg(B.theta2[i]),
+               Rad2Deg(B.Theta[i]),
+               Rad2Deg(B.Theta2[i])
+               );
         }
     }
 

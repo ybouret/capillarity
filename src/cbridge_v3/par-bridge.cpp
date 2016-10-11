@@ -12,9 +12,10 @@ ParBridge:: ~ParBridge() throw()
 ParBridge:: ParBridge(lua_State *L) : Bridge(L), Crew(true),
 zeta(),
 surf(),
+times(),
 alpha(),
 theta(),
-Theta(),
+theta2(),
 rate( Lua::Config::Get<lua_Number>(L,"rate") ),
 mgr()
 {
@@ -26,11 +27,11 @@ mgr()
 
     mgr.enroll(zeta,__CORE);
     mgr.enroll(surf,__CORE);
+    mgr.enroll(times,__CORE);
+
     mgr.enroll(alpha,__SUBS);
     mgr.enroll(theta,__SUBS);
     mgr.enroll(theta2,__SUBS);
-    mgr.enroll(Theta,__SUBS);
-    mgr.enroll(Theta2,__SUBS);
 
     std::cerr << "rate=" << rate << std::endl;
 }
@@ -42,6 +43,7 @@ void ParBridge:: load( const string &filename )
         data_set<double> ds;
         ds.use(1,surf);
         ds.use(2,zeta);
+        ds.use(3,times);
         ios::icstream fp(filename);
         ds.load(fp);
     }
@@ -75,14 +77,13 @@ void ParBridge:: FindTheta( Context &ctx )
     size_t length = zeta.size();
     ctx.split(i,length);
     Bridge &B     = ctx.as<Bridge>();
-    //double shift = 0;
     for(;length>0;++i,--length)
     {
-        //std::cerr << "zeta=" << zeta[i] << std::endl;
-        const double zz = zeta[i] + (rate*i);
-        B.change_curv(1);
-        theta[i] = B.find_theta(alpha[i],zz, NULL);
+        theta[i]  = B.find_theta(alpha[i],zeta[i], NULL);
+        theta2[i] = B.find_theta(alpha[i],zeta[i]+(rate*times[i])/R0,NULL);
+
 #if 0
+        //double shift = 0;
         Theta[i] = B.find_theta_by_xi(alpha[i],zeta[i], NULL, shift);
 
         B.change_curv(2);

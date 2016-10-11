@@ -18,11 +18,11 @@ public:
 
     Vector zeta;   // h/R0
     Vector surf;   // area/A0
+    Vector times;  // units ?
     Vector alpha;  // asin( sqrt(surf) )
     Vector theta;  // theta..
-    Vector theta2; // theta
-    Vector Theta;  //
-    Vector Theta2;
+    Vector theta2; // with rate...
+    
     void load( const string &filename );
 
 

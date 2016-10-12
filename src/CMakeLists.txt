@@ -27,5 +27,7 @@ INSTALL(TARGETS contact_angle build_time RUNTIME DESTINATION bin )
 #ADD_SUBDIRECTORY(cbridge)
 #ADD_SUBDIRECTORY(cbridge_v2)
 ADD_SUBDIRECTORY(cbridge_v3)
+ADD_SUBDIRECTORY(cbridge4)
+
 
 

@@ -57,6 +57,25 @@ double Bridge:: find_theta(const double alpha, const double zeta, bool &isFlat)
     assert(alpha>0);
     assert(alpha<numeric<double>::pi);
 
+    //__________________________________________________________________________
+    //
+    //
+    // computing critical zeta to know what to do
+    //
+    //__________________________________________________________________________
+    const double half_res      = 0.5*resolution;
+    Triplet      critical_zeta = { CriticalZetaOfAlpha(alpha+half_res), CriticalZetaOfAlpha(alpha), CriticalZetaOfAlpha(alpha-half_res) };
+    critical_zeta.sort();
+    const double upper_zeta = critical_zeta.c;
+    const double lower_zeta = critical_zeta.a;
+    assert(upper_zeta>=lower_zeta);
+
+    if(zeta>lower_zeta&&zeta<upper_zeta)
+    {
+        isFlat = true;
+        return numeric<double>::pi-alpha;
+    }
+
     // setup
     __alpha     = alpha;
     __zeta      = zeta;
@@ -90,23 +109,8 @@ double Bridge:: find_theta(const double alpha, const double zeta, bool &isFlat)
     bracket<double>::inside(F, Theta, Value);
     optimize1D<double>::run(F, Theta, Value, resolution);
 
-    if(Value.b<=0 && HAS_BOTH==flags)
-    {
-        std::cerr << "HAS_BOTH for alpha=" << Rad2Deg(alpha) << ", zeta=" << zeta << std::endl;
-    }
 
-    //__________________________________________________________________________
-    //
-    //
-    // computing critical zeta to know what to do
-    //
-    //__________________________________________________________________________
-    const double half_res      = 0.5*resolution;
-    Triplet      critical_zeta = { CriticalZetaOfAlpha(alpha+half_res), CriticalZetaOfAlpha(alpha), CriticalZetaOfAlpha(alpha-half_res) };
-    critical_zeta.sort();
-    const double upper_zeta = critical_zeta.c;
-    const double lower_zeta = critical_zeta.a;
-    assert(upper_zeta>=lower_zeta);
+
 
     if(zeta>upper_zeta)
     {
@@ -143,6 +147,7 @@ double Bridge:: find_theta(const double alpha, const double zeta, bool &isFlat)
         }
         else
         {
+            // shouldn't happen
             isFlat = true;
             return numeric<double>::pi-alpha;
         }

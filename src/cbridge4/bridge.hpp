@@ -31,7 +31,14 @@ typedef ode::driverCK<double>::type  DEsolver;
 typedef vector<double>               Vector;
 typedef triplet<double>              Triplet;
 
-
+YOCTO_PAIR_DECL(YOCTO_TUPLE_STANDARD,range_t,double,vmin,double,vmax);
+inline range_t() throw() : vmin(0), vmax(0) {}
+inline range_t & operator=( const range_t &r ) throw()
+{
+    vmin = r.vmin; vmax = r.vmax; return *this;
+}
+void check() throw() { if(vmax>vmin) cswap(vmin,vmax); }
+YOCTO_PAIR_END();
 
 
 class Bridge
@@ -95,6 +102,8 @@ public:
 
     double find_theta(const double alpha, const double zeta, bool &isFlat);
     static double CriticalZetaOfAlpha(const double alpha)  throw();
+
+    range_t find_zeta_range( const double alpha, range_t &tr);
 
 
 private:

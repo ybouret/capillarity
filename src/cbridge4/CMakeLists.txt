@@ -3,6 +3,7 @@ bridge.hpp
 bridge.cpp
 bridge-ode.cpp
 bridge-theta.cpp
+bridge-params.cpp
 )
 
 ADD_EXECUTABLE(cbridge4 main.cpp)

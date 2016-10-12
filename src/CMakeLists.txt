@@ -3,6 +3,7 @@ PROJECT(capillarity)
 
 IF(WIN32)
 	SET(YOCTO_ROOT /e/program/yocto/sdk)
+	SET(YOCTO_ROOT "e:/program/yocto/sdk")
 ELSE()
 	SET(YOCTO_ROOT $ENV{HOME}/program/yocto/sdk)
 ENDIF()

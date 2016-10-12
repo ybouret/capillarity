@@ -18,11 +18,11 @@ SET(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/..)
 ADD_EXECUTABLE(contact_angle contact_angle.cpp)
 TARGET_LINK_YOCTO(contact_angle gfx tiff png)
 
-#ADD_EXECUTABLE(cut_area_height cut_area_height.cpp)
-#TARGET_LINK_YOCTO(cut_area_height mk)
+ADD_EXECUTABLE(build_time build_time.cpp)
+TARGET_LINK_LIBRARIES(build_time bridge_v3)
+TARGET_LINK_YOCTO(build_time mk)
 
-
-INSTALL( TARGETS contact_angle RUNTIME DESTINATION bin )
+INSTALL(TARGETS contact_angle build_time RUNTIME DESTINATION bin )
 
 #ADD_SUBDIRECTORY(cbridge)
 #ADD_SUBDIRECTORY(cbridge_v2)

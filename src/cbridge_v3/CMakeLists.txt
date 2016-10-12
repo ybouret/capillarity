@@ -29,21 +29,11 @@ ADD_EXECUTABLE(abacus abacus.cpp)
 TARGET_LINK_LIBRARIES(abacus bridge_v3)
 TARGET_LINK_YOCTO(abacus mk lua++)
 
-ADD_EXECUTABLE(build_time build_time.cpp)
-TARGET_LINK_LIBRARIES(build_time bridge_v3)
-TARGET_LINK_YOCTO(build_time mk lua++)
-
-ADD_EXECUTABLE(sim_evap sim_evap.cpp)
-TARGET_LINK_LIBRARIES(sim_evap bridge_v3)
-TARGET_LINK_YOCTO(sim_evap mk lua++)
-
 INSTALL( TARGETS 
 cbridge_v3 
 find-alpha
 find-theta-xi
 find-theta
-build_time
 abacus
-sim_evap
 RUNTIME DESTINATION bin )
 

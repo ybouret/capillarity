@@ -63,7 +63,7 @@ void Bridge:: change_curv(const double curvature_coeff)
     (double&)mu  = sqrt(mu2);
 }
 
-#if 0
+#if 1
 double Bridge:: CriticalZetaOfTheta(const double theta)  throw()
 {
     return -(1.0+cos(theta));

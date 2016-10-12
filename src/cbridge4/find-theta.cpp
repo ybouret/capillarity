@@ -5,12 +5,13 @@ YOCTO_PROGRAM_START()
 {
 #include "main-core.cpp"
 
-    const double zeta      = Lua::Config::Get<lua_Number>(L, "zeta" );
+    double       zeta      = Lua::Config::Get<lua_Number>(L, "zeta" );
     const double alpha_deg = Lua::Config::Get<lua_Number>(L,"alpha");
     const double alpha     = Deg2Rad(alpha_deg);
     std::cerr << "alpha=" << alpha_deg << std::endl;
 
     B.SaveLens("lens.dat", zeta);
+
 
     {
         ios::wcstream fp("profile.dat");
@@ -23,6 +24,17 @@ YOCTO_PROGRAM_START()
             fp << "\n";
             rp("%g %g\n", theta_deg, ans );
         }
+    }
+
+    {
+        ios::wcstream fp("bound_theta.dat");
+        for(zeta=-0.5;zeta<=0.5;zeta += 0.01)
+        {
+            (void) B.find_theta(alpha, zeta, &fp);
+            (std::cerr << ".").flush();
+
+        }
+        std::cerr << std::endl;
     }
 
 }

@@ -1,7 +1,9 @@
 ADD_LIBRARY(bridge4 STATIC
 bridge.hpp
 bridge.cpp
-bridge-ode.cpp)
+bridge-ode.cpp
+bridge-theta.cpp
+)
 
 ADD_EXECUTABLE(cbridge4 main.cpp)
 TARGET_LINK_LIBRARIES(cbridge4 bridge4)

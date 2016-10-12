@@ -59,7 +59,8 @@ public:
     const double   resolution;     //!< angle resolution: search between resolution and PI-resolution
     const double   angle_control;  //!< angle control in radians (converted from L->angle_control)
     const double   shift_control;  //!< max speed = tau max
-
+    Function       prof_theta;
+    
     //! re-compute mu2 and mu
     void change_curv(const double curvature_coeff);
 
@@ -89,7 +90,11 @@ public:
     //! save a drawing of the lens
     static void SaveLens(const string &filename, const double shift );
 
+    //! compute shift from volume splitting
     double compute_shift(const double alpha, const double theta, const double zeta);
+
+    double find_theta(const double alpha, const double zeta, ios::ocstream *fp);
+
 
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Bridge);
@@ -98,6 +103,7 @@ private:
     double __zeta;  //!< for functions
 
     void   ProfileEq( array<double> &dYds, double, const array<double> &Y );
+    double ProfileOfTheta( const double theta );
 
 public:
     size_t last_counts;

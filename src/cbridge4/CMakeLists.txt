@@ -13,7 +13,12 @@ ADD_EXECUTABLE(find-theta4 find-theta.cpp)
 TARGET_LINK_LIBRARIES(find-theta4 bridge4)
 TARGET_LINK_YOCTO(find-theta4 mk lua++)
 
+ADD_EXECUTABLE(abacus4 abacus.cpp)
+TARGET_LINK_LIBRARIES(abacus4 bridge4)
+TARGET_LINK_YOCTO(abacus4 mk lua++)
+
 INSTALL( TARGETS 
 cbridge4
 find-theta4 
+abacus4
 RUNTIME DESTINATION bin )

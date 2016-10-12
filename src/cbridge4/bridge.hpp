@@ -37,7 +37,7 @@ inline range_t & operator=( const range_t &r ) throw()
 {
     vmin = r.vmin; vmax = r.vmax; return *this;
 }
-void check() throw() { if(vmax>vmin) cswap(vmin,vmax); }
+inline void check() throw() { if(vmax>vmin) cswap(vmin,vmax); }
 YOCTO_PAIR_END();
 
 

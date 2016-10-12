@@ -5,18 +5,19 @@ range_t Bridge:: find_zeta_range( const double alpha, range_t &tr)
     bool         isFlat = false;
     const double zeta0  = CriticalZetaOfAlpha(alpha);
     range_t      zr;
-    double      &zeta_min = zr.vmin;
-    double      &zeta_max = zr.vmax;
+    double      &zeta_min  = zr.vmin;
+    double      &zeta_max  = zr.vmax;
     double      &theta_min = tr.vmin;
     double      &theta_max = tr.vmax;
-    zeta_min  = zeta_max = zeta0;
-    const double theta0 = find_theta(alpha, zeta0, isFlat);
+    const double theta0    = find_theta(alpha, zeta0, isFlat);
+
     if(  theta0 <= 0 )
     {
         throw exception("No theta for critical zeta");
     }
 
-    theta_min = theta_max = theta0;
+    zeta_min  = zeta_max  =  zeta0;
+    theta_min = theta_max =  theta0;
 
     const double ztol = (numeric<double>::sqrt_ftol);
 
@@ -41,8 +42,8 @@ range_t Bridge:: find_zeta_range( const double alpha, range_t &tr)
         }
         zeta_min = zeta_top;
     }
-    std::cerr << "zeta_min  = " << zeta_min << std::endl;
-    std::cerr << "theta_max = " << theta_max << std::endl;
+   // std::cerr << "zeta_min  = " << zeta_min << std::endl;
+    //std::cerr << "theta_max = " << theta_max << " => " << Rad2Deg(theta_max) << std::endl;
 
     {
         double zeta_bot = zeta0; // good
@@ -51,11 +52,11 @@ range_t Bridge:: find_zeta_range( const double alpha, range_t &tr)
         {
             zeta_top += 1;
         }
-        //std::cerr << "zeta_top_ini=" << zeta_top<< std::endl;
+
         while( Fabs(zeta_top-zeta_bot) > ztol )
         {
             const double zeta_mid  = 0.5*(zeta_top+zeta_bot);
-            const double theta_mid =find_theta(alpha,zeta_mid,isFlat);
+            const double theta_mid = find_theta(alpha,zeta_mid,isFlat);
             if(theta_mid<=0)
             {
                 // invalid
@@ -65,13 +66,13 @@ range_t Bridge:: find_zeta_range( const double alpha, range_t &tr)
             {
                 // good
                 zeta_bot  = zeta_mid;
-                theta_max = theta_mid;
+                theta_min = theta_mid;
             }
         }
         zeta_max = zeta_bot;
     }
-    std::cerr << "zeta_max  = " << zeta_max << std::endl;
-    std::cerr << "theta_min = " << theta_min << std::endl;
+    //std::cerr << "zeta_max  = " << zeta_max << std::endl;
+    //std::cerr << "theta_min = " << theta_min<< " => " << Rad2Deg(theta_min) << std::endl;
 
     return zr;
 }

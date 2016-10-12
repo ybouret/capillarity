@@ -25,15 +25,15 @@ ADD_EXECUTABLE(find-theta-xi find-theta-xi.cpp)
 TARGET_LINK_LIBRARIES(find-theta-xi bridge_v3)
 TARGET_LINK_YOCTO(find-theta-xi mk lua++)
 
-ADD_EXECUTABLE(abacus abacus.cpp)
-TARGET_LINK_LIBRARIES(abacus bridge_v3)
-TARGET_LINK_YOCTO(abacus mk lua++)
+ADD_EXECUTABLE(abacus3 abacus.cpp)
+TARGET_LINK_LIBRARIES(abacus3 bridge_v3)
+TARGET_LINK_YOCTO(abacus3 mk lua++)
 
 INSTALL( TARGETS 
 cbridge_v3 
-find-alpha
-find-theta-xi
-find-theta
-abacus
+#find-alpha
+#find-theta-xi
+#find-theta
+abacus3
 RUNTIME DESTINATION bin )
 

@@ -93,7 +93,8 @@ public:
     //! compute shift from volume splitting
     double compute_shift(const double alpha, const double theta, const double zeta);
 
-    double find_theta(const double alpha, const double zeta);
+    double find_theta(const double alpha, const double zeta, bool &isFlat);
+    static double CriticalZetaOfAlpha(const double alpha)  throw();
 
 
 private:

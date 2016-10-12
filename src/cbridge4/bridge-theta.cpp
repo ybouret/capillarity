@@ -51,7 +51,7 @@ double find_upper(double lo,double hi, Function &F, const double resolution)
     return lo;
 }
 
-double Bridge:: find_theta(const double alpha, const double zeta)
+double Bridge:: find_theta(const double alpha, const double zeta, bool &isFlat)
 {
     assert(zeta>=-2);
     assert(alpha>0);
@@ -61,6 +61,7 @@ double Bridge:: find_theta(const double alpha, const double zeta)
     __alpha     = alpha;
     __zeta      = zeta;
     Function &F = prof_theta;
+    isFlat      = false;
 
     // initialize
     int    flags    = 0;
@@ -94,22 +95,57 @@ double Bridge:: find_theta(const double alpha, const double zeta)
         std::cerr << "HAS_BOTH for alpha=" << Rad2Deg(alpha) << ", zeta=" << zeta << std::endl;
     }
 
-    if(Value.b>0)
+    //__________________________________________________________________________
+    //
+    //
+    // computing critical zeta to know what to do
+    //
+    //__________________________________________________________________________
+    const double half_res      = 0.5*resolution;
+    Triplet      critical_zeta = { CriticalZetaOfAlpha(alpha+half_res), CriticalZetaOfAlpha(alpha), CriticalZetaOfAlpha(alpha-half_res) };
+    critical_zeta.sort();
+    const double upper_zeta = critical_zeta.c;
+    const double lower_zeta = critical_zeta.a;
+    assert(upper_zeta>=lower_zeta);
+
+    if(zeta>upper_zeta)
     {
-        return 0; // No bridge
+        if(0==(flags&HAS_UPPER))
+        {
+            throw exception("find_theta invalid setting: no valid upper value...");
+        }
+        if(Value.b>0)
+        {
+            return 0; // no bridge
+        }
+        else
+        {
+            return find_upper(Theta.b, theta_hi, F, resolution);
+        }
     }
-
-    switch(flags)
+    else
     {
-        case HAS_LOWER: return find_lower(theta_lo,Theta.b,F,resolution);
-        case HAS_UPPER: return find_upper(Theta.b,theta_hi,F,resolution);
-        case HAS_BOTH:
-            break;
+        if(zeta<lower_zeta)
+        {
+            if(0==(flags&HAS_LOWER))
+            {
+                throw exception("find_theta invalid setting: no valid upper value...");
+            }
 
-        default:
-            break;
+            if(Value.b>0)
+            {
+                return 0; // no bridge
+            }
+            else
+            {
+                return find_lower(theta_lo,Theta.b,F,resolution);
+            }
+        }
+        else
+        {
+            isFlat = true;
+            return numeric<double>::pi-alpha;
+        }
     }
-
-    throw exception("find_theta:unexpected flags=%d", flags);
-
+    
 }

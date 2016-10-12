@@ -68,12 +68,13 @@ double Bridge:: CriticalZetaOfTheta(const double theta)  throw()
 {
     return -(1.0+cos(theta));
 }
+#endif
+
 
 double Bridge:: CriticalZetaOfAlpha(const double alpha)  throw()
 {
     return cos(alpha)-1.0;
 }
-#endif
 
 
 void Bridge:: SaveLens(const string &filename, const double shift )

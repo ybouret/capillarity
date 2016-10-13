@@ -107,7 +107,7 @@ public:
 
     range_t find_zeta_range( const double alpha, range_t &tr);
 
-    double find_alpha(const double theta, const double zeta, bool &isFlat);
+    size_t find_alpha(const double theta, const double zeta, double *alphas, bool &isFlat);
 
 
     double find_zeta_max(const double theta);

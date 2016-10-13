@@ -7,8 +7,9 @@
 #define HAS_BOTH  (HAS_LOWER|HAS_UPPER)
 
 
-double Bridge:: find_alpha(const double theta, const double zeta, bool &isFlat)
+size_t Bridge:: find_alpha(const double theta, const double zeta, double *alphas, bool &isFlat)
 {
+    assert(alphas!=NULL);
     assert(theta>0);
     assert(theta<numeric<double>::pi);
 
@@ -23,8 +24,8 @@ double Bridge:: find_alpha(const double theta, const double zeta, bool &isFlat)
 
     if(zeta>=zeta_lower && zeta<=zeta_upper )
     {
-        isFlat = true;
-        return numeric<double>::pi-theta;
+        alphas[0] =  numeric<double>::pi-theta;
+        return 1;
     }
 
 
@@ -63,38 +64,17 @@ double Bridge:: find_alpha(const double theta, const double zeta, bool &isFlat)
         return 0;
     }
 
-    std::cerr << "flags=" << flags << std::endl;
-    std::cerr << "zeta =" << zeta << " / critical=" << critical_zeta.b << std::endl;
+    //std::cerr << "flags=" << flags << std::endl;
+    //std::cerr << "zeta =" << zeta << " / critical=" << critical_zeta.b << std::endl;
     switch(flags)
     {
-        case HAS_LOWER: return find_lower(alpha_lo,Alpha.b,F,resolution);
-        case HAS_UPPER: return find_upper(Alpha.b,alpha_up,F,resolution);
+        case HAS_LOWER: alphas[0] = find_lower(alpha_lo,Alpha.b,F,resolution); return 1;
+        case HAS_UPPER: alphas[0] = find_upper(Alpha.b,alpha_up,F,resolution); return 1;
         case HAS_BOTH:
         {
-            const double lower     = find_lower(alpha_lo,Alpha.b,F,resolution);
-            const double upper     = find_upper(Alpha.b,alpha_up,F,resolution);
-            bool         localFlat = false;
-            const double th_lo     = find_theta(lower, zeta, localFlat);
-            const double th_hi     = find_theta(upper, zeta, localFlat);
-            std::cerr << "th_lo=" << Rad2Deg(th_lo) << std::endl;
-            std::cerr << "th_hi=" << Rad2Deg(th_hi) << std::endl;
-            const double delta_lo  = Fabs(th_lo-theta);
-            const double delta_hi  = Fabs(th_hi-theta);
-            if(delta_hi<delta_lo)
-            {
-                return upper;
-            }
-            else
-            {
-                if(delta_lo<delta_hi)
-                {
-                    return lower;
-                }
-                else
-                {
-                    return 0.5*(lower+upper);
-                }
-            }
+            alphas[0] = find_lower(alpha_lo,Alpha.b,F,resolution);
+            alphas[1] = find_upper(Alpha.b,alpha_up,F,resolution);
+            return 2;
         }
 
         default:

@@ -16,8 +16,6 @@ YOCTO_PROGRAM_START()
         const range_t zr    = B.find_zeta_range(alpha,tr);
         std::cerr << "theta: " << Rad2Deg(tr.vmin) << " to " << Rad2Deg(tr.vmax) << std::endl;
         ios::ocstream::echo(filename,"%g %g %g %g %g\n", alpha_deg, zr.vmin, zr.vmax, Rad2Deg(tr.vmin), Rad2Deg(tr.vmax));
-
-
     }
 
 }

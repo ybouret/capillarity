@@ -159,3 +159,17 @@ double Bridge:: find_theta(const double alpha, const double zeta, bool &isFlat)
     }
     
 }
+
+
+double Bridge:: find_zeta_max(const double theta)
+{
+    bool   isFlat  = false;
+    double zeta_lo = 0;
+
+    if( find_alpha(theta,zeta_lo, isFlat) <= 0 )
+    {
+        throw exception("find_zeta_max: no solution for zeta=0");
+    }
+
+    return 0;
+}

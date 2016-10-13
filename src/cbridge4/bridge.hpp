@@ -106,9 +106,11 @@ public:
     static double CriticalZetaOfTheta(const double theta)  throw();
 
     range_t find_zeta_range( const double alpha );
-    //range_t find_alpha_range( const double zeta);
 
     double find_alpha(const double theta, const double zeta, bool &isFlat);
+
+
+    double find_zeta_max(const double theta);
 
 
 

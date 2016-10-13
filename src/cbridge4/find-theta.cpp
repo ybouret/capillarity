@@ -56,28 +56,5 @@ YOCTO_PROGRAM_START()
         
     }
 
-    return 0;
-    
-#if 1
-    ios::ocstream::overwrite("theta_all.dat");
-    for(alpha_deg=1;alpha_deg<=90;alpha_deg+=2)
-    {
-        std::cerr << "ALPHA=" << alpha_deg << std::endl;
-        for(zeta=-0.5;zeta<=0.5;zeta += 0.01)
-        {
-            const double theta = B.find_theta( Deg2Rad(alpha_deg), zeta,isFlat);
-            (std::cerr << ".").flush();
-            ios::acstream fp("theta_all.dat");
-            fp("%g %g %g\n", alpha_deg,zeta,Rad2Deg(theta));
-        }
-        {
-            ios::acstream fp("theta_all.dat");
-            fp << "\n";
-        }
-        std::cerr << std::endl;
-    }
-#endif
-
-
 }
 YOCTO_PROGRAM_END()

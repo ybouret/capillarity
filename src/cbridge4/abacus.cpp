@@ -4,23 +4,22 @@
 YOCTO_PROGRAM_START()
 {
 #include "main-core.cpp"
-    //const double alpha_deg = Lua::Config::Get<lua_Number>(L, "alpha" );
-    //const double alpha     = Deg2Rad(alpha_deg);
-
     ios::ocstream::overwrite("abacus_alpha.dat");
 
-    {
-        ios::acstream fp("abacus_alpha.dat");
-        fp("0  0  0 180 180\n");
-    }
 
-    for(double alpha_deg=1;alpha_deg<=30; alpha_deg += 1)
+    ios::ocstream::overwrite("h_max.dat");
+
+    for(double theta_deg=100; theta_deg <= 170; theta_deg += 10 )
     {
-        std::cerr << "\tALPHA=" << alpha_deg << std::endl;
-        const double  alpha = Deg2Rad(alpha_deg);
-        const range_t zr    = B.find_zeta_range(alpha);
-        ios::acstream fp("abacus_alpha.dat");
-        fp("%.15g %.15g %.15g\n",alpha_deg,zr.vmin,zr.vmax);
+        std::cerr << "THETA=" << theta_deg << std::endl;
+        std::cerr << "\tlooking for zeta_max..." << std::endl;
+        const double theta    = Deg2Rad(theta_deg);
+        const double zeta_max = B.find_zeta_max(theta);
+        std::cerr << "\tzeta_max=" << zeta_max << std::endl;
+        ios::ocstream::echo("h_max.dat","%g %g\n", theta_deg, zeta_max * B.R0);
+
+        
+
     }
 
 }

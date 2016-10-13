@@ -42,7 +42,7 @@ double Bridge:: find_alpha(const double theta, const double zeta, bool &isFlat)
     bracket<double>::inside(F, Alpha, Value);
     optimize1D<double>::run(F, Alpha, Value, resolution);
 
-    std::cerr << "min=" << Value.b << std::endl;
+    //std::cerr << "min=" << Value.b << std::endl;
     if(Value.b>0)
     {
         // no possible bridge

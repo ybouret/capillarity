@@ -165,11 +165,34 @@ double Bridge:: find_zeta_max(const double theta)
 {
     bool   isFlat  = false;
     double zeta_lo = 0;
-
-    if( find_alpha(theta,zeta_lo, isFlat) <= 0 )
+    double alpha   = 0;
+    if( (alpha=find_alpha(theta,zeta_lo, isFlat)) <= 0 )
     {
         throw exception("find_zeta_max: no solution for zeta=0");
     }
+    //std::cerr << "alpha(" << Rad2Deg(theta) << "," << zeta_lo << ")=" << alpha << std::endl;
+    double zeta_hi = 1.0;
+    while( find_alpha(theta,zeta_hi,isFlat) > 0 )
+    {
+        zeta_hi += 0.5;
+    }
 
-    return 0;
+    const double ztol = numeric<double>::sqrt_ftol;
+
+    while( Fabs(zeta_hi-zeta_lo) > ztol* ( Fabs(zeta_hi)+Fabs(zeta_lo) ) )
+    {
+        const double zeta_mid = 0.5*(zeta_lo+zeta_hi);
+        if( (alpha=find_alpha(theta,zeta_mid,isFlat)) >0)
+        {
+            zeta_lo = zeta_mid;
+            //std::cerr << "alpha(" << Rad2Deg(theta) << "," << zeta_lo << ")=" << alpha << std::endl;
+        }
+        else
+        {
+            zeta_hi = zeta_mid;
+        }
+    }
+
+    
+    return zeta_lo;
 }

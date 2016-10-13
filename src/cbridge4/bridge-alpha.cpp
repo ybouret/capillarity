@@ -9,6 +9,7 @@ double Bridge:: find_alpha(const double theta, const double zeta, bool &isFlat)
 
     assert(zeta>=-2);
 
+    // check where we are
     const double half_res      = resolution*0.5;
     Triplet      critical_zeta = { CriticalZetaOfTheta(theta-half_res), CriticalZetaOfTheta(theta), CriticalZetaOfTheta(theta+half_res) };
     critical_zeta.sort();
@@ -48,67 +49,30 @@ double Bridge:: find_alpha(const double theta, const double zeta, bool &isFlat)
         return 0;
     }
 
-    const double lower_alpha = (value_lo<=0) ? alpha_lo : find_lower(alpha_lo, Alpha.b,F,resolution);
-    const double upper_alpha = (value_up<=0) ? alpha_up : find_upper(Alpha.b,alpha_up,F,resolution);
+    const double lower = (value_lo<=0) ? alpha_lo : find_lower(alpha_lo,Alpha.b,F,resolution);
+    const double upper = (value_up<=0) ? alpha_up : find_upper(Alpha.b,alpha_up,F,resolution);
 
-    std::cerr << "Possible alpha between " << Rad2Deg(lower_alpha) << " and " << Rad2Deg(upper_alpha) << std::endl;
+    //std::cerr << "Possible alpha:" << Rad2Deg(lower) << " and " << Rad2Deg(upper) << std::endl;
+    bool localFlat = false;
+    const double th_lo = find_theta(lower, zeta, localFlat);
+    const double th_hi = find_theta(upper, zeta, localFlat);
 
-
-
-#if 0
-    double zeta_ini   = CriticalZetaOfTheta(theta);
-    double alpha_ini  = numeric<double>::pi-theta;
-    double theta_ini  = theta;
-    std::cerr << "zeta_ini =" << zeta_ini << std::endl;
-    std::cerr << "alpha_ini=" << Rad2Deg(alpha_ini) << std::endl;
-    std::cerr << "theta_ini=" << Rad2Deg(theta_ini) << std::endl;
-    int count=0;
-    for(;;)
+    const double delta_lo = Fabs(th_lo-theta);
+    const double delta_hi = Fabs(th_hi-theta);
+    if(delta_hi<delta_lo)
     {
-        if(++count>3) break;
-        std::cerr << std::endl << "count=" << count << std::endl;
-
-        const double zeta_step  = zeta  - zeta_ini;
-        const double alpha_step = theta - theta_ini;
-        std::cerr << "zeta_step=" << zeta_step << ", alpha_step=" << Rad2Deg(alpha_step) << std::endl;
-        double       scan       = 1.0;
-    FORWARD:
-        std::cerr << "scan=" << scan << std::endl;
-        double zeta_new  = zeta_ini  + scan * zeta_step;
-        double alpha_new = alpha_ini + scan * alpha_step;
-        if(alpha_new<=0||alpha_new>=numeric<double>::pi)
-        {
-            if( Fabs(alpha_new-alpha_ini) <= 0 )
-            {
-                std::cerr << "stuck in alpha" << std::endl;
-                return 0;
-            }
-            scan *= 0.5;
-            goto FORWARD;
-        }
-
-        double theta_new = find_theta(alpha_new, zeta_new, isFlat);
-        if( theta_new <= 0 )
-        {
-            if( Fabs(zeta_new-zeta_ini) <= 0 && Fabs(alpha_new-alpha_ini) <= 0 )
-            {
-                std::cerr << "stuck in step" << std::endl;
-                return 0;
-            }
-            scan *= 0.5;
-            goto FORWARD;
-        }
-
-        std::cerr << "zeta_new =" << zeta_new << std::endl;
-        std::cerr << "alpha_new=" << Rad2Deg(alpha_new) << std::endl;
-        std::cerr << "theta_new=" << Rad2Deg(theta_new) << std::endl;
-
-        alpha_ini = alpha_new;
-        theta_ini = theta_new;
-
+        return upper;
     }
-#endif
-    
-    
-    return 0;
+    else
+    {
+        if(delta_lo<delta_hi)
+        {
+            return lower;
+        }
+        else
+        {
+            return 0.5*(lower+upper);
+        }
+    }
+
 }

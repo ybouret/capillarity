@@ -39,19 +39,21 @@ YOCTO_PROGRAM_START()
             std::cerr << "No Bridge" << std::endl;
             fp("%g %g\n", B.start_u, B.start_v);
         }
-
-        if(isFlat)
-        {
-            for(double xx=0;xx<=1.0;xx+=0.1)
-            {
-                fp("%g %g\n", B.start_u+xx, B.start_v);
-            }
-        }
         else
         {
-            (void) B.profile(alpha, theta,zeta,&fp);
+            if(isFlat)
+            {
+                for(double xx=0;xx<=1.0;xx+=0.1)
+                {
+                    fp("%g %g\n", B.start_u+xx, B.start_v);
+                }
+            }
+            else
+            {
+                (void) B.profile(alpha, theta,zeta,&fp);
+            }
         }
-
+        
     }
 
     return 0;

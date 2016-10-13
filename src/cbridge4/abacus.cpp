@@ -18,11 +18,9 @@ YOCTO_PROGRAM_START()
     {
         std::cerr << "\tALPHA=" << alpha_deg << std::endl;
         const double  alpha = Deg2Rad(alpha_deg);
-        range_t       tr;
-        const range_t zr    = B.find_zeta_range(alpha,tr);
+        const range_t zr    = B.find_zeta_range(alpha);
         ios::acstream fp("abacus_alpha.dat");
-        std::cerr << "tr=" << tr << std::endl;
-        fp("%.15g %.15g %.15g %.15g %.15g\n",alpha_deg,zr.vmin,zr.vmax,Rad2Deg(tr.vmin),Rad2Deg(tr.vmax));
+        fp("%.15g %.15g %.15g\n",alpha_deg,zr.vmin,zr.vmax);
     }
 
 }

@@ -5,6 +5,8 @@ double Bridge:: find_alpha(const double theta, const double zeta, bool &isFlat)
     assert(theta>0);
     assert(theta<numeric<double>::pi);
 
+    assert(zeta>=-2);
+
     if(false)
     {
         ios::wcstream fp("alpha_try.dat");

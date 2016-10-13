@@ -105,7 +105,7 @@ public:
     static double CriticalZetaOfAlpha(const double alpha)  throw();
     static double CriticalZetaOfTheta(const double theta)  throw();
 
-    range_t find_zeta_range( const double alpha );
+    range_t find_zeta_range( const double alpha, range_t &tr);
 
     double find_alpha(const double theta, const double zeta, bool &isFlat);
 

@@ -1,14 +1,17 @@
 #include "bridge.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
-range_t Bridge:: find_zeta_range( const double alpha)
+range_t Bridge:: find_zeta_range(const double alpha, range_t &tr)
 {
     bool         isFlat = false;
     const double zeta0  = CriticalZetaOfAlpha(alpha);
     range_t      zr;
     double      &zeta_min  = zr.vmin;
     double      &zeta_max  = zr.vmax;
+    double      &theta_min = tr.vmin;
+    double      &theta_max = tr.vmax;
     const double theta0    = find_theta(alpha, zeta0, isFlat);
+    theta_min = theta_max = theta0;
 
     if(  theta0 <= 0 )
     {
@@ -35,6 +38,7 @@ range_t Bridge:: find_zeta_range( const double alpha)
             {
                 // good
                 zeta_top  = zeta_mid;
+                theta_max = theta_mid;
             }
         }
         zeta_min = zeta_top;
@@ -63,6 +67,7 @@ range_t Bridge:: find_zeta_range( const double alpha)
             {
                 // good
                 zeta_bot  = zeta_mid;
+                theta_min = theta_mid;
             }
         }
         zeta_max = zeta_bot;

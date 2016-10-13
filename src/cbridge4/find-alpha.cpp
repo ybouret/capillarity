@@ -5,6 +5,8 @@ YOCTO_PROGRAM_START()
 {
 #include "main-core.cpp"
 
+    return 0;
+    
     double       zeta      = Lua::Config::Get<lua_Number>(L, "zeta" );
     double       theta_deg = Lua::Config::Get<lua_Number>(L,"theta");
     double       theta     = Deg2Rad(theta_deg);

@@ -8,13 +8,18 @@ double Bridge:: ProfileOfTheta(const double theta)
     return profile(__alpha, theta, __zeta, NULL);
 }
 
+double Bridge:: ProfileOfAlpha(const double alpha)
+{
+    return profile(alpha, __theta, __zeta, NULL);
+}
+
 
 #define HAS_LOWER 0x01
 #define HAS_UPPER 0x02
 #define HAS_BOTH  (HAS_LOWER|HAS_UPPER)
 
 //! assuming F(lo)>0, F(hi)<=0
-double find_lower(double lo,double hi, Function &F, const double resolution)
+double Bridge:: find_lower(double lo,double hi, Function &F, const double resolution)
 {
     assert(hi>=lo);
     while(hi-lo>resolution)
@@ -33,7 +38,7 @@ double find_lower(double lo,double hi, Function &F, const double resolution)
 }
 
 //! assuming F(lo)<=0, F(hi)>0
-double find_upper(double lo,double hi, Function &F, const double resolution)
+double Bridge:: find_upper(double lo,double hi, Function &F, const double resolution)
 {
     assert(hi>=lo);
     while(hi-lo>resolution)

@@ -12,6 +12,17 @@ YOCTO_PROGRAM_START()
 
     B.SaveLens("lens.dat", zeta);
 
+    {
+        ios::wcstream fp("profile.dat");
+        ios::wcstream rp("results.dat");
+        for(double alpha_deg=1;alpha_deg<=90; alpha_deg += 0.2)
+        {
+            const double ans = B.profile(Deg2Rad(alpha_deg), theta, zeta, &fp);
+            rp("%g %g\n",alpha_deg,ans);
+            fp << "\n";
+        }
+    }
+
     bool isFlat = false;
     
     B.find_alpha(theta,zeta,isFlat);

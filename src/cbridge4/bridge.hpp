@@ -67,7 +67,8 @@ public:
     const double   angle_control;  //!< angle control in radians (converted from L->angle_control)
     const double   shift_control;  //!< max speed = tau max
     Function       prof_theta;
-    
+    Function       prof_alpha;
+
     //! re-compute mu2 and mu
     void change_curv(const double curvature_coeff);
 
@@ -105,6 +106,7 @@ public:
     static double CriticalZetaOfTheta(const double theta)  throw();
 
     range_t find_zeta_range( const double alpha );
+    //range_t find_alpha_range( const double zeta);
 
     double find_alpha(const double theta, const double zeta, bool &isFlat);
 
@@ -118,6 +120,13 @@ private:
 
     void   ProfileEq( array<double> &dYds, double, const array<double> &Y );
     double ProfileOfTheta( const double theta );
+    double ProfileOfAlpha( const double alpha );
+
+    //! assuming F(lo)>0, F(hi)<=0
+    static double find_lower(double lo,double hi, Function &F, const double resolution);
+
+    //! assuming F(lo)<=0, F(hi)>0
+    static double find_upper(double lo,double hi, Function &F, const double resolution);
 
 public:
     size_t last_counts;

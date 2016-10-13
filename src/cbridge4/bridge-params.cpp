@@ -1,5 +1,6 @@
 #include "bridge.hpp"
 
+////////////////////////////////////////////////////////////////////////////////
 range_t Bridge:: find_zeta_range( const double alpha)
 {
     bool         isFlat = false;
@@ -71,3 +72,5 @@ range_t Bridge:: find_zeta_range( const double alpha)
 
     return zr;
 }
+
+

@@ -2,6 +2,11 @@
 #include "yocto/math/opt/bracket.hpp"
 #include "yocto/math/opt/minimize.hpp"
 
+#define HAS_LOWER 0x01
+#define HAS_UPPER 0x02
+#define HAS_BOTH  (HAS_LOWER|HAS_UPPER)
+
+
 double Bridge:: find_alpha(const double theta, const double zeta, bool &isFlat)
 {
     assert(theta>0);
@@ -30,11 +35,20 @@ double Bridge:: find_alpha(const double theta, const double zeta, bool &isFlat)
     isFlat      = false;
 
     // find possibilities
+    int          flags    = 0;
     const double alpha_lo = resolution;
     const double value_lo = F(alpha_lo);
+    if(value_lo>0)
+    {
+        flags |= HAS_LOWER;
+    }
 
     const double alpha_up = numeric<double>::pi-resolution;
     const double value_up = F(alpha_up);
+    if(value_up>0)
+    {
+        flags |= HAS_UPPER;
+    }
 
     Triplet Alpha = { alpha_lo, 0, alpha_up };
     Triplet Value = { value_lo, 0, value_up };
@@ -49,30 +63,44 @@ double Bridge:: find_alpha(const double theta, const double zeta, bool &isFlat)
         return 0;
     }
 
-    const double lower = (value_lo<=0) ? alpha_lo : find_lower(alpha_lo,Alpha.b,F,resolution);
-    const double upper = (value_up<=0) ? alpha_up : find_upper(Alpha.b,alpha_up,F,resolution);
-
-    //std::cerr << "Possible alpha:" << Rad2Deg(lower) << " and " << Rad2Deg(upper) << std::endl;
-    bool localFlat = false;
-    const double th_lo = find_theta(lower, zeta, localFlat);
-    const double th_hi = find_theta(upper, zeta, localFlat);
-
-    const double delta_lo = Fabs(th_lo-theta);
-    const double delta_hi = Fabs(th_hi-theta);
-    if(delta_hi<delta_lo)
+    std::cerr << "flags=" << flags << std::endl;
+    std::cerr << "zeta =" << zeta << " / critical=" << critical_zeta.b << std::endl;
+    switch(flags)
     {
-        return upper;
-    }
-    else
-    {
-        if(delta_lo<delta_hi)
+        case HAS_LOWER: return find_lower(alpha_lo,Alpha.b,F,resolution);
+        case HAS_UPPER: return find_upper(Alpha.b,alpha_up,F,resolution);
+        case HAS_BOTH:
         {
-            return lower;
+            const double lower     = find_lower(alpha_lo,Alpha.b,F,resolution);
+            const double upper     = find_upper(Alpha.b,alpha_up,F,resolution);
+            bool         localFlat = false;
+            const double th_lo     = find_theta(lower, zeta, localFlat);
+            const double th_hi     = find_theta(upper, zeta, localFlat);
+            std::cerr << "th_lo=" << Rad2Deg(th_lo) << std::endl;
+            std::cerr << "th_hi=" << Rad2Deg(th_hi) << std::endl;
+            const double delta_lo  = Fabs(th_lo-theta);
+            const double delta_hi  = Fabs(th_hi-theta);
+            if(delta_hi<delta_lo)
+            {
+                return upper;
+            }
+            else
+            {
+                if(delta_lo<delta_hi)
+                {
+                    return lower;
+                }
+                else
+                {
+                    return 0.5*(lower+upper);
+                }
+            }
         }
-        else
-        {
-            return 0.5*(lower+upper);
-        }
+
+        default:
+            break;
     }
+
+    throw exception("find_alpha: invalid flags=%d", flags);
 
 }

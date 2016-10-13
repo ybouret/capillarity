@@ -4,14 +4,16 @@
 YOCTO_PROGRAM_START()
 {
 #include "main-core.cpp"
-    const double h_min = Lua::Config::Get<lua_Number>(L, "h_min");
-    ios::ocstream::overwrite("abacus.dat");
+    const double hmin = Lua::Config::Get<lua_Number>(L, "hmin");
+    const string filename = "abacus4.dat";
+
+    ios::ocstream::overwrite(filename);
     ios::ocstream::overwrite("h_max.dat");
-    const double zeta_min = h_min/B.R0;
+    const double zeta_min = hmin/B.R0;
     const size_t N        = 20;
     bool         isFlat   = false;
 
-    for(double theta_deg=100; theta_deg <= 170; theta_deg += 10 )
+    for(double theta_deg=130; theta_deg <= 130; theta_deg += 10 )
     {
         std::cerr << "THETA=" << theta_deg << std::endl;
         std::cerr << "\tlooking for zeta_max..." << std::endl;
@@ -29,7 +31,7 @@ YOCTO_PROGRAM_START()
             const double h     = zeta * B.R0;
             const double A     = numeric<double>::pi * Square( B.R0 * sin(alpha) );
 
-            ios::acstream fp("abacus.dat");
+            ios::acstream fp(filename);
             fp("%.15g %.15g %.15g\n",h,A,Rad2Deg(alpha));
             std::cerr.flush();
             fprintf(stderr,"\tzeta=%10.4f    \r",zeta);
@@ -37,7 +39,7 @@ YOCTO_PROGRAM_START()
         fprintf(stderr,"\n");
         fflush(stderr);
         
-        ios::ocstream::echo("abacus.dat","\n");
+        ios::ocstream::echo(filename,"\n");
 
     }
 

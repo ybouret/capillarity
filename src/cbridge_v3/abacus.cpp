@@ -8,11 +8,11 @@ YOCTO_PROGRAM_START()
     const double hmin = Lua::Config::Get<lua_Number>(L,"hmin");
 
     const size_t N        = 200;
-    const string filename = "abacus.dat";
+    const string filename = "abacus3.dat";
     ios::ocstream::overwrite(filename);
 
     const double  R3  = Cube(B.R0);
-    for(int theta_deg = 100; theta_deg <= 175; theta_deg += 5 )
+    for(int theta_deg = 130; theta_deg <= 130; theta_deg += 5 )
     //for(int theta_deg = 170; theta_deg <= 170; theta_deg += 10)
     {
         const double theta = Deg2Rad(double(theta_deg));

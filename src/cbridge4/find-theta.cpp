@@ -52,6 +52,8 @@ YOCTO_PROGRAM_START()
             {
                 (void) B.profile(alpha, theta,zeta,&fp);
             }
+            const double shift = B.compute_shift(alpha, theta, zeta);
+            std::cerr << "shift=" << shift << std::endl;
         }
         
     }

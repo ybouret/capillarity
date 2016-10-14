@@ -12,7 +12,7 @@ YOCTO_PROGRAM_START()
     ios::ocstream::overwrite(filename);
 
     const double  R3  = Cube(B.R0);
-    for(int theta_deg = 130; theta_deg <= 130; theta_deg += 5 )
+    for(int theta_deg = 110; theta_deg <= 175; theta_deg += 5 )
     //for(int theta_deg = 170; theta_deg <= 170; theta_deg += 10)
     {
         const double theta = Deg2Rad(double(theta_deg));

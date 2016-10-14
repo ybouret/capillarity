@@ -72,9 +72,16 @@ size_t Bridge:: find_alpha(const double theta, const double zeta, double *alphas
         case HAS_UPPER: alphas[0] = find_upper(Alpha.b,alpha_up,F,resolution); return 1;
         case HAS_BOTH:
         {
-            alphas[0] = find_lower(alpha_lo,Alpha.b,F,resolution);
-            alphas[1] = find_upper(Alpha.b,alpha_up,F,resolution);
-            return 2;
+            if(zeta>0)
+            {
+                alphas[0] = find_lower(alpha_lo,Alpha.b,F,resolution);
+                alphas[1] = find_upper(Alpha.b,alpha_up,F,resolution);
+                return 2;
+            }
+            else
+            {
+                 alphas[0] = find_upper(Alpha.b,alpha_up,F,resolution); return 1;
+            }
         }
 
         default:

@@ -32,5 +32,14 @@ YOCTO_PROGRAM_START()
     app.process();
     const double ell = chrono.query();
     std::cerr << "Done in " << ell << " seconds" << std::endl;
+
+    {
+        ios::wcstream fp("output.dat");
+        for(size_t i=1;i<=app.h.size();++i)
+        {
+            fp("%g %g %g %g %g\n", app.h[i], app.A[i], Rad2Deg(app.alpha[i]), Rad2Deg(app.theta[i]), app.t[i]);
+        }
+    }
+
 }
 YOCTO_PROGRAM_END()

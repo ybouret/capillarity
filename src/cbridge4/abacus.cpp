@@ -18,7 +18,7 @@ YOCTO_PROGRAM_START()
     double alphas[2];
     bool   isFlat = false;
     
-    for(double theta_deg=110; theta_deg <= 175; theta_deg += 5 )
+    for(double theta_deg=119; theta_deg <= 179; theta_deg += 3 )
     {
         h.free();
         A.free();

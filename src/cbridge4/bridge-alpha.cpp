@@ -80,7 +80,14 @@ size_t Bridge:: find_alpha(const double theta, const double zeta, double *alphas
             }
             else
             {
-                 alphas[0] = find_upper(Alpha.b,alpha_up,F,resolution); return 1;
+                if(zeta>=zeta_upper)
+                {
+                    alphas[0] = find_upper(Alpha.b,alpha_up,F,resolution); return 1;
+                }
+                else
+                {
+                    alphas[0] = find_lower(alpha_lo,Alpha.b,F,resolution); return 1;
+                }
             }
         }
 

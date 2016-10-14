@@ -1,10 +1,15 @@
-#include "bridge.hpp"
+#include "application.hpp"
 #include "yocto/program.hpp"
 
 YOCTO_PROGRAM_START()
 {
+#define DISCARD_BRIDGE
 #include "main-core.cpp"
 
+    Application app(L);
+
+
+#if 0
     const string filename = "zrange.dat";
     ios::ocstream::overwrite(filename);
     ios::ocstream::echo(filename,"0 0 0 180 180\n");
@@ -17,6 +22,8 @@ YOCTO_PROGRAM_START()
         std::cerr << "theta: " << Rad2Deg(tr.vmin) << " to " << Rad2Deg(tr.vmax) << std::endl;
         ios::ocstream::echo(filename,"%g %g %g %g %g\n", alpha_deg, zr.vmin, zr.vmax, Rad2Deg(tr.vmin), Rad2Deg(tr.vmax));
     }
+#endif
+
 
 }
 YOCTO_PROGRAM_END()

@@ -5,6 +5,8 @@ bridge-ode.cpp
 bridge-theta.cpp
 bridge-params.cpp
 bridge-alpha.cpp
+application.hpp
+application.cpp
 )
 
 ADD_EXECUTABLE(cbridge4 main.cpp)

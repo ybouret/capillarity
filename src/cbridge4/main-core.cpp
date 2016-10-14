@@ -18,5 +18,7 @@ for(int i=1;i<argc;++i)
 }
 
 // load bridge
+#if !defined(DISCARD_BRIDGE)
 Bridge B(L);
+#endif
 

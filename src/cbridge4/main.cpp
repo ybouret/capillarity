@@ -1,5 +1,6 @@
 #include "application.hpp"
 #include "yocto/program.hpp"
+#include "yocto/sys/wtime.hpp"
 
 YOCTO_PROGRAM_START()
 {
@@ -26,7 +27,10 @@ YOCTO_PROGRAM_START()
     Application  app(L);
     const string filename = Lua::Config::Get<string>(L,"file");
     app.load(filename);
-
+    wtime chrono;
+    chrono.start();
     app.process();
+    const double ell = chrono.query();
+    std::cerr << "Done in " << ell << " seconds" << std::endl;
 }
 YOCTO_PROGRAM_END()

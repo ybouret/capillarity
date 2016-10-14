@@ -29,7 +29,7 @@ public:
         std::cerr << "enqueuing #" << h.size() << " jobs..." << std::endl;
         for(size_t i=1;i<=h.size();++i)
         {
-            //enqueue2(this, &Application::run1, i);
+            enqueue_copy(i,this, &Application::run1);
         }
         flush();
     }
@@ -38,17 +38,15 @@ private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Application);
     container_manager_of<Vector> mgr;
 
-    void run1(size_t i, threading::context &ctx)
+    void run1(const size_t i, threading::context &ctx)
     {
-        {
-            YOCTO_LOCK(ctx.access);
-            std::cerr << "i=" << i << std::endl;
-            std::cerr << "theta.size()=" << theta.size() << std::endl;
-        }
-        Bridge &B = ctx.as<Bridge>();
-        //assert(i>0);
-        //assert(i<=theta.size());
-        //theta[i] = B.mu;
+        assert(i>0);
+        assert(i<=theta.size());
+        
+        Bridge &B      = ctx.as<Bridge>();
+        bool    isFlat = false;
+
+        theta[i]  = B.find_theta(alpha[i], zeta[i], isFlat);
     }
 
 };

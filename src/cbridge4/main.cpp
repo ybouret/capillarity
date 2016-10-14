@@ -6,7 +6,6 @@ YOCTO_PROGRAM_START()
 #define DISCARD_BRIDGE
 #include "main-core.cpp"
 
-    Application app(L);
 
 
 #if 0
@@ -24,6 +23,10 @@ YOCTO_PROGRAM_START()
     }
 #endif
 
+    Application  app(L);
+    const string filename = Lua::Config::Get<string>(L,"file");
+    app.load(filename);
 
+    app.process();
 }
 YOCTO_PROGRAM_END()

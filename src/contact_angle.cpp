@@ -30,9 +30,8 @@ YOCTO_PROGRAM_START()
 
         //______________________________________________________________________
         //
-        // making a black
+        // making a grayscale picture
         //______________________________________________________________________
-
         pixmapf      img0(origin,RGB::to_float,origin);
         const unit_t h = origin.h;
         const unit_t w = origin.w;
@@ -101,6 +100,14 @@ YOCTO_PROGRAM_START()
         edges.load(tags);
         IMG.save("img-blobs.png", tags, tags.colors, 0);
         std::cerr << "#edges=" << edges.size() << std::endl;
+
+        tgt.copy(origin);
+        for(size_t i=edges.size();i>0;--i)
+        {
+            const particle &pa = *edges[i];
+            pa.mask(tgt, named_color::fetch(pa.tag+tags.colors.shift), 255);
+        }
+        IMG.save("img-final.png", tgt, 0);
     }
 
 }

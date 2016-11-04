@@ -2,10 +2,10 @@
 #define PAR_BRIDGE_INCLUDED 1
 
 #include "cbridge.hpp"
-#include "yocto/threading/crew.hpp"
+#include "yocto/threading/scheme/simd.hpp"
 
 typedef threading::context Context;
-typedef threading::crew    Crew;
+typedef threading::SIMD    Crew;
 typedef container_manager_of<Vector> VMgr;
 
 //! base class bridge to have a copy of global parameters

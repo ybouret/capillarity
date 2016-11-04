@@ -2,13 +2,13 @@
 #define APPLICATION_INCLUDED 1
 
 
-#include "yocto/threading/engine.hpp"
+#include "yocto/threading/scheme/server.hpp"
 #include "bridge.hpp"
 
 typedef threading::context Context;
-typedef threading::job     Job;
+typedef threading::kernel  Job;
 
-class Application : public Bridge, public threading::engine
+class Application : public Bridge, public threading::par_server
 {
 public:
     virtual ~Application() throw();

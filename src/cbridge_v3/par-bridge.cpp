@@ -64,7 +64,7 @@ void ParBridge:: find_theta()
 {
     Crew &self = *this;
     threading::kernel k(this, & ParBridge::FindTheta );
-    self(k);
+    self.run(k);
     for(size_t i=0;i<self.size;++i)
     {
         self[i].as<Bridge>().change_curv(1);

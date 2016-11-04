@@ -4,7 +4,7 @@
 #define __SUBS 0x02
 
 Application:: Application( lua_State *L ) :
-Bridge(L), threading::engine(true),
+Bridge(L), threading::par_server(true),
 h(),
 A(),
 t(),
@@ -12,7 +12,7 @@ zeta(),
 alpha(),
 theta()
 {
-    threading::dispatcher &self = *this;
+    threading::executor &self = *this;
     for(size_t i=0;i<self.num_threads();++i)
     {
         self[i].build<Bridge,lua_State *>(L);

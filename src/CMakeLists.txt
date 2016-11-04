@@ -20,14 +20,14 @@ ADD_EXECUTABLE(contact_angle contact_angle.cpp)
 TARGET_LINK_YOCTO(contact_angle gfx tiff png)
 
 ADD_EXECUTABLE(build_time build_time.cpp)
-TARGET_LINK_LIBRARIES(build_time bridge_v3)
+TARGET_LINK_LIBRARIES(build_time)
 TARGET_LINK_YOCTO(build_time mk)
 
 INSTALL(TARGETS contact_angle build_time RUNTIME DESTINATION bin )
 
 #ADD_SUBDIRECTORY(cbridge)
 #ADD_SUBDIRECTORY(cbridge_v2)
-ADD_SUBDIRECTORY(cbridge_v3)
+#ADD_SUBDIRECTORY(cbridge_v3)
 ADD_SUBDIRECTORY(cbridge4)
 
 

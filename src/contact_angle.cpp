@@ -101,11 +101,16 @@ YOCTO_PROGRAM_START()
         IMG.save("img-blobs.png", tags, tags.colors, 0);
         std::cerr << "#edges=" << edges.size() << std::endl;
 
+        while( edges.size() > 2 ) edges.pop_back();
+        if(edges.size()<=0)
+            throw exception("not enough edges");
+
         tgt.copy(origin);
         for(size_t i=edges.size();i>0;--i)
         {
             const particle &pa = *edges[i];
             pa.mask(tgt, named_color::fetch(pa.tag+tags.colors.shift), 255);
+            //std::cerr << "#points=" << pa.size << std::endl;
         }
         IMG.save("img-final.png", tgt, 0);
     }

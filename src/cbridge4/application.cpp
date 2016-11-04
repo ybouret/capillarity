@@ -4,7 +4,7 @@
 #define __SUBS 0x02
 
 Application:: Application( lua_State *L ) :
-Bridge(L), threading::par_server(true),
+Bridge(L), threading::par_server(false),
 h(),
 A(),
 t(),

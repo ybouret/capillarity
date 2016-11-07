@@ -105,6 +105,9 @@ YOCTO_PROGRAM_START()
         IMG.save("img-blobs.png", tags, tags.colors, 0);
         std::cerr << "#edges=" << edges.size() << std::endl;
 
+        // TODO: sort edges by extension !!!!
+        edges.sort_by_extension();
+
         while( edges.size() > 2 ) edges.pop_back();
         if(edges.size()<=1)
             throw exception("not enough edges, image is not fit!!!");

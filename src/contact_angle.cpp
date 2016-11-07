@@ -5,9 +5,13 @@
 #include "yocto/gfx/ops/stencil.hpp"
 #include "yocto/gfx/ops/edges.hpp"
 #include "yocto/gfx/ops/filter.hpp"
+#include "yocto/gfx/draw/line.hpp"
+#include "yocto/container/matrix.hpp"
 
 using namespace yocto;
 using namespace gfx;
+
+typedef point2d<double> V2D;
 
 YOCTO_PROGRAM_START()
 {
@@ -102,8 +106,8 @@ YOCTO_PROGRAM_START()
         std::cerr << "#edges=" << edges.size() << std::endl;
 
         while( edges.size() > 2 ) edges.pop_back();
-        if(edges.size()<=0)
-            throw exception("not enough edges");
+        if(edges.size()<=1)
+            throw exception("not enough edges, image is not fit!!!");
 
         tgt.copy(origin);
         for(size_t i=edges.size();i>0;--i)
@@ -113,7 +117,70 @@ YOCTO_PROGRAM_START()
             //std::cerr << "#points=" << pa.size << std::endl;
         }
         IMG.save("img-final.png", tgt, 0);
+
+
+        //______________________________________________________________________
+        //
+        // Ok, so where is the pipette, left or right ?
+        //______________________________________________________________________
+        patch box_left  = edges[1]->aabb();
+        patch box_right = edges[2]->aabb();
+        if(box_left.lower.x>box_right.lower.x)
+        {
+            bswap(box_left,box_right);
+            bswap(edges[1],edges[2]);
+        }
+        //std::cerr << "box_left =" << box_left  << std::endl;
+        //std::cerr << "box_right=" << box_right << std::endl;
+
+        draw_patch(tgt,box_left,  named_color::fetch( YGFX_GREEN ), 127 );
+        draw_patch(tgt,box_right, named_color::fetch( YGFX_RED   ), 127 );
+        IMG.save("img-final.png", tgt, 0);
+
+        particle pp(0);
+        for( const vnode *node = edges[1]->head; node; node = node->next )
+        {
+            pp.push_back( new vnode(*node) );
+        }
+        for( const vnode *node = edges[2]->head; node; node = node->next )
+        {
+            pp.push_back( new vnode(*node) );
+        }
+
+        const size_t np = pp.size;
+        V2D G;
+        for(const vnode *node = pp.head;node;node=node->next)
+        {
+            G.x += double(node->vtx.x);
+            G.y += double(node->vtx.y);
+        }
+        G.x /= np;
+        G.y /= np;
+        std::cerr << "G=" << G << std::endl;
+        double torque = 0;
+        for(const vnode *node = pp.head;node;node=node->next)
+        {
+            V2D Q(node->vtx.x,node->vtx.y);
+            V2D GQ(G,Q);
+            const double mass = Q.y; // virtual mass
+            torque -= mass*GQ.x;
+        }
+        torque /= np;
+        std::cerr << "torque=" << torque << std::endl;
+        if(torque<0)
+        {
+            std::cerr << "pipette is on the right!" << std::endl;
+        }
+        else
+        {
+            std::cerr << "pipette is on the left!" << std::endl;
+        }
+
+
+
+
     }
+
 
 }
 YOCTO_PROGRAM_END()

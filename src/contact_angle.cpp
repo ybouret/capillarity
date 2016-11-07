@@ -167,15 +167,21 @@ YOCTO_PROGRAM_START()
         }
         torque /= np;
         std::cerr << "torque=" << torque << std::endl;
+
+        const particle *wp = 0;
         if(torque<0)
         {
             std::cerr << "pipette is on the right!" << std::endl;
+            wp = & *edges[1];
         }
         else
         {
             std::cerr << "pipette is on the left!" << std::endl;
+            wp = & *edges[2];
         }
 
+        wp->mask(tgt, named_color::fetch(YGFX_ORANGE), 255);
+        IMG.save("img-final.png", tgt, 0);
 
 
 

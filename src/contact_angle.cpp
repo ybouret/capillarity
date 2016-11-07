@@ -13,6 +13,25 @@ using namespace gfx;
 
 typedef point2d<double> V2D;
 
+static inline
+void trim_particle( particle &p, const double y ) throw()
+{
+    vlist stk;
+    while(p.size)
+    {
+        vnode *node = p.pop_front();
+        if(node->vtx.y<=y)
+        {
+            stk.push_back(node);
+        }
+        else
+        {
+            delete node;
+        }
+    }
+    p.swap_with(stk);
+}
+
 YOCTO_PROGRAM_START()
 {
     YOCTO_GFX_DECL_FORMAT(png);
@@ -126,6 +145,7 @@ YOCTO_PROGRAM_START()
         //
         // Ok, so where is the pipette, left or right ?
         //______________________________________________________________________
+        std::cerr << "-- Finding Pipette" << std:: endl;
         patch box_left  = edges[1]->aabb();
         patch box_right = edges[2]->aabb();
         if(box_left.lower.x>box_right.lower.x)
@@ -148,6 +168,8 @@ YOCTO_PROGRAM_START()
             pp.push_back( new vnode(*node) );
         }
 
+        std::cerr << "-- Finding Pipetter" << std:: endl;
+
         const size_t np = pp.size;
         V2D G;
         for(const vnode *node = pp.head;node;node=node->next)
@@ -169,29 +191,82 @@ YOCTO_PROGRAM_START()
         torque /= np;
         std::cerr << "torque=" << torque << std::endl;
 
-        const particle *pWork = 0;
-        const patch    *pArea = 0;
+        particle       *pWork1 = 0;
+        const patch    *pArea1 = 0;
+        particle       *pWork2 = 0;
+        const patch    *pArea2 = 0;
+
         if(torque<0)
         {
             std::cerr << "pipette is on the right!" << std::endl;
-            pWork = & *edges[1];
-            pArea = & box_left;
+            pWork1 = & *edges[1];
+            pArea1 = & box_left;
+
+            pWork2 = & *edges[2];
+            pArea2 = & box_right;
         }
         else
         {
             std::cerr << "pipette is on the left!" << std::endl;
-            pWork = & *edges[2];
-            pArea = & box_right;
+            pWork1 = & *edges[2];
+            pArea1 = & box_right;
+
+            pWork2 = & *edges[1];
+            pArea2 = &  box_left;
+
         }
 
-        pWork->mask(tgt, named_color::fetch(YGFX_ORANGE), 255);
+        pWork1->mask(tgt, named_color::fetch(YGFX_ORANGE), 255);
         IMG.save("img-final.png", tgt, 0);
 
         //______________________________________________________________________
         //
+        //
         // Now we are working...
+        //
         //______________________________________________________________________
-        
+        std::cerr << "-- Building Workspace" << std::endl;
+        // keep working space
+        trim_particle(*pWork1,(pArea1->lower.y+pArea1->upper.y)/2);
+        trim_particle(*pWork2,(pArea2->lower.y+pArea2->upper.y)/2);
+
+        if(pWork1->size<=1||pWork2->size<=1)
+        {
+            throw exception("particles are too small");
+        }
+
+        pWork1->mask(tgt,  named_color::fetch(YGFX_YELLOW),  255);
+        pWork2->mask(tgt, named_color::fetch(YGFX_MAGENTA), 255);
+
+        IMG.save("img-final.png", tgt, 0);
+
+        std::cerr << "-- Guessing Intersection" << std::endl;
+        //______________________________________________________________________
+        //
+        // Guess the lens limit
+        //______________________________________________________________________
+        const vnode *p1    = pWork1->head;
+        const vnode *p2    = pWork2->head;
+        unit_t       min_d = vertex(p1->vtx,p2->vtx).norm2();
+
+        for(const vnode *n1 = pWork1->head; n1; n1=n1->next)
+        {
+            for(const vnode *n2 = pWork2->head; n2; n2=n2->next)
+            {
+                const unit_t tmp_d = vertex(n1->vtx,n2->vtx).norm2();
+                if(tmp_d<min_d)
+                {
+                    p1 = n1;
+                    p2 = n2;
+                    min_d = tmp_d;
+                }
+            }
+        }
+
+        draw_line(tgt,p1->vtx,p2->vtx, named_color::fetch(YGFX_CYAN), 0xff);
+        IMG.save("img-final.png", tgt, 0);
+
+
 
 
     }

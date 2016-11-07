@@ -133,8 +133,6 @@ YOCTO_PROGRAM_START()
             bswap(box_left,box_right);
             bswap(edges[1],edges[2]);
         }
-        //std::cerr << "box_left =" << box_left  << std::endl;
-        //std::cerr << "box_right=" << box_right << std::endl;
 
         draw_patch(tgt,box_left,  named_color::fetch( YGFX_GREEN ), 127 );
         draw_patch(tgt,box_right, named_color::fetch( YGFX_RED   ), 127 );
@@ -171,21 +169,29 @@ YOCTO_PROGRAM_START()
         torque /= np;
         std::cerr << "torque=" << torque << std::endl;
 
-        const particle *wp = 0;
+        const particle *pWork = 0;
+        const patch    *pArea = 0;
         if(torque<0)
         {
             std::cerr << "pipette is on the right!" << std::endl;
-            wp = & *edges[1];
+            pWork = & *edges[1];
+            pArea = & box_left;
         }
         else
         {
             std::cerr << "pipette is on the left!" << std::endl;
-            wp = & *edges[2];
+            pWork = & *edges[2];
+            pArea = & box_right;
         }
 
-        wp->mask(tgt, named_color::fetch(YGFX_ORANGE), 255);
+        pWork->mask(tgt, named_color::fetch(YGFX_ORANGE), 255);
         IMG.save("img-final.png", tgt, 0);
 
+        //______________________________________________________________________
+        //
+        // Now we are working...
+        //______________________________________________________________________
+        
 
 
     }

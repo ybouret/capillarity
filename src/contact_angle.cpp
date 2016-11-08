@@ -168,8 +168,6 @@ YOCTO_PROGRAM_START()
             pp.push_back( new vnode(*node) );
         }
 
-        std::cerr << "-- Finding Pipetter" << std:: endl;
-
         const size_t np = pp.size;
         V2D G;
         for(const vnode *node = pp.head;node;node=node->next)
@@ -198,7 +196,7 @@ YOCTO_PROGRAM_START()
 
         if(torque<0)
         {
-            std::cerr << "pipette is on the right!" << std::endl;
+            std::cerr << "\tpipette is on the right!" << std::endl;
             pWork1 = & *edges[1];
             pArea1 = & box_left;
 
@@ -207,7 +205,7 @@ YOCTO_PROGRAM_START()
         }
         else
         {
-            std::cerr << "pipette is on the left!" << std::endl;
+            std::cerr << "\tpipette is on the left!" << std::endl;
             pWork1 = & *edges[2];
             pArea1 = & box_right;
 
@@ -235,12 +233,13 @@ YOCTO_PROGRAM_START()
             throw exception("particles are too small");
         }
 
-        pWork1->mask(tgt,  named_color::fetch(YGFX_YELLOW),  255);
+        pWork1->mask(tgt,  named_color::fetch(YGFX_YELLOW), 255);
         pWork2->mask(tgt, named_color::fetch(YGFX_MAGENTA), 255);
 
         IMG.save("img-final.png", tgt, 0);
 
         std::cerr << "-- Guessing Intersection" << std::endl;
+
         //______________________________________________________________________
         //
         // Guess the lens limit
@@ -256,8 +255,8 @@ YOCTO_PROGRAM_START()
                 const unit_t tmp_d = vertex(n1->vtx,n2->vtx).norm2();
                 if(tmp_d<min_d)
                 {
-                    p1 = n1;
-                    p2 = n2;
+                    p1    = n1;
+                    p2    = n2;
                     min_d = tmp_d;
                 }
             }
@@ -266,6 +265,10 @@ YOCTO_PROGRAM_START()
         draw_line(tgt,p1->vtx,p2->vtx, named_color::fetch(YGFX_CYAN), 0xff);
         IMG.save("img-final.png", tgt, 0);
 
+        //______________________________________________________________________
+        //
+        // ok, now we need the points and do something...
+        //______________________________________________________________________
 
 
 

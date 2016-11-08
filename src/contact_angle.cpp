@@ -174,16 +174,20 @@ YOCTO_PROGRAM_START()
 
         const size_t np = pp.size;
         V2D G;
+        double y_min = pp.head->vtx.y;
         for(const vnode *node = pp.head;node;node=node->next)
         {
             G.x += double(node->vtx.x);
             G.y += double(node->vtx.y);
+            y_min = min_of<double>(y_min,node->vtx.y);
         }
         G.x /= np;
         G.y /= np;
         std::cerr << "G=" << G << std::endl;
+        std::cerr << "-- Lowering The Barycenter" << std::endl;
+
         double torque = 0;
-        for(const vnode *node = pp.head;node;node=node->next)
+        for(const vnode *node=pp.head;node;node=node->next)
         {
             V2D Q(node->vtx.x,node->vtx.y);
             V2D GQ(G,Q);

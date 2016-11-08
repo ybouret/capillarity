@@ -269,7 +269,18 @@ YOCTO_PROGRAM_START()
         //
         // ok, now we need the points and do something...
         //______________________________________________________________________
-
+        const unit_t y_low = p1->vtx.y;
+        vector<double> X(pWork1->size,as_capacity);
+        vector<double> Y(pWork1->size,as_capacity);
+        for(const vnode *n1 = pWork1->head; n1; n1=n1->next)
+        {
+            const vertex v = n1->vtx;
+            if(v.y>=y_low)
+            {
+                X.push_back(v.x);
+                Y.push_back(v.y);
+            }
+        }
 
 
     }

@@ -6,10 +6,14 @@
 #include "yocto/gfx/ops/edges.hpp"
 #include "yocto/gfx/ops/filter.hpp"
 #include "yocto/gfx/draw/line.hpp"
+#include "yocto/gfx/draw/circle.hpp"
 #include "yocto/container/matrix.hpp"
+#include "yocto/ios/ocstream.hpp"
+#include "yocto/math/alg/shapes2d.hpp"
 
 using namespace yocto;
 using namespace gfx;
+using namespace math;
 
 typedef point2d<double> V2D;
 
@@ -193,7 +197,8 @@ YOCTO_PROGRAM_START()
         const patch    *pArea1 = 0;
         particle       *pWork2 = 0;
         const patch    *pArea2 = 0;
-
+        bool            is_right = true;
+        bool            is_left  = false;
         if(torque<0)
         {
             std::cerr << "\tpipette is on the right!" << std::endl;
@@ -211,6 +216,8 @@ YOCTO_PROGRAM_START()
 
             pWork2 = & *edges[1];
             pArea2 = &  box_left;
+            is_right = false;
+            is_left  = true;
 
         }
 
@@ -269,9 +276,14 @@ YOCTO_PROGRAM_START()
         //
         // ok, now we need the points and do something...
         //______________________________________________________________________
+        FitCircle<double> fc;
+
         const unit_t y_low = p1->vtx.y;
         vector<double> X(pWork1->size,as_capacity);
         vector<double> Y(pWork1->size,as_capacity);
+        vector<double> A(pWork1->size,as_capacity);
+        vector<double> R(pWork1->size,as_capacity);
+
         for(const vnode *n1 = pWork1->head; n1; n1=n1->next)
         {
             const vertex v = n1->vtx;
@@ -279,8 +291,39 @@ YOCTO_PROGRAM_START()
             {
                 X.push_back(v.x);
                 Y.push_back(v.y);
+                fc.append(v.x,v.y);
             }
         }
+
+        const size_t N = X.size();
+
+        V2D    center;
+        double radius = 0;
+        fc.compute(center,radius);
+
+        std::cerr << "center=" << center << std::endl;
+        std::cerr << "radius=" << radius << std::endl;
+
+        for(size_t i=1;i<=N;++i)
+        {
+            const double dx = X[i] - center.x;
+            const double dy = center.y - Y[i];
+            const double aa = Atan2(dy,dx);
+            A.push_back(aa);
+            R.push_back( Hypotenuse(dx,dy) );
+        }
+
+
+        {
+            ios::wcstream fp("shape.dat");
+            for(size_t i=1;i<=N;++i)
+            {
+                fp("%g %g %g %g %g\n", X[i], Y[i], Rad2Deg(A[i]), R[i], R[i] - radius);
+            }
+        }
+
+        draw_circle(tgt,unit_t(center.x), unit_t(center.y), unit_t(radius), named_color::fetch(YGFX_IVORY), 0xff);
+        IMG.save("img-final.png", tgt, 0);
 
 
     }

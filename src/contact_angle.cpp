@@ -190,13 +190,6 @@ YOCTO_PROGRAM_START()
         std::cerr << "rmsR=" << rmsR << std::endl;
 
 
-
-
-
-
-
-
-
         particle       *pWork1 = 0;
         const patch    *pArea1 = 0;
         particle       *pWork2 = 0;

@@ -147,7 +147,9 @@ YOCTO_PROGRAM_START()
 
         //______________________________________________________________________
         //
+        //
         // Ok, so where is the pipette, left or right ?
+        //
         //______________________________________________________________________
         std::cerr << "-- Finding Pipette" << std:: endl;
         patch box_left  = edges[1]->aabb();
@@ -162,42 +164,38 @@ YOCTO_PROGRAM_START()
         draw_patch(tgt,box_right, named_color::fetch( YGFX_RED   ), 127 );
         IMG.save("img-final.png", tgt, 0);
 
-        particle pp(0);
+
+        //______________________________________________________________________
+        //
+        // we compute the circularity index
+        //______________________________________________________________________
+        FitCircle<double> fcL, fcR;
+
         for( const vnode *node = edges[1]->head; node; node = node->next )
         {
-            pp.push_back( new vnode(*node) );
-        }
-        for( const vnode *node = edges[2]->head; node; node = node->next )
-        {
-            pp.push_back( new vnode(*node) );
+            fcL.append(node->vtx.x,node->vtx.y);
         }
 
-        const size_t np = pp.size;
-        V2D G;
-        double y_min = pp.head->vtx.y;
-        for(const vnode *node = pp.head;node;node=node->next)
+        for( const vnode *node = edges[2]->head; node; node = node->next )
         {
-            G.x += double(node->vtx.x);
-            G.y += double(node->vtx.y);
-            y_min = min_of<double>(y_min,node->vtx.y);
+            fcR.append(node->vtx.x,node->vtx.y);
         }
-        G.x /= np;
-        G.y /= np;
-        std::cerr << "G=" << G << std::endl;
-        std::cerr << "-- Lowering The Barycenter" << std::endl;
-        G.y = y_min;
-        
-        double torque = 0;
-        for(const vnode *node=pp.head;node;node=node->next)
-        {
-            V2D Q(node->vtx.x,node->vtx.y);
-            V2D GQ(G,Q);
-            const double mass = Q.y; // virtual mass
-            //const double mass = 1.0;
-            torque -= mass*GQ.x;
-        }
-        torque /= np;
-        std::cerr << "torque=" << torque << std::endl;
+
+        V2D centerL, centerR;
+        double radiusL=0, radiusR=0;
+        const double rmsL = fcL.compute(centerL,radiusL);
+        const double rmsR = fcR.compute(centerR,radiusR);
+
+        std::cerr << "rmsL=" << rmsL << std::endl;
+        std::cerr << "rmsR=" << rmsR << std::endl;
+
+
+
+
+
+
+
+
 
         particle       *pWork1 = 0;
         const patch    *pArea1 = 0;
@@ -205,7 +203,7 @@ YOCTO_PROGRAM_START()
         const patch    *pArea2 = 0;
         bool            is_right = true;
         bool            is_left  = false;
-        if(torque<0)
+        if(rmsL<rmsR)
         {
             std::cerr << "\tpipette is on the right!" << std::endl;
             pWork1 = & *edges[1];

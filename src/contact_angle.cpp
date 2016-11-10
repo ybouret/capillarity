@@ -47,6 +47,32 @@ YOCTO_PROGRAM_START()
 
     if(argc>1)
     {
+        if(!(argc>2))
+        {
+            throw exception("usage: %s filename [right|left]", program);
+        }
+        bool            is_right = true;
+        bool            is_left  = false;
+
+        const string side = argv[2];
+        if( side == "right" )
+        {
+            // do nothing
+        }
+        else
+        {
+            if( side == "left" )
+            {
+                is_left  =  true;
+                is_right = false;
+            }
+            else
+            {
+                throw exception("unexpected side='%s'", side.c_str() );
+            }
+        }
+
+
         //______________________________________________________________________
         //
         // loading original file, in colors
@@ -194,11 +220,10 @@ YOCTO_PROGRAM_START()
         const patch    *pArea1 = 0;
         particle       *pWork2 = 0;
         const patch    *pArea2 = 0;
-        bool            is_right = true;
-        bool            is_left  = false;
-        if(rmsL<rmsR)
+
+        if(is_left)
         {
-            std::cerr << "\tpipette is on the right!" << std::endl;
+            std::cerr << "\tuse left side, pipette is on the right!" << std::endl;
             pWork1 = & *edges[1];
             pArea1 = & box_left;
 
@@ -207,15 +232,12 @@ YOCTO_PROGRAM_START()
         }
         else
         {
-            std::cerr << "\tpipette is on the left!" << std::endl;
+            std::cerr << "\tuse right side, pipette is on the left!" << std::endl;
             pWork1 = & *edges[2];
             pArea1 = & box_right;
 
             pWork2 = & *edges[1];
             pArea2 = &  box_left;
-            is_right = false;
-            is_left  = true;
-
         }
 
         pWork1->mask(tgt, named_color::fetch(YGFX_ORANGE), 255);

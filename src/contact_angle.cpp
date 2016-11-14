@@ -10,6 +10,7 @@
 #include "yocto/container/matrix.hpp"
 #include "yocto/ios/ocstream.hpp"
 #include "yocto/math/alg/shapes2d.hpp"
+#include "yocto/math/fit/glsf-spec.hpp"
 
 using namespace yocto;
 using namespace gfx;
@@ -389,7 +390,7 @@ YOCTO_PROGRAM_START()
         // TODO: define delta angle and sweep angle
         const double Delta = 2;
         const double Sweep = 30;
-        const double Aini  = A[1]+Deg2Rad(Delta);
+        const double Aini  = A[1];
         const double Aend  = min_of<double>( Aini + Deg2Rad(Sweep), 90 );
 
         vector<double> AA(pWork1->size,as_capacity);
@@ -399,23 +400,56 @@ YOCTO_PROGRAM_START()
 
         for(size_t i=1;i<=N;++i)
         {
-            if(A[i]>=Aini&&A[i]<=Aend)
+            const double aa = A[i];
+            const double rr = R[i];
+            const double xx = rr*sin(aa)+center.x;
+            const double yy = center.y-rr*cos(aa);
+
+            if(yy>=y_low+Delta&&aa<=Aend)
             {
-                AA.push_back(A[i]);
-                RR.push_back(R[i]);
-                XX.push_back(R[i]*sin(A[i])+center.x);
-                YY.push_back(center.y-R[i]*cos(A[i]));
+                AA.push_back(aa);
+                RR.push_back(rr);
+                XX.push_back(xx);
+                YY.push_back(yy);
             }
+
+        }
+        const size_t NN = AA.size();
+        vector<double> RF(NN);
+        vector<double> R0(NN);
+        for(size_t i=1;i<=NN;++i) R0[i] = RR[i] - radius;
+
+        GLS<double>::Samples samples;
+        GLS<double>::Sample &sample  = samples.append(AA,R0,RF);
+
+        vector<double> aorg(3);
+
+        if(!_GLS::Polynomial<double>::Start(sample,aorg))
+        {
+            throw exception("Unable to fit polynomial");
         }
 
-        const size_t NN = AA.size();
         {
             ios::wcstream fp("shapefit.dat");
             for(size_t i=1;i<=NN;++i)
             {
-                fp("%g %g %g %g %g\n", XX[i], YY[i], Rad2Deg(AA[i]), RR[i], RR[i] - radius );
+                fp("%g %g %g %g %g %g\n", XX[i], YY[i], Rad2Deg(AA[i]), RR[i], RR[i] - radius, RF[i]);
             }
         }
+
+        {
+            ios::wcstream fp("resfit.dat");
+            for(double alpha=0;alpha<=Aend;alpha+=0.01)
+            {
+                const double aa = alpha;
+                const double rr = _GLS::Polynomial<double>::Eval(aa,aorg)+radius;
+                const double xx = rr*sin(aa)+center.x;
+                const double yy = center.y-rr*cos(aa);
+                fp("%g %g\n", xx,yy);
+            }
+        }
+
+
 
 #if 0
         // now use elliptic approximation

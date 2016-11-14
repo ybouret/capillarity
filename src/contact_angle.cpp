@@ -387,7 +387,7 @@ YOCTO_PROGRAM_START()
         co_qsort(A,R);
 
         // TODO: define delta angle and sweep angle
-        const double Delta = 0;
+        const double Delta = 2;
         const double Sweep = 30;
         const double Aini  = A[1]+Deg2Rad(Delta);
         const double Aend  = min_of<double>( Aini + Deg2Rad(Sweep), 90 );
@@ -413,7 +413,7 @@ YOCTO_PROGRAM_START()
             ios::wcstream fp("shapefit.dat");
             for(size_t i=1;i<=NN;++i)
             {
-                fp("%g %g %g %g\n", XX[i], YY[i], AA[i], RR[i] );
+                fp("%g %g %g %g %g\n", XX[i], YY[i], Rad2Deg(AA[i]), RR[i], RR[i] - radius );
             }
         }
 

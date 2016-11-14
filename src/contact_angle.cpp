@@ -302,8 +302,6 @@ YOCTO_PROGRAM_START()
         vector<double> Y(pWork1->size,as_capacity);
         vector<double> A(pWork1->size,as_capacity);
         vector<double> R(pWork1->size,as_capacity);
-        vector<double> XX(pWork1->size,as_capacity);
-        vector<double> YY(pWork1->size,as_capacity);
 
         for(const vnode *n1 = pWork1->head; n1; n1=n1->next)
         {
@@ -317,7 +315,7 @@ YOCTO_PROGRAM_START()
         }
 
         // process all the points
-        size_t N = X.size();
+        const size_t N = X.size();
 
         V2D    center;
         double radius = 0;
@@ -331,28 +329,100 @@ YOCTO_PROGRAM_START()
             const double dx = X[i] - center.x;
             const double dy = center.y - Y[i];
             const double aa = Atan2(dy,dx);
-            if(Rad2Deg(Fabs(aa))<=90)
-            {
-                A.push_back(aa);
-                R.push_back( Hypotenuse(dx,dy) );
-                XX.push_back(X[i]);
-                YY.push_back(Y[i]);
-            }
+            A.push_back(aa);
+            R.push_back( Hypotenuse(dx,dy) );
         }
 
-        // adjust
-        N = A.size();
+
+
 
         {
             ios::wcstream fp("shape.dat");
             for(size_t i=1;i<=N;++i)
             {
-                fp("%g %g %g %g %g\n", XX[i], YY[i], Rad2Deg(A[i]), R[i], R[i] - radius);
+                fp("%g %g %g %g %g\n", X[i], Y[i], Rad2Deg(A[i]), R[i], R[i] - radius);
             }
         }
 
         draw_circle(tgt,unit_t(center.x), unit_t(center.y), unit_t(radius), named_color::fetch(YGFX_IVORY), 0xff);
         IMG.save("img-final.png", tgt, 0);
+
+
+        // take the fitting section
+        if(is_left)
+        {
+            for(size_t i=1;i<=N;++i)
+            {
+                A[i] = -A[i];
+            }
+        }
+
+        co_qsort(A,R);
+
+        // TODO: define delta angle and sweep angle
+        const double Delta = 5;
+        const double Sweep = 30;
+        const double Aini  = A[1]+Deg2Rad(Delta);
+        const double Aend  = min_of<double>( Aini + Deg2Rad(Sweep), 90 );
+
+        vector<double> AA(pWork1->size,as_capacity);
+        vector<double> RR(pWork1->size,as_capacity);
+        vector<double> XX(pWork1->size,as_capacity);
+        vector<double> YY(pWork1->size,as_capacity);
+
+        for(size_t i=1;i<=N;++i)
+        {
+            if(A[i]>=Aini&&A[i]<=Aend)
+            {
+                AA.push_back(A[i]);
+                RR.push_back(R[i]);
+                XX.push_back(R[i]*sin(A[i])+center.x);
+                YY.push_back(center.y-R[i]*cos(A[i]));
+            }
+        }
+
+        const size_t NN = AA.size();
+        {
+            ios::wcstream fp("shapefit.dat");
+            for(size_t i=1;i<=NN;++i)
+            {
+                fp("%g %g %g %g\n", XX[i], YY[i], AA[i], RR[i] );
+            }
+        }
+
+        // now use elliptic approximation
+        FitConic<double> ell;
+        for(size_t i=1;i<=NN;++i)
+        {
+            ell.append(XX[i],YY[i]);
+        }
+        vector<double> params(6);
+        ell.compute(FitConicEllipse,params);
+        std::cerr << "params=" << params << std::endl;
+
+        V2D            Center;
+        V2D            Radius;
+        matrix<double> Rotate(2);
+
+        ell.Reduce(Center,Radius,Rotate,params);
+        std::cerr << "Center=" << Center << std::endl;
+        std::cerr << "Radius=" << Radius << std::endl;
+        std::cerr << "Rotate=" << Rotate << std::endl;
+
+        {
+            ios::wcstream fp("shape_ell.dat");
+            for(double theta=0;theta<=6.3;theta+=0.01)
+            {
+                const double c  = cos(theta);
+                const double s  = sin(theta);
+                const V2D     rr(Radius.x*c,Radius.y*s);
+                V2D           v;
+                tao::mul(v, Rotate, rr);
+                v += Center;
+                fp("%g %g\n", v.x, v.y);
+            }
+        }
+
 
 
     }

@@ -190,7 +190,7 @@ YOCTO_PROGRAM_START()
         draw_patch(tgt,box_right, named_color::fetch( YGFX_RED   ), 127 );
         IMG.save("img-final.png", tgt, 0);
 
-
+#if 0
         //______________________________________________________________________
         //
         // we compute the circularity index
@@ -214,7 +214,7 @@ YOCTO_PROGRAM_START()
 
         std::cerr << "rmsL=" << rmsL << std::endl;
         std::cerr << "rmsR=" << rmsR << std::endl;
-
+#endif
 
         particle       *pWork1 = 0;
         const patch    *pArea1 = 0;
@@ -302,6 +302,8 @@ YOCTO_PROGRAM_START()
         vector<double> Y(pWork1->size,as_capacity);
         vector<double> A(pWork1->size,as_capacity);
         vector<double> R(pWork1->size,as_capacity);
+        vector<double> XX(pWork1->size,as_capacity);
+        vector<double> YY(pWork1->size,as_capacity);
 
         for(const vnode *n1 = pWork1->head; n1; n1=n1->next)
         {
@@ -314,7 +316,8 @@ YOCTO_PROGRAM_START()
             }
         }
 
-        const size_t N = X.size();
+        // process all the points
+        size_t N = X.size();
 
         V2D    center;
         double radius = 0;
@@ -328,16 +331,23 @@ YOCTO_PROGRAM_START()
             const double dx = X[i] - center.x;
             const double dy = center.y - Y[i];
             const double aa = Atan2(dy,dx);
-            A.push_back(aa);
-            R.push_back( Hypotenuse(dx,dy) );
+            if(Rad2Deg(Fabs(aa))<=90)
+            {
+                A.push_back(aa);
+                R.push_back( Hypotenuse(dx,dy) );
+                XX.push_back(X[i]);
+                YY.push_back(Y[i]);
+            }
         }
 
+        // adjust
+        N = A.size();
 
         {
             ios::wcstream fp("shape.dat");
             for(size_t i=1;i<=N;++i)
             {
-                fp("%g %g %g %g %g\n", X[i], Y[i], Rad2Deg(A[i]), R[i], R[i] - radius);
+                fp("%g %g %g %g %g\n", XX[i], YY[i], Rad2Deg(A[i]), R[i], R[i] - radius);
             }
         }
 

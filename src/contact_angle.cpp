@@ -11,6 +11,7 @@
 #include "yocto/ios/ocstream.hpp"
 #include "yocto/math/alg/shapes2d.hpp"
 #include "yocto/math/fit/glsf-spec.hpp"
+#include "yocto/math/fcn/zfind.hpp"
 
 using namespace yocto;
 using namespace gfx;
@@ -38,30 +39,30 @@ void trim_particle( particle &p, const double y ) throw()
 }
 
 
-#if 0
-static inline
-double find_x_for( const double y, const array<double> &params)
+class FindInter
 {
-    assert(6==params.size());
+public:
+    vector<double> aorg;
+    double         radius;
+    double         deltaY;
 
-    double A = params[1];
-    double B = params[2] * y + params[4];
-    double C = params[3] * y * y + params[5] * y + params[6];
-    if(A<0)
+    FindInter() : aorg(6), radius(0), deltaY(0)
     {
-        A=-A;
-        B=-B;
-        C=-C;
     }
-    std::cerr << "A=" << A << std::endl;
-    std::cerr << "B=" << B << std::endl;
-    std::cerr << "C=" << C << std::endl;
-    const double delta = B*B - 4.0 * A * C;
-    std::cerr << "delta=" << delta << std::endl;
-    return 0;
 
-}
-#endif
+    ~FindInter() throw()
+    {
+    }
+
+    double Compute( const double alpha )
+    {
+        return (radius+_GLS::Polynomial<double>::Eval(alpha,aorg)) * cos(alpha) - deltaY;
+    }
+
+
+private:
+    YOCTO_DISABLE_COPY_AND_ASSIGN(FindInter);
+};
 
 
 YOCTO_PROGRAM_START()
@@ -387,7 +388,7 @@ YOCTO_PROGRAM_START()
 
         co_qsort(A,R);
 
-        // TODO: define delta angle and sweep angle
+        // TODO: define delta in pixels and sweep angle
         const double Delta = 2;
         const double Sweep = 30;
         const double Aini  = A[1];
@@ -422,7 +423,10 @@ YOCTO_PROGRAM_START()
         GLS<double>::Samples samples;
         GLS<double>::Sample &sample  = samples.append(AA,R0,RF);
 
-        vector<double> aorg(3);
+        FindInter      inter;
+        array<double> &aorg = inter.aorg;
+        inter.radius        = radius;
+        inter.deltaY        = center.y - y_low;
 
         if(!_GLS::Polynomial<double>::Start(sample,aorg))
         {
@@ -449,6 +453,21 @@ YOCTO_PROGRAM_START()
             }
         }
 
+        std::cerr << "y_low=" << y_low << std::endl;
+
+        // find the interception angle
+        zfind<double>             solver(1e-5);
+        numeric<double>::function zfn( &inter, & FindInter::Compute );
+        triplet<double>           zAlpha = { 0, 0, Aend };
+        triplet<double>           zValue = { zfn(zAlpha.a), 0, zfn(zAlpha.c) };
+        if(zValue.a*zValue.c>0)
+        {
+            throw exception("Cannot find interception, corrupted picture?");
+        }
+
+        const double alpha0 = solver.run(zfn, zAlpha, zValue);
+        std::cerr << "alpha0=" << Rad2Deg(alpha0) << std::endl;
+        
 
 
 #if 0

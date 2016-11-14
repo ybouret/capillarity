@@ -36,6 +36,33 @@ void trim_particle( particle &p, const double y ) throw()
     p.swap_with(stk);
 }
 
+
+#if 0
+static inline
+double find_x_for( const double y, const array<double> &params)
+{
+    assert(6==params.size());
+
+    double A = params[1];
+    double B = params[2] * y + params[4];
+    double C = params[3] * y * y + params[5] * y + params[6];
+    if(A<0)
+    {
+        A=-A;
+        B=-B;
+        C=-C;
+    }
+    std::cerr << "A=" << A << std::endl;
+    std::cerr << "B=" << B << std::endl;
+    std::cerr << "C=" << C << std::endl;
+    const double delta = B*B - 4.0 * A * C;
+    std::cerr << "delta=" << delta << std::endl;
+    return 0;
+
+}
+#endif
+
+
 YOCTO_PROGRAM_START()
 {
     YOCTO_GFX_DECL_FORMAT(png);
@@ -360,7 +387,7 @@ YOCTO_PROGRAM_START()
         co_qsort(A,R);
 
         // TODO: define delta angle and sweep angle
-        const double Delta = 5;
+        const double Delta = 0;
         const double Sweep = 30;
         const double Aini  = A[1]+Deg2Rad(Delta);
         const double Aend  = min_of<double>( Aini + Deg2Rad(Sweep), 90 );
@@ -390,6 +417,7 @@ YOCTO_PROGRAM_START()
             }
         }
 
+#if 0
         // now use elliptic approximation
         FitConic<double> ell;
         for(size_t i=1;i<=NN;++i)
@@ -413,8 +441,8 @@ YOCTO_PROGRAM_START()
             ios::wcstream fp("shape_ell.dat");
             for(double theta=0;theta<=6.3;theta+=0.01)
             {
-                const double c  = cos(theta);
-                const double s  = sin(theta);
+                const double  c  = cos(theta);
+                const double  s  = sin(theta);
                 const V2D     rr(Radius.x*c,Radius.y*s);
                 V2D           v;
                 tao::mul(v, Rotate, rr);
@@ -422,7 +450,10 @@ YOCTO_PROGRAM_START()
                 fp("%g %g\n", v.x, v.y);
             }
         }
-
+        const double y1 = p1->vtx.y;
+        std::cerr << "y1=" << y1 << std::endl;
+        find_x_for(y1,params);
+#endif
 
 
     }

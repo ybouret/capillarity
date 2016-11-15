@@ -482,10 +482,32 @@ YOCTO_PROGRAM_START()
 
         const double xx0 = center.x + sa0 * rr0;
         tgt.copy(origin);
-        draw_disk(tgt,unit_t(xx0), unit_t(y_low), 2, named_color::fetch(YGFX_FIREBRICK), 127);
+        {
+            const double alpha_step = 0.001;
+            for(double alpha=Aini;alpha<=Aend;alpha+=alpha_step)
+            {
+                const double aa = is_right ? alpha : -alpha;
+                const double rr = radius+_GLS::Polynomial<double>::Eval(alpha,aorg);
+                const double ca = cos(aa);
+                const double sa = sin(aa);
+                const double xx = center.x + rr * sa;
+                const double yy = center.y - rr * ca;
+                const point2d<unit_t> pp(xx,yy);
+                if(tgt.has(pp))
+                {
+                    //std::cerr << "plot " << pp << std::endl;
+                    //pixel<RGB>::blend(tgt[pp],named_color::fetch(YGFX_YELLOW),0xff);
+                    tgt[pp] = named_color::fetch(YGFX_YELLOW);
+                }
+            }
+        }
+
+        const double beta = is_right ? theta : numeric<double>::pi-theta;
+        const double xx1  = is_right ? xx0   : center.x - sa0*rr0;
+        draw_disk(tgt,unit_t(xx1), unit_t(y_low), 2, named_color::fetch(YGFX_FIREBRICK), 127);
         draw_line(tgt,
-                  unit_t(xx0), unit_t(y_low),
-                  unit_t(xx0+radius*cos(theta)),unit_t(y_low+radius*sin(theta)),
+                  unit_t(xx1), unit_t(y_low),
+                  unit_t(xx1+radius*cos(beta)),unit_t(y_low+radius*sin(beta)),
                   named_color::fetch(YGFX_FIREBRICK), 127
                   );
         IMG.save("img-angle.png", tgt, 0);
@@ -502,45 +524,6 @@ YOCTO_PROGRAM_START()
             }
         }
 
-
-
-#if 0
-        // now use elliptic approximation
-        FitConic<double> ell;
-        for(size_t i=1;i<=NN;++i)
-        {
-            ell.append(XX[i],YY[i]);
-        }
-        vector<double> params(6);
-        ell.compute(FitConicEllipse,params);
-        std::cerr << "params=" << params << std::endl;
-
-        V2D            Center;
-        V2D            Radius;
-        matrix<double> Rotate(2);
-
-        ell.Reduce(Center,Radius,Rotate,params);
-        std::cerr << "Center=" << Center << std::endl;
-        std::cerr << "Radius=" << Radius << std::endl;
-        std::cerr << "Rotate=" << Rotate << std::endl;
-
-        {
-            ios::wcstream fp("shape_ell.dat");
-            for(double theta=0;theta<=6.3;theta+=0.01)
-            {
-                const double  c  = cos(theta);
-                const double  s  = sin(theta);
-                const V2D     rr(Radius.x*c,Radius.y*s);
-                V2D           v;
-                tao::mul(v, Rotate, rr);
-                v += Center;
-                fp("%g %g\n", v.x, v.y);
-            }
-        }
-        const double y1 = p1->vtx.y;
-        std::cerr << "y1=" << y1 << std::endl;
-        find_x_for(y1,params);
-#endif
 
 
     }

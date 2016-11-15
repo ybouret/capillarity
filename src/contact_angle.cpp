@@ -46,7 +46,7 @@ public:
     double         radius;
     double         deltaY;
 
-    FindInter() : aorg(6), radius(0), deltaY(0)
+    FindInter() : aorg(3), radius(0), deltaY(0)
     {
     }
 
@@ -462,6 +462,33 @@ YOCTO_PROGRAM_START()
         const double alpha0 = solver.run(zfn, zAlpha, zValue);
         std::cerr << "alpha0=" << Rad2Deg(alpha0) << std::endl;
 
+
+
+
+
+        vector<double> drvs( aorg.size() );
+        _GLS::Polynomial<double>::ComputeDrvs(drvs,aorg);
+        std::cerr << "polynomial=" << aorg << std::endl;
+        std::cerr << "derivative=" << drvs << std::endl;
+
+        const double rr0   = radius+_GLS::Polynomial<double>::Eval(alpha0,aorg);
+        const double rp0   = _GLS::Polynomial<double>::Eval(alpha0,drvs);
+        const double ca0   = cos(alpha0);
+        const double sa0   = sin(alpha0);
+        const double num   = rr0 * sa0 - rp0 * ca0;
+        const double den   = rr0 * ca0 + rp0 * sa0;
+        const double theta = Atan(num/den);
+        std::cerr << "theta=" << Rad2Deg(theta) << std::endl;
+
+        const double xx0 = center.x + sa0 * rr0;
+        draw_disk(tgt,unit_t(xx0), unit_t(y_low), 2, named_color::fetch(YGFX_FIREBRICK), 0xff);
+        draw_line(tgt,
+                  unit_t(xx0), unit_t(y_low),
+                  unit_t(xx0+radius*cos(theta)),unit_t(y_low+radius*sin(theta)),
+                  named_color::fetch(YGFX_FIREBRICK), 0xff
+                  );
+        IMG.save("img-final.png", tgt, 0);
+
         {
             ios::wcstream fp("resfit.dat");
             for(double alpha=alpha0;alpha<=Aend;alpha+=0.01)
@@ -473,29 +500,6 @@ YOCTO_PROGRAM_START()
                 fp("%g %g\n", xx,yy);
             }
         }
-
-
-
-
-        vector<double> drvs( aorg.size() );
-        _GLS::Polynomial<double>::ComputeDrvs(drvs,aorg);
-        const double rr0 = radius+_GLS::Polynomial<double>::Eval(alpha0,aorg);
-        const double rp0 = _GLS::Polynomial<double>::Eval(alpha0,drvs);
-        const double ca0 = cos(alpha0);
-        const double sa0 = sin(alpha0);
-        const double num = rr0 * sa0 - rp0 * ca0;
-        const double den = rr0 * ca0 + rp0 * sa0;
-        const double theta =  Atan(num/den);
-        std::cerr << "theta=" << Rad2Deg(theta) << std::endl;
-
-        const double xx0 = center.x + sa0 * rr0;
-        draw_disk(tgt,unit_t(xx0), unit_t(y_low), 2, named_color::fetch(YGFX_FIREBRICK), 0xff);
-        draw_line(tgt,
-                  unit_t(xx0), unit_t(y_low),
-                  unit_t(xx0+radius*cos(theta)),unit_t(y_low+radius*sin(theta)),
-                  named_color::fetch(YGFX_FIREBRICK), 0xff
-                  );
-        IMG.save("img-final.png", tgt, 0);
 
 
 

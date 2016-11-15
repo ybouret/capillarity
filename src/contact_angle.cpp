@@ -478,15 +478,15 @@ YOCTO_PROGRAM_START()
         const double num   = rr0 * sa0 - rp0 * ca0;
         const double den   = rr0 * ca0 + rp0 * sa0;
         const double theta = Atan(num/den);
-        std::cerr << "theta=" << Rad2Deg(theta) << std::endl;
+        std::cerr << "theta=" << (180.0-Rad2Deg(theta)) << std::endl;
 
         const double xx0 = center.x + sa0 * rr0;
         tgt.copy(origin);
-        draw_disk(tgt,unit_t(xx0), unit_t(y_low), 2, named_color::fetch(YGFX_FIREBRICK), 0xff);
+        draw_disk(tgt,unit_t(xx0), unit_t(y_low), 2, named_color::fetch(YGFX_FIREBRICK), 127);
         draw_line(tgt,
                   unit_t(xx0), unit_t(y_low),
                   unit_t(xx0+radius*cos(theta)),unit_t(y_low+radius*sin(theta)),
-                  named_color::fetch(YGFX_FIREBRICK), 0xff
+                  named_color::fetch(YGFX_FIREBRICK), 127
                   );
         IMG.save("img-angle.png", tgt, 0);
 

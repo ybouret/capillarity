@@ -481,13 +481,14 @@ YOCTO_PROGRAM_START()
         std::cerr << "theta=" << Rad2Deg(theta) << std::endl;
 
         const double xx0 = center.x + sa0 * rr0;
+        tgt.copy(origin);
         draw_disk(tgt,unit_t(xx0), unit_t(y_low), 2, named_color::fetch(YGFX_FIREBRICK), 0xff);
         draw_line(tgt,
                   unit_t(xx0), unit_t(y_low),
                   unit_t(xx0+radius*cos(theta)),unit_t(y_low+radius*sin(theta)),
                   named_color::fetch(YGFX_FIREBRICK), 0xff
                   );
-        IMG.save("img-final.png", tgt, 0);
+        IMG.save("img-angle.png", tgt, 0);
 
         {
             ios::wcstream fp("resfit.dat");

@@ -139,7 +139,7 @@ YOCTO_PROGRAM_START()
         IMG.save("img-origin.png",origin,NULL);
         if(is_left)
         {
-            
+
         }
 
         //______________________________________________________________________

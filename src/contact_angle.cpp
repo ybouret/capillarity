@@ -39,6 +39,34 @@ void trim_particle( particle &p, const double y ) throw()
 }
 
 
+class Geometry
+{
+public:
+    V2D            center;
+    double         radius;
+    vector<double> aorg;
+
+    Geometry() : center(), radius(0), aorg(3)
+    {
+    }
+
+    ~Geometry() throw()
+    {
+    }
+
+    V2D Coord( const double alpha ) const
+    {
+        const double rr = radius+_GLS::Polynomial<double>::Eval(alpha,aorg);
+        return V2D(center.x + rr * sin(alpha),
+                   center.y - rr * cos(alpha) );
+    }
+
+
+private:
+    YOCTO_DISABLE_COPY_AND_ASSIGN(Geometry);
+};
+
+// little class to compute intersection
 class FindInter
 {
 public:
@@ -107,8 +135,12 @@ YOCTO_PROGRAM_START()
         // loading original file, in colors
         //______________________________________________________________________
         const string  filename = argv[1];
-        const pixmap3 origin( IMG.load3(filename,NULL) );
+        pixmap3       origin( IMG.load3(filename,NULL) );
         IMG.save("img-origin.png",origin,NULL);
+        if(is_left)
+        {
+            
+        }
 
         //______________________________________________________________________
         //
@@ -219,31 +251,6 @@ YOCTO_PROGRAM_START()
         draw_patch(tgt,box_right, named_color::fetch( YGFX_RED   ), 127 );
         IMG.save("img-final.png", tgt, 0);
 
-#if 0
-        //______________________________________________________________________
-        //
-        // we compute the circularity index
-        //______________________________________________________________________
-        FitCircle<double> fcL, fcR;
-
-        for( const vnode *node = edges[1]->head; node; node = node->next )
-        {
-            fcL.append(node->vtx.x,node->vtx.y);
-        }
-
-        for( const vnode *node = edges[2]->head; node; node = node->next )
-        {
-            fcR.append(node->vtx.x,node->vtx.y);
-        }
-
-        V2D centerL, centerR;
-        double radiusL=0, radiusR=0;
-        const double rmsL = fcL.compute(centerL,radiusL);
-        const double rmsR = fcR.compute(centerR,radiusR);
-
-        std::cerr << "rmsL=" << rmsL << std::endl;
-        std::cerr << "rmsR=" << rmsR << std::endl;
-#endif
 
         particle       *pWork1 = 0;
         const patch    *pArea1 = 0;

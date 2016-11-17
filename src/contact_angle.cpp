@@ -186,7 +186,7 @@ YOCTO_PROGRAM_START()
         {
             img.copy(img0);
         }
-        IMG.save("img-filter.png",img,NULL);
+        //IMG.save("img-filter.png",img,NULL);
 
         //______________________________________________________________________
         //
@@ -199,8 +199,8 @@ YOCTO_PROGRAM_START()
         stencil_scharr_x5 gx;
         stencil_scharr_y5 gy;
         ED.build_from(img,gx,gy,xps);
-        IMG.save("img-grad.png", ED, 0 );
-        IMG.save("img-tags.png",tags,tags.colors,NULL);
+        //IMG.save("img-grad.png", ED, 0 );
+        //IMG.save("img-tags.png",tags,tags.colors,NULL);
         std::cerr << "#edges=" << edges.size() << std::endl;
 
         //______________________________________________________________________
@@ -213,7 +213,7 @@ YOCTO_PROGRAM_START()
             const particle &pa = *edges[i];
             pa.mask(tgt, named_color::fetch(pa.tag+tags.colors.shift), 255);
         }
-        IMG.save("img-edges.png", tgt, 0);
+        //IMG.save("img-edges.png", tgt, 0);
 
         //______________________________________________________________________
         //
@@ -222,7 +222,7 @@ YOCTO_PROGRAM_START()
         std::cerr << "-- Closing..." << std::endl;
         Filter<float> F(w,h);
         F.Close(ED,xps);
-        IMG.save("img-close.png", ED, 0);
+        //IMG.save("img-close.png", ED, 0);
 
         //______________________________________________________________________
         //
@@ -231,7 +231,7 @@ YOCTO_PROGRAM_START()
         std::cerr << "-- Final Blobs..." << std::endl;
         tags.build(ED,8);
         edges.load(tags);
-        IMG.save("img-blobs.png", tags, tags.colors, 0);
+        //IMG.save("img-blobs.png", tags, tags.colors, 0);
         std::cerr << "#edges=" << edges.size() << std::endl;
 
         edges.sort_by_extension();
@@ -453,24 +453,30 @@ YOCTO_PROGRAM_START()
         }
 
 
-        double alpha0 = solver.run(zfn, zAlpha, zValue);
+        const double alpha0 = solver.run(zfn, zAlpha, zValue);
         std::cerr << "alpha0=" << Rad2Deg(alpha0) << std::endl;
 
-        alpha0 += Deg2Rad(2.0);
+        //alpha0 += Deg2Rad(2.0);
+
+        const double alphaScan = Deg2Rad(5.0);
+        const double alpha_min = max_of<double>(0,alpha0-alphaScan);
+        const double alpha_max = min_of<double>(Aend,alpha0+alphaScan);
+        const double alpha_del = alpha_max - alpha_min;
+
 
         //______________________________________________________________________
         //
         // Let's find all the coordinates
         //______________________________________________________________________
         const double da      = 1.0/(2.0*radius); //should have half a pixel of difference...
-        const size_t na     = size_t(ceil(alpha0/da)+1);
+        const size_t na     = size_t(ceil(alpha_del/da)+1);
         std::cerr << "na=" << na << std::endl;
         vector<vertex>  va(na,as_capacity);
         vector<double>  ak(na,as_capacity);
 
         for(size_t i=0;i<=na;++i)
         {
-            const double alpha = (i*alpha0)/double(na);
+            const double alpha = alpha_min + (i*alpha_del)/double(na);
             const vertex pos   = Geom.Coord(alpha);
             if(tgt.has(pos))
             {

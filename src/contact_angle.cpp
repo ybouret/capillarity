@@ -132,21 +132,31 @@ YOCTO_PROGRAM_START()
 
         //______________________________________________________________________
         //
-        // loading original file, in colors
+        // loading original file, in colors, and keep pipette on the left
+        // to work on the right side, easier...
         //______________________________________________________________________
         const string  filename = argv[1];
-        pixmap3       origin( IMG.load3(filename,NULL) );
-        IMG.save("img-origin.png",origin,NULL);
+        const pixmap3 origin( IMG.load3(filename,NULL) );
         if(is_left)
         {
-
+            std::cerr << "-- Flipping Picture to get data on the right side" << std::endl;
+            ((pixmap3 &)origin).flip_horizontal();
         }
+        IMG.save("img-origin.png",origin,NULL);
+
 
         //______________________________________________________________________
         //
         // making a grayscale picture
         //______________________________________________________________________
         pixmapf      img0(origin,RGB::to_float,origin);
+
+        //______________________________________________________________________
+        //
+        // preparing
+        //______________________________________________________________________
+
+
         const unit_t h = origin.h;
         const unit_t w = origin.w;
         xpatches     xps(origin,false);
@@ -215,7 +225,6 @@ YOCTO_PROGRAM_START()
         IMG.save("img-blobs.png", tags, tags.colors, 0);
         std::cerr << "#edges=" << edges.size() << std::endl;
 
-        // TODO: sort edges by extension !!!!
         edges.sort_by_extension();
 
         while( edges.size() > 2 ) edges.pop_back();
@@ -238,7 +247,7 @@ YOCTO_PROGRAM_START()
         // Ok, so where is the pipette, left or right ?
         //
         //______________________________________________________________________
-        std::cerr << "-- Finding Pipette" << std:: endl;
+        std::cerr << "-- Finding Right Box..." << std::endl;
         patch box_left  = edges[1]->aabb();
         patch box_right = edges[2]->aabb();
         if(box_left.lower.x>box_right.lower.x)
@@ -252,6 +261,181 @@ YOCTO_PROGRAM_START()
         IMG.save("img-final.png", tgt, 0);
 
 
+        particle    &pR = *edges[2];
+        const patch &aR = box_right;
+
+        particle    &pL = *edges[1];
+        const patch &aL = box_left;
+
+
+        //______________________________________________________________________
+        //
+        //
+        // Now we are working...
+        //
+        //______________________________________________________________________
+        std::cerr << "-- Building Workspace" << std::endl;
+        // keep working space
+        trim_particle(pL,(aL.lower.y+aL.upper.y)/2);
+        trim_particle(pR,(aR.lower.y+aR.upper.y)/2);
+
+        if(pL.size<=1||pR.size<=1)
+        {
+            throw exception("particles are too small");
+        }
+
+        pR.mask(tgt,  named_color::fetch(YGFX_YELLOW), 255);
+        pL.mask(tgt, named_color::fetch(YGFX_MAGENTA), 255);
+
+        IMG.save("img-final.png", tgt, 0);
+
+
+        //______________________________________________________________________
+        //
+        // Guess the lens limit
+        //______________________________________________________________________
+        const vnode *p1    = pR.head;
+        const vnode *p2    = pL.head;
+        unit_t       min_d = vertex(p1->vtx,p2->vtx).norm2();
+
+        for(const vnode *n1 = pR.head; n1; n1=n1->next)
+        {
+            for(const vnode *n2 = pL.head; n2; n2=n2->next)
+            {
+                const unit_t tmp_d = vertex(n1->vtx,n2->vtx).norm2();
+                if(tmp_d<min_d)
+                {
+                    p1    = n1;
+                    p2    = n2;
+                    min_d = tmp_d;
+                }
+            }
+        }
+
+        draw_line(tgt,p1->vtx,p2->vtx, named_color::fetch(YGFX_CYAN), 0xff);
+        IMG.save("img-final.png", tgt, 0);
+
+        //______________________________________________________________________
+        //
+        // study geometry
+        //______________________________________________________________________
+        Geometry Geom;
+        V2D           &center = Geom.center;
+        double        &radius = Geom.radius;
+        array<double> &aorg   = Geom.aorg;
+
+        //______________________________________________________________________
+        //
+        // ok, now we need the points and do something...
+        //______________________________________________________________________
+        FitCircle<double> fc;
+
+        const unit_t y_low = p1->vtx.y;
+        vector<double> X(pR.size,as_capacity);
+        vector<double> Y(pR.size,as_capacity);
+        vector<double> A(pR.size,as_capacity);
+        vector<double> R(pR.size,as_capacity);
+
+        for(const vnode *n1 = pR.head; n1; n1=n1->next)
+        {
+            const vertex v = n1->vtx;
+            if(v.y>=y_low)
+            {
+                X.push_back(v.x);
+                Y.push_back(v.y);
+                fc.append(v.x,v.y);
+            }
+        }
+
+        // process all the points
+        const size_t N = X.size();
+
+        fc.compute(center,radius);
+
+        std::cerr << "center=" << center << std::endl;
+        std::cerr << "radius=" << radius << std::endl;
+
+        for(size_t i=1;i<=N;++i)
+        {
+            const double dx = X[i] - center.x;
+            const double dy = center.y - Y[i];
+            const double aa = Atan2(dy,dx);
+            A.push_back(aa);
+            R.push_back( Hypotenuse(dx,dy) );
+        }
+
+
+
+        {
+            ios::wcstream fp("shape.dat");
+            for(size_t i=1;i<=N;++i)
+            {
+                fp("%g %g %g %g %g\n", X[i], Y[i], Rad2Deg(A[i]), R[i], R[i] - radius);
+            }
+        }
+
+
+        co_qsort(A,R);
+
+        // TODO: define delta in pixels and sweep angle
+        const double Delta = 2;
+        const double Sweep = 30;
+        const double Aini  = A[1];
+        const double Aend  = min_of<double>( Aini + Deg2Rad(Sweep), 90 );
+
+        vector<double> AA(pR.size,as_capacity);
+        vector<double> RR(pR.size,as_capacity);
+        vector<double> XX(pR.size,as_capacity);
+        vector<double> YY(pR.size,as_capacity);
+
+        for(size_t i=1;i<=N;++i)
+        {
+            const double aa = A[i];
+            const double rr = R[i];
+            const double xx = rr*sin(aa)+center.x;
+            const double yy = center.y-rr*cos(aa);
+
+            if(yy>=y_low+Delta&&aa<=Aend)
+            {
+                AA.push_back(aa);
+                RR.push_back(rr);
+                XX.push_back(xx);
+                YY.push_back(yy);
+            }
+
+        }
+        const size_t NN = AA.size();
+        vector<double> RF(NN);
+        vector<double> R0(NN);
+        for(size_t i=1;i<=NN;++i) R0[i] = RR[i] - radius;
+
+        GLS<double>::Samples samples;
+        GLS<double>::Sample &sample  = samples.append(AA,R0,RF);
+        if(!_GLS::Polynomial<double>::Start(sample,aorg))
+        {
+            throw exception("Unable to fit polynomial");
+        }
+
+        {
+            ios::wcstream fp("shapefit.dat");
+            for(size_t i=1;i<=NN;++i)
+            {
+                fp("%g %g %g %g %g %g\n", XX[i], YY[i], Rad2Deg(AA[i]), RR[i], RR[i] - radius, RF[i]);
+            }
+        }
+
+
+        std::cerr << "y_low=" << y_low << std::endl;
+
+
+        //______________________________________________________________________
+        //
+        // Now we have an approximation of the shape...
+        //______________________________________________________________________
+
+
+
+#if 0
         particle       *pWork1 = 0;
         const patch    *pArea1 = 0;
         particle       *pWork2 = 0;
@@ -530,7 +714,7 @@ YOCTO_PROGRAM_START()
                 fp("%g %g\n", xx,yy);
             }
         }
-
+#endif
 
 
     }

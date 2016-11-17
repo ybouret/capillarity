@@ -430,8 +430,11 @@ YOCTO_PROGRAM_START()
 
         //______________________________________________________________________
         //
-        // Now we have an approximation of the shape...
+        // Now we have an approximation of the shape...let's scan the line!
+        // Let us find the starting angle...then scan down...
         //______________________________________________________________________
+
+
 
 
 

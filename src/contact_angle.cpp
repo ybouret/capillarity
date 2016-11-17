@@ -45,8 +45,9 @@ public:
     V2D            center;
     double         radius;
     vector<double> aorg;
+    double         deltaY;
 
-    Geometry() : center(), radius(0), aorg(3)
+    Geometry() : center(), radius(0), aorg(3), deltaY(0)
     {
     }
 
@@ -54,7 +55,7 @@ public:
     {
     }
 
-    V2D Coord( const double alpha ) const
+    V2D Coord( const double alpha ) const throw()
     {
         const double rr = radius+_GLS::Polynomial<double>::Eval(alpha,aorg);
         return V2D(center.x + rr * sin(alpha),
@@ -62,10 +63,16 @@ public:
     }
 
 
+    double ComputeZero( const double alpha ) throw()
+    {
+        return (radius+_GLS::Polynomial<double>::Eval(alpha,aorg)) * cos(alpha) - deltaY;
+    }
+
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Geometry);
 };
 
+#if 0
 // little class to compute intersection
 class FindInter
 {
@@ -91,7 +98,7 @@ public:
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(FindInter);
 };
-
+#endif
 
 YOCTO_PROGRAM_START()
 {
@@ -433,7 +440,19 @@ YOCTO_PROGRAM_START()
         // Now we have an approximation of the shape...let's scan the line!
         // Let us find the starting angle...then scan down...
         //______________________________________________________________________
+        Geom.deltaY = center.y - y_low;
+        zfind<double>             solver(1e-5);
+        numeric<double>::function zfn( &Geom, & Geometry::ComputeZero );
+        triplet<double>           zAlpha = { 0, 0, Aend };
+        triplet<double>           zValue = { zfn(zAlpha.a), 0, zfn(zAlpha.c) };
+        if(zValue.a*zValue.c>0)
+        {
+            throw exception("Cannot find interception, corrupted picture?");
+        }
 
+
+        const double alpha0 = solver.run(zfn, zAlpha, zValue);
+        std::cerr << "alpha0=" << Rad2Deg(alpha0) << std::endl;
 
 
 

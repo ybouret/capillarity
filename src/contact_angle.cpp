@@ -55,11 +55,12 @@ public:
     {
     }
 
-    V2D Coord( const double alpha ) const throw()
+    vertex Coord( const double alpha ) const throw()
     {
         const double rr = radius+_GLS::Polynomial<double>::Eval(alpha,aorg);
-        return V2D(center.x + rr * sin(alpha),
-                   center.y - rr * cos(alpha) );
+        return vertex( unit_t(center.x + rr * sin(alpha)),
+                       unit_t(center.y - rr * cos(alpha))
+                      );
     }
 
 
@@ -99,6 +100,7 @@ private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(FindInter);
 };
 #endif
+
 
 YOCTO_PROGRAM_START()
 {
@@ -156,7 +158,7 @@ YOCTO_PROGRAM_START()
         //
         // making a grayscale picture
         //______________________________________________________________________
-        pixmapf      img0(origin,RGB::to_float,origin);
+        const pixmapf img0(origin,RGB::to_float,origin);
 
         //______________________________________________________________________
         //
@@ -451,10 +453,55 @@ YOCTO_PROGRAM_START()
         }
 
 
-        const double alpha0 = solver.run(zfn, zAlpha, zValue);
+        double alpha0 = solver.run(zfn, zAlpha, zValue);
         std::cerr << "alpha0=" << Rad2Deg(alpha0) << std::endl;
 
+        alpha0 += Deg2Rad(2.0);
 
+        //______________________________________________________________________
+        //
+        // Let's find all the coordinates
+        //______________________________________________________________________
+        const double da      = 1.0/(2.0*radius); //should have half a pixel of difference...
+        const size_t na     = size_t(ceil(alpha0/da)+1);
+        std::cerr << "na=" << na << std::endl;
+        vector<vertex>  va(na,as_capacity);
+        vector<double>  ak(na,as_capacity);
+
+        for(size_t i=0;i<=na;++i)
+        {
+            const double alpha = (i*alpha0)/double(na);
+            const vertex pos   = Geom.Coord(alpha);
+            if(tgt.has(pos))
+            {
+                tgt[pos] = named_color::fetch(YGFX_DEEP_PINK);
+                bool append = true;
+                for(size_t j=va.size();j>0;--j)
+                {
+                    if( pos == va[j] )
+                    {
+                        append = false;
+                        break;
+                    }
+                }
+                if(append)
+                {
+                    va.push_back(pos);
+                    ak.push_back(alpha);
+                }
+            }
+        }
+        IMG.save("img-final.png", tgt, 0);
+        std::cerr << "#vtx=" << va.size() << "/" << na << std::endl;
+
+        const size_t ns = va.size();
+        {
+            ios::wcstream fp("scan.dat");
+            for(size_t i=1;i<=ns;++i)
+            {
+                fp("%g %g\n", ak[i], img0[ va[i] ]);
+            }
+        }
 
 
 #if 0

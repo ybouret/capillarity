@@ -73,8 +73,40 @@ private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Geometry);
 };
 
+// To fit the ridge intensity profile
+class Ridge
+{
+public:
+    static const size_t NVAR = 3;
+
+    Ridge()
+    {
+    }
+
+    ~Ridge()
+    {
+    }
+
+    double Compute( const double alpha, const array<double> &param )
+    {
+        assert(NVAR==param.size());
+        const double level = param[1];
+        const double split = param[2];
+        const double slope = param[3];
+        if(alpha<=split)
+        {
+            return level;
+        }
+        else
+        {
+            return level + (alpha-split) * slope;
+        }
+    }
 
 
+private:
+    YOCTO_DISABLE_COPY_AND_ASSIGN(Ridge);
+};
 
 
 YOCTO_PROGRAM_START()
@@ -476,23 +508,62 @@ YOCTO_PROGRAM_START()
         std::cerr << "#vtx=" << va.size() << "/" << na << std::endl;
 
         const size_t ns = va.size();
-        {
-            ios::wcstream fp("scan.dat");
-            for(size_t i=1;i<=ns;++i)
-            {
-                fp("%g %g\n", ak[i], img0[ va[i] ]);
-            }
-        }
+
 
 
         //______________________________________________________________________
         //
         // Let's find the change in intensity
         //______________________________________________________________________
+        vector<double>       ridgeI(ns); // ridge intensity
+        vector<double>       ridgeF(ns); // ridge fit
+
+        for(size_t i=1;i<=ns;++i)
+        {
+            ridgeI[i] = img0[ va[i] ];
+        }
+
+        GLS<double>::Samples ridgeSamples;
+        ridgeSamples.append(ak,ridgeI,ridgeF);
 
 
+        vector<double> ridgeA(Ridge::NVAR);
+        vector<bool>   ridgeU(Ridge::NVAR,true);
+        vector<double> ridgeE(Ridge::NVAR);
+
+        ridgeSamples.prepare(3);
+
+        Ridge                 ridge;
+        GLS<double>::Function ridgeFit( &ridge, & Ridge::Compute );
 
 
+        // initialize variables
+        ridgeA[1] = ridgeI[1]; // level
+        ridgeA[2] = alpha0;    // split
+        ridgeA[3] = (ridgeI[ns] - ridgeA[1])/alphaScan; // slope
+
+        {
+            ios::wcstream fp("scan.dat");
+            for(size_t i=1;i<=ns;++i)
+            {
+                fp("%g %g %g\n", ak[i], ridgeI[i], ridgeFit(ak[i],ridgeA));
+            }
+        }
+
+
+        if( ! ridgeSamples.fit_with(ridgeFit, ridgeA, ridgeU, ridgeE) )
+        {
+            throw exception("couldn't fit");
+        }
+
+        GLS<double>::display(std::cerr, ridgeA, ridgeE);
+        {
+             ios::wcstream fp("scanfit.dat");
+            for(size_t i=1;i<=ns;++i)
+            {
+                fp("%g %g %g\n", ak[i], ridgeI[i], ridgeF[i]);
+            }
+        }
 
 
 #if 0

@@ -59,7 +59,7 @@ public:
     {
         const double rr = radius+_GLS::Polynomial<double>::Eval(alpha,aorg);
         return vertex( unit_t(center.x + rr * sin(alpha)),
-                       unit_t(center.y - rr * cos(alpha))
+                      unit_t(center.y - rr * cos(alpha))
                       );
     }
 
@@ -77,7 +77,7 @@ private:
 class Ridge
 {
 public:
-    static const size_t NVAR = 3;
+    static const size_t NVAR = 4;
 
     Ridge()
     {
@@ -93,13 +93,15 @@ public:
         const double level = param[1];
         const double split = param[2];
         const double slope = param[3];
+        const double curv  = param[4];
         if(alpha<=split)
         {
             return level;
         }
         else
         {
-            return level + (alpha-split) * slope;
+            const double da = alpha-split;
+            return level + da * slope + da*da * curv;
         }
     }
 
@@ -531,7 +533,7 @@ YOCTO_PROGRAM_START()
         vector<bool>   ridgeU(Ridge::NVAR,true);
         vector<double> ridgeE(Ridge::NVAR);
 
-        ridgeSamples.prepare(3);
+        ridgeSamples.prepare(Ridge::NVAR);
 
         Ridge                 ridge;
         GLS<double>::Function ridgeFit( &ridge, & Ridge::Compute );
@@ -541,6 +543,9 @@ YOCTO_PROGRAM_START()
         ridgeA[1] = ridgeI[1]; // level
         ridgeA[2] = alpha0;    // split
         ridgeA[3] = (ridgeI[ns] - ridgeA[1])/alphaScan; // slope
+        ridgeA[4] = 0; // curv
+
+        ridgeU[4] = false;
 
         {
             ios::wcstream fp("scan.dat");
@@ -551,19 +556,42 @@ YOCTO_PROGRAM_START()
         }
 
 
+        // fit level 1, linear part only
         if( ! ridgeSamples.fit_with(ridgeFit, ridgeA, ridgeU, ridgeE) )
         {
-            throw exception("couldn't fit");
+            throw exception("couldn't fit level-1");
         }
 
         GLS<double>::display(std::cerr, ridgeA, ridgeE);
         {
-             ios::wcstream fp("scanfit.dat");
+            ios::wcstream fp("scanfit.dat");
             for(size_t i=1;i<=ns;++i)
             {
                 fp("%g %g %g\n", ak[i], ridgeI[i], ridgeF[i]);
             }
         }
+
+
+        // fit level 2, withc quadratic part
+        ridgeU[4] = true;
+
+        if( ! ridgeSamples.fit_with(ridgeFit, ridgeA, ridgeU, ridgeE) )
+        {
+            throw exception("couldn't fit level-2");
+        }
+
+        GLS<double>::display(std::cerr, ridgeA, ridgeE);
+        {
+            ios::wcstream fp("scanfit2.dat");
+            for(size_t i=1;i<=ns;++i)
+            {
+                fp("%g %g %g\n", ak[i], ridgeI[i], ridgeF[i]);
+            }
+        }
+
+        // ok, we found the intersection!
+        const double alphaI = ridgeA[2];
+        
 
 
 #if 0
@@ -823,7 +851,7 @@ YOCTO_PROGRAM_START()
                 }
             }
         }
-
+        
         const double beta = is_right ? theta : numeric<double>::pi-theta;
         const double xx1  = is_right ? xx0   : center.x - sa0*rr0;
         draw_disk(tgt,unit_t(xx1), unit_t(y_low), 2, named_color::fetch(YGFX_FIREBRICK), 127);
@@ -833,7 +861,7 @@ YOCTO_PROGRAM_START()
                   named_color::fetch(YGFX_FIREBRICK), 127
                   );
         IMG.save("img-angle.png", tgt, 0);
-
+        
         {
             ios::wcstream fp("resfit.dat");
             for(double alpha=alpha0;alpha<=Aend;alpha+=0.01)
@@ -846,10 +874,10 @@ YOCTO_PROGRAM_START()
             }
         }
 #endif
-
-
+        
+        
     }
-
-
+    
+    
 }
 YOCTO_PROGRAM_END()

@@ -595,10 +595,33 @@ YOCTO_PROGRAM_START()
         // so we compute the intersection coordinate
         const vertex Q      = Geom.Coord(alphaI);
 
+        // then we compute the derivative of the extrapolation
+        vector<double> drvs( aorg.size() );
+        _GLS::Polynomial<double>::ComputeDrvs(drvs,aorg);
+        std::cerr << "polynomial=" << aorg << std::endl;
+        std::cerr << "derivative=" << drvs << std::endl;
+
+        const double rr0   = radius+_GLS::Polynomial<double>::Eval(alpha0,aorg);
+        const double rp0   = _GLS::Polynomial<double>::Eval(alpha0,drvs);
+        const double ca0   = cos(alpha0);
+        const double sa0   = sin(alpha0);
+        const double num   = rr0 * sa0 - rp0 * ca0;
+        const double den   = rr0 * ca0 + rp0 * sa0;
+        const double theta = Atan(num/den);
+        std::cerr << "theta=" << (180.0-Rad2Deg(theta)) << std::endl;
+
+
         tgt.copy(origin);
-        draw_disk(tgt, Q.x, Q.y, 4, named_color::fetch(YGFX_MAGENTA), 127 );
-        IMG.save("img-output.png", tgt, 0);
-        
+        draw_disk(tgt, Q.x, Q.y, 2, named_color::fetch(YGFX_MAGENTA), 127 );
+        const double length = radius/3.0;
+        draw_line(tgt,
+                  Q.x,Q.y,
+                  unit_t(Q.x+length*cos(theta)),unit_t(Q.y+length*sin(theta)),
+                  named_color::fetch(YGFX_FIREBRICK), 0xff
+                  );
+        IMG.save("img-angle.png", tgt, 0);
+
+
 
 
 

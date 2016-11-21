@@ -589,9 +589,17 @@ YOCTO_PROGRAM_START()
             }
         }
 
-        // ok, we found the intersection!
+        // ok, we found the intersection angle
         const double alphaI = ridgeA[2];
+
+        // so we compute the intersection coordinate
+        const vertex Q      = Geom.Coord(alphaI);
+
+        tgt.copy(origin);
+        draw_disk(tgt, Q.x, Q.y, 4, named_color::fetch(YGFX_MAGENTA), 127 );
+        IMG.save("img-output.png", tgt, 0);
         
+
 
 
 #if 0

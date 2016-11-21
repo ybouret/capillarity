@@ -73,33 +73,8 @@ private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Geometry);
 };
 
-#if 0
-// little class to compute intersection
-class FindInter
-{
-public:
-    vector<double> aorg;
-    double         radius;
-    double         deltaY;
-
-    FindInter() : aorg(3), radius(0), deltaY(0)
-    {
-    }
-
-    ~FindInter() throw()
-    {
-    }
-
-    double Compute( const double alpha )
-    {
-        return (radius+_GLS::Polynomial<double>::Eval(alpha,aorg)) * cos(alpha) - deltaY;
-    }
 
 
-private:
-    YOCTO_DISABLE_COPY_AND_ASSIGN(FindInter);
-};
-#endif
 
 
 YOCTO_PROGRAM_START()
@@ -386,7 +361,7 @@ YOCTO_PROGRAM_START()
 
         co_qsort(A,R);
 
-        // TODO: define delta in pixels and sweep angle
+        // TODO: define delta in pixels and sweep angle ??
         const double Delta = 2;
         const double Sweep = 30;
         const double Aini  = A[1];
@@ -466,7 +441,7 @@ YOCTO_PROGRAM_START()
 
         //______________________________________________________________________
         //
-        // Let's find all the coordinates
+        // Let's find all the coordinates around the intersection
         //______________________________________________________________________
         const double da      = 1.0/(2.0*radius); //should have half a pixel of difference...
         const size_t na     = size_t(ceil(alpha_del/da)+1);
@@ -508,6 +483,16 @@ YOCTO_PROGRAM_START()
                 fp("%g %g\n", ak[i], img0[ va[i] ]);
             }
         }
+
+
+        //______________________________________________________________________
+        //
+        // Let's find the change in intensity
+        //______________________________________________________________________
+
+
+
+
 
 
 #if 0

@@ -659,7 +659,10 @@ YOCTO_PROGRAM_START()
         const string bname = ep->base_name;
         if(pm.partial_match(bname))
         {
-            std::cerr << "will process " << bname << std::endl;
+            std::cerr << "will process " << ep->path << std::endl;
+            const string filename = ep->path;
+            const double theta   = process_file(filename,side);
+            std::cerr << "theta=" << theta << std::endl;
         }
     }
 

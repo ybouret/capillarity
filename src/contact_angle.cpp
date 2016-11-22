@@ -651,8 +651,8 @@ YOCTO_PROGRAM_START()
     vfs &fs = local_fs::instance();
 
     //-- extract files to process
-    lingua::matcher        pm( lingua::regexp("theta(A|R)") );
-    auto_ptr<vfs::scanner> scan( fs.new_scanner( folder ) );
+    lingua::matcher        pm("theta(A|R)");
+    auto_ptr<vfs::scanner> scan( fs.new_scanner( folder )     );
     for( const vfs::entry *ep = scan->next(); ep ; ep = scan->next() )
     {
         //std::cerr << '<' << ep->attr << '>' << ep->base_name << " [" << ep->path << "]" << std::endl;

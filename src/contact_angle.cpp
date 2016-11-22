@@ -121,6 +121,31 @@ double process_file( const string &filename, const string &side )
     imageIO &IMG = image::instance();
     float    sig = 1.4f;
 
+    // preparing data base infos
+    const string base_name = vfs::get_base_name(filename);
+    string       root_name = base_name;
+    vfs::remove_extension(root_name);
+    std::cerr << "base_name=" << base_name << std::endl;
+    std::cerr << "root_name=" << root_name << std::endl;
+    string       dir_name  = vfs::get_file_dir(filename);
+    std::cerr << "dir_name =" << dir_name << std::endl;
+    for(size_t i=0;i<dir_name.size()-1;++i)
+    {
+        if(dir_name[i]=='/')
+        {
+            dir_name[i] = '_';
+        }
+    }
+    const string db_name = "db/" + dir_name;
+    std::cerr << "db_name  =" << db_name << std::endl;
+
+    vfs & fs = local_fs::instance();
+    fs.create_sub_dir(db_name);
+
+
+
+    //return 0;
+
     bool            is_right = true;
     bool            is_left  = false;
 
@@ -248,7 +273,8 @@ double process_file( const string &filename, const string &side )
         pa.mask(tgt, named_color::fetch(pa.tag+tags.colors.shift), 255);
         //std::cerr << "#points=" << pa.size << std::endl;
     }
-    IMG.save("img-final.png", tgt, 0);
+    const string img_final = db_name + root_name + "-final.png";
+    IMG.save(img_final, tgt, 0);
 
 
     //______________________________________________________________________
@@ -268,7 +294,7 @@ double process_file( const string &filename, const string &side )
 
     draw_patch(tgt,box_left,  named_color::fetch( YGFX_GREEN ), 127 );
     draw_patch(tgt,box_right, named_color::fetch( YGFX_RED   ), 127 );
-    IMG.save("img-final.png", tgt, 0);
+    IMG.save(img_final, tgt, 0);
 
 
     particle    &pR = *edges[2];
@@ -297,7 +323,7 @@ double process_file( const string &filename, const string &side )
     pR.mask(tgt,  named_color::fetch(YGFX_YELLOW), 255);
     pL.mask(tgt, named_color::fetch(YGFX_MAGENTA), 255);
 
-    IMG.save("img-final.png", tgt, 0);
+    IMG.save(img_final, tgt, 0);
 
 
     //______________________________________________________________________
@@ -323,7 +349,7 @@ double process_file( const string &filename, const string &side )
     }
 
     draw_line(tgt,p1->vtx,p2->vtx, named_color::fetch(YGFX_CYAN), 0xff);
-    IMG.save("img-final.png", tgt, 0);
+    IMG.save(img_final, tgt, 0);
 
     //______________________________________________________________________
     //
@@ -627,7 +653,9 @@ double process_file( const string &filename, const string &side )
               unit_t(Q.x+length*cos(beta)),unit_t(Q.y+length*sin(beta)),
               named_color::fetch(YGFX_FIREBRICK), 0xff
               );
-    IMG.save("img-angle.png", tgt, 0);
+
+    const string img_angle = db_name+root_name+"-angle.png";
+    IMG.save(img_angle, tgt, 0);
 
 
     return Rad2Deg(theta);
@@ -661,7 +689,7 @@ YOCTO_PROGRAM_START()
         {
             std::cerr << "will process " << ep->path << std::endl;
             const string filename = ep->path;
-            const double theta   = process_file(filename,side);
+            const double theta    = process_file(filename,side);
             std::cerr << "theta=" << theta << std::endl;
         }
     }

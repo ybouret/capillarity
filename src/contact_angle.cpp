@@ -143,9 +143,6 @@ double process_file( const string &filename, const string &side )
     fs.create_sub_dir(db_name);
 
 
-
-    //return 0;
-
     bool            is_right = true;
     bool            is_left  = false;
 
@@ -401,9 +398,9 @@ double process_file( const string &filename, const string &side )
     }
 
 
-
     {
-        ios::wcstream fp("shape.dat");
+        const string shape_name = db_name + root_name + "-shape.dat";
+        ios::wcstream fp(shape_name);
         for(size_t i=1;i<=N;++i)
         {
             fp("%g %g %g %g %g\n", X[i], Y[i], Rad2Deg(A[i]), R[i], R[i] - radius);
@@ -453,7 +450,8 @@ double process_file( const string &filename, const string &side )
     }
 
     {
-        ios::wcstream fp("shapefit.dat");
+        const string shape_fit_name = db_name + root_name + "-shape.dat";
+        ios::wcstream fp(shape_fit_name);
         for(size_t i=1;i<=NN;++i)
         {
             fp("%g %g %g %g %g %g\n", XX[i], YY[i], Rad2Deg(AA[i]), RR[i], RR[i] - radius, RF[i]);
@@ -524,7 +522,7 @@ double process_file( const string &filename, const string &side )
             }
         }
     }
-    IMG.save("img-final.png", tgt, 0);
+    IMG.save(img_final, tgt, 0);
     std::cerr << "#vtx=" << va.size() << "/" << na << std::endl;
 
     const size_t ns = va.size();
@@ -565,6 +563,7 @@ double process_file( const string &filename, const string &side )
 
     ridgeU[4] = false;
 
+    if(false)
     {
         ios::wcstream fp("scan.dat");
         for(size_t i=1;i<=ns;++i)
@@ -586,7 +585,8 @@ double process_file( const string &filename, const string &side )
 
     GLS<double>::display(std::cerr, ridgeA, ridgeE);
     {
-        ios::wcstream fp("scanfit.dat");
+        const string scanfit_name = db_name + root_name + "-scanfit1.dat";
+        ios::wcstream fp(scanfit_name);
         for(size_t i=1;i<=ns;++i)
         {
             fp("%g %g %g\n", ak[i], ridgeI[i], ridgeF[i]);
@@ -606,7 +606,8 @@ double process_file( const string &filename, const string &side )
 
     GLS<double>::display(std::cerr, ridgeA, ridgeE);
     {
-        ios::wcstream fp("scanfit2.dat");
+        const string scanfit_name = db_name + root_name + "-scanfit2.dat";
+        ios::wcstream fp(scanfit_name);
         for(size_t i=1;i<=ns;++i)
         {
             fp("%g %g %g\n", ak[i], ridgeI[i], ridgeF[i]);

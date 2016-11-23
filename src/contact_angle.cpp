@@ -659,6 +659,12 @@ double process_file( const string &filename, const string &side )
     IMG.save(img_angle, tgt, 0);
 
 
+    const string info_name = db_name+root_name+"-theta.txt";
+    {
+        ios::wcstream fp(info_name);
+        fp("%.3f\n",Rad2Deg(theta));
+    }
+
     return Rad2Deg(theta);
 }
 

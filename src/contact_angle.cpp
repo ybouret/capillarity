@@ -15,6 +15,8 @@
 #include "yocto/fs/local-fs.hpp"
 #include "yocto/lingua/pattern/matcher.hpp"
 #include "yocto/lingua/pattern/regexp.hpp"
+#include "yocto/lua/lua-state.hpp"
+#include "yocto/lua/lua-config.hpp"
 
 using namespace yocto;
 using namespace gfx;
@@ -114,12 +116,15 @@ private:
 };
 
 
+static double DeltaPixel = 2;
+static double SweepAngle = 30;
+static float  GaussSigma = 1.4f;
+
 static inline
 double process_file( const string &filename, const string &side )
 {
 
     imageIO &IMG = image::instance();
-    float    sig = 1.4f;
 
     // preparing data base infos
     const string base_name = vfs::get_base_name(filename);
@@ -199,10 +204,10 @@ double process_file( const string &filename, const string &side )
     //
     // image, raw or filtered if sigma>0
     //______________________________________________________________________
-    if(sig>0)
+    if(GaussSigma>0)
     {
-        std::cerr << "-- Gauss " << sig << std::endl;
-        stencil_gauss g5(2,sig);
+        std::cerr << "-- Gauss " << GaussSigma << std::endl;
+        stencil_gauss g5(2,GaussSigma);
         g5.apply(img,img0,xps);
     }
     else
@@ -411,10 +416,8 @@ double process_file( const string &filename, const string &side )
     co_qsort(A,R);
 
     // TODO: define delta in pixels and sweep angle ??
-    const double Delta = 2;
-    const double Sweep = 30;
     const double Aini  = A[1];
-    const double Aend  = min_of<double>( Aini + Deg2Rad(Sweep), 90 );
+    const double Aend  = min_of<double>( Aini + Deg2Rad(SweepAngle), Deg2Rad(90.0) );
 
     vector<double> AA(pR.size,as_capacity);
     vector<double> RR(pR.size,as_capacity);
@@ -428,7 +431,7 @@ double process_file( const string &filename, const string &side )
         const double xx = rr*sin(aa)+center.x;
         const double yy = center.y-rr*cos(aa);
 
-        if(yy>=y_low+Delta&&aa<=Aend)
+        if(yy>=y_low+DeltaPixel&&aa<=Aend)
         {
             AA.push_back(aa);
             RR.push_back(rr);
@@ -669,12 +672,28 @@ double process_file( const string &filename, const string &side )
 }
 
 
+#define __SHOW(VAR) std::cerr << #VAR " = " << VAR << std::endl
+
 YOCTO_PROGRAM_START()
 {
     YOCTO_GFX_DECL_FORMAT(png);
     YOCTO_GFX_DECL_FORMAT(jpeg);
     YOCTO_GFX_DECL_FORMAT(tiff);
 
+    std::cerr << "-- Reading Parameters" << std::endl;
+    Lua::State VM;
+    lua_State *L = VM();
+    Lua::Config::DoFile(L,"angle.lua");
+    
+    DeltaPixel = max_of<double>(0,Lua::Config::Get<lua_Number>(L, "DeltaPixel" ));
+    SweepAngle = clamp<double>(5,Lua::Config::Get<lua_Number>(L, "SweepAngle" ),90);
+    GaussSigma = max_of<float>(0,Lua::Config::Get<lua_Number>(L,"GaussSigma") );
+    
+    __SHOW(DeltaPixel);
+    __SHOW(SweepAngle);
+    __SHOW(GaussSigma);
+    
+    
     if(argc<=2)
     {
         throw exception("usage: %s folder [left|right]", program);

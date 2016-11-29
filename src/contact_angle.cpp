@@ -538,10 +538,11 @@ double process_file( const string &filename, const string &side )
     //______________________________________________________________________
     vector<double>       ridgeI(ns); // ridge intensity
     vector<double>       ridgeF(ns); // ridge fit
+    pixmapf             &levelI = img; // filtered
 
     for(size_t i=1;i<=ns;++i)
     {
-        ridgeI[i] = img0[ va[i] ];
+        ridgeI[i] = levelI[ va[i] ];
     }
 
     GLS<double>::Samples ridgeSamples;
@@ -644,8 +645,8 @@ double process_file( const string &filename, const string &side )
     const double sa0   = sin(alpha0);
     const double num   = rr0 * sa0 - rp0 * ca0;
     const double den   = rr0 * ca0 + rp0 * sa0;
-    const double beta = Atan(num/den);
-    const double theta = numeric<double>::pi/2 - beta;
+    const double beta  = Atan(num/den);
+    const double theta = numeric<double>::pi - beta;
     std::cerr << "theta=" << Rad2Deg(theta) << std::endl;
 
 

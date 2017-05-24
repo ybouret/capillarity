@@ -11,11 +11,11 @@ Bridge:: ~Bridge() throw()
 }
 
 
-#define GET_FROM_LUA(ID) Lua::Config::Get<lua_Number>(L,#ID)
+#define GET_FROM_LUA(ID) L.Get<lua_Number>(#ID)
 #define INI_FROM_LUA(ID) ID(GET_FROM_LUA(ID))
-Bridge:: Bridge( lua_State *L) :
+Bridge:: Bridge( Lua::State &L ) :
 nvar(BRIDGE_N),
-odeint( Lua::Config::Get<lua_Number>(L,"ftol") ),
+odeint( L.Get<double>("ftol") ),
 profEq( this, & Bridge::ProfileEq ),
 status(false),
 INI_FROM_LUA(R0),

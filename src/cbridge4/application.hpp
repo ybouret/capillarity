@@ -12,7 +12,7 @@ class Application : public Bridge, public threading::par_server
 {
 public:
     virtual ~Application() throw();
-    explicit Application( lua_State *L );
+    explicit Application( Lua::State &L );
 
     Vector h;
     Vector A;

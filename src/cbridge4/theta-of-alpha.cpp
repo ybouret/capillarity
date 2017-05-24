@@ -5,7 +5,7 @@ YOCTO_PROGRAM_START()
 {
 #include "main-core.cpp"
 
-    double       zeta      = Lua::Config::Get<lua_Number>(L, "zeta" );
+    double       zeta      = L.Get<double>("zeta");
 
     B.SaveLens("lens.dat", zeta);
 

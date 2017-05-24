@@ -16,7 +16,6 @@
 #include "yocto/lingua/pattern/matcher.hpp"
 #include "yocto/lingua/pattern/regexp.hpp"
 #include "yocto/lua/lua-state.hpp"
-#include "yocto/lua/lua-config.hpp"
 
 using namespace yocto;
 using namespace gfx;
@@ -682,13 +681,12 @@ YOCTO_PROGRAM_START()
     YOCTO_GFX_DECL_FORMAT(tiff);
 
     std::cerr << "-- Reading Parameters" << std::endl;
-    Lua::State VM;
-    lua_State *L = VM();
-    Lua::Config::DoFile(L,"angle.lua");
+    Lua::State L;
+    L.DoFile("angle.lua");
     
-    DeltaPixel = max_of<double>(0,Lua::Config::Get<lua_Number>(L, "DeltaPixel" ));
-    SweepAngle = clamp<double>(5,Lua::Config::Get<lua_Number>(L, "SweepAngle" ),90);
-    GaussSigma = max_of<float>(0,Lua::Config::Get<lua_Number>(L,"GaussSigma") );
+    DeltaPixel = max_of<double>(0,L.Get<double>("DeltaPixel" ));
+    SweepAngle = clamp<double>(5,L.Get<double>("SweepAngle" ),90);
+    GaussSigma = max_of<float>(0,L.Get<double>("GaussSigma") );
     
     __SHOW(DeltaPixel);
     __SHOW(SweepAngle);

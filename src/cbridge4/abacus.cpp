@@ -5,7 +5,7 @@
 YOCTO_PROGRAM_START()
 {
 #include "main-core.cpp"
-    const double hmin = Lua::Config::Get<lua_Number>(L, "hmin");
+    const double hmin = L.Get<double>("hmin");
     const string filename  = "abacus4.dat";
 
     ios::ocstream::overwrite(filename);

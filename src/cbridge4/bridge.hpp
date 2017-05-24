@@ -1,7 +1,6 @@
 #ifndef BRIDGE_INCLUDED
 #define BRIDGE_INCLUDED 1
 
-#include "yocto/lua/lua-config.hpp"
 #include "yocto/lua/lua-state.hpp"
 #include "yocto/math/ode/explicit/driver-ck.hpp"
 #include "yocto/ios/ocstream.hpp"
@@ -47,7 +46,7 @@ public:
 
 
     virtual ~Bridge() throw();
-    explicit Bridge( lua_State *L);
+    explicit Bridge( Lua::State &L);
 
     const size_t   nvar;     //!< BRIDGE_N
     DEsolver       odeint;   //!< adaptive solve, initialized with L->ftol (should be 1e-4-1e-7)

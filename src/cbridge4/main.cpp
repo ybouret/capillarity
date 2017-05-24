@@ -25,7 +25,7 @@ YOCTO_PROGRAM_START()
 #endif
 
     Application  app(L);
-    const string filename = Lua::Config::Get<string>(L,"file");
+    const string filename = L.Get<double>("file");
     app.load(filename);
     wtime chrono;
     chrono.start();

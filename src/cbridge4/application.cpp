@@ -3,7 +3,7 @@
 #define __CORE 0x01
 #define __SUBS 0x02
 
-Application:: Application( lua_State *L ) :
+Application:: Application( Lua::State &L ) :
 Bridge(L), threading::par_server(false),
 h(),
 A(),
@@ -15,7 +15,7 @@ theta()
     threading::executor &self = *this;
     for(size_t i=0;i<self.num_threads();++i)
     {
-        self[i].build<Bridge,lua_State *>(L);
+        self[i].build<Bridge,Lua::State&>(L);
     }
 
     mgr.enroll(h,__CORE);

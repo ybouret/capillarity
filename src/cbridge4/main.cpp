@@ -25,7 +25,7 @@ YOCTO_PROGRAM_START()
 #endif
 
     Application  app(L);
-    const string filename = L.Get<double>("file");
+    const string filename = L.Get<string>("file");
     app.load(filename);
     wtime chrono;
     chrono.start();
@@ -34,7 +34,12 @@ YOCTO_PROGRAM_START()
     std::cerr << "Done in " << ell << " seconds" << std::endl;
 
     {
-        ios::wcstream fp("output.dat");
+        string output = vfs::get_base_name(filename);
+        output << ".cbridge.dat";
+
+        ios::wcstream fp(output);
+
+        fp("#h A alpha theta t\n");
         for(size_t i=1;i<=app.h.size();++i)
         {
             fp("%g %g %g %g %g\n", app.h[i], app.A[i], Rad2Deg(app.alpha[i]), Rad2Deg(app.theta[i]), app.t[i]);

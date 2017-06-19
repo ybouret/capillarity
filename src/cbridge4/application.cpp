@@ -8,9 +8,12 @@ Bridge(L), threading::par_server(false),
 h(),
 A(),
 t(),
+h_evap(),
 zeta(),
 alpha(),
-theta()
+theta(),
+
+coef_evap(0)
 {
     threading::executor &self = *this;
     for(size_t i=0;i<self.num_threads();++i)
@@ -21,6 +24,7 @@ theta()
     mgr.enroll(h,__CORE);
     mgr.enroll(A,__CORE);
     mgr.enroll(t,__CORE);
+    mgr.enroll(h_evap,__CORE);
 
     mgr.enroll(zeta,__SUBS);
     mgr.enroll(alpha,__SUBS);
@@ -30,6 +34,49 @@ theta()
 
 Application:: ~Application() throw()
 {
+}
+
+
+static const double h_scaling = 1e9;
+
+void Application:: build_time()
+{
+    const size_t n = h.size();
+    std::cerr << "#data=" << n << std::endl;
+    vector<unit_t> ih(n);
+    for(size_t i=1;i<=n;++i)
+    {
+        ih[i] = floor( h[i] * h_scaling + 0.5 );
+    }
+    t[1] = 0;
+    for(size_t i=2;i<=n;++i)
+    {
+        const unit_t h_prev = ih[i-1];
+        const unit_t h_curr = ih[i];
+        if(h_curr<h_prev)
+        {
+            t[i] = t[i-1] + (h_prev-h_curr);
+        }
+        else
+        {
+            t[i] = t[i-1] + (h_curr-h_prev);
+        }
+    }
+    for(size_t i=1;i<=n;++i)
+    {
+        t[i] /= h_scaling;
+    }
+
+}
+
+void Application:: correct_h()
+{
+    // evaporation
+    const size_t n = h.size();
+    for(size_t i=n;i>0;--i)
+    {
+        h_evap[i] = h[i] + coef_evap * t[i];
+    }
 }
 
 #include "yocto/math/io/data-set.hpp"
@@ -42,10 +89,12 @@ void Application:: load( const string &filename )
         data_set<double> ds;
         ds.use(1, A);
         ds.use(2, h);
-        ds.use(3, t);
+        //ds.use(3, t);
         ios::icstream fp(filename);
         ds.load(fp);
     }
+
+    build_time();
 
     // precomputing
     const size_t n = h.size();

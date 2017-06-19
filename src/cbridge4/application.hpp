@@ -14,14 +14,21 @@ public:
     virtual ~Application() throw();
     explicit Application( Lua::State &L );
 
-    Vector h;
-    Vector A;
-    Vector t;
+    Vector h;      // original recording
+    Vector A;      // original recording
+    Vector t;      // rebuilt time
+    Vector h_evap; //! with evaporation
     Vector zeta;
     Vector alpha;
     Vector theta;
 
+    double coef_evap;
+
     void load(const string &filename);
+
+    void build_time();
+
+    void correct_h();
 
     void process()
     {
@@ -33,6 +40,7 @@ public:
         }
         flush();
     }
+
 
 private:
     YOCTO_DISABLE_COPY_AND_ASSIGN(Application);

@@ -59,7 +59,7 @@ YOCTO_PROGRAM_START()
         t[i] /= resolution;
     }
 
-    string root = vfs::get_base_name(filename);
+    string       root = vfs::get_base_name(filename);
     const string rext = vfs::get_extension(root);
     vfs::change_extension(root,"time.");
     root += rext;

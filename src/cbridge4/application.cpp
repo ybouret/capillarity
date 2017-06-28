@@ -9,11 +9,14 @@ h(),
 A(),
 tv(),
 h_evap(),
+h_corr(),
 zeta(),
 alpha(),
 theta(),
 
-coef_evap(0)
+coef_evap(0),
+coef_push(0),
+coef_pull(0)
 {
     threading::executor &self = *this;
     for(size_t i=0;i<self.num_threads();++i)
@@ -23,12 +26,12 @@ coef_evap(0)
 
     mgr.enroll(h,__CORE);
     mgr.enroll(A,__CORE);
-    mgr.enroll(h_evap,__CORE);
 
     mgr.enroll(zeta,__SUBS);
     mgr.enroll(alpha,__SUBS);
     mgr.enroll(theta,__SUBS);
     mgr.enroll(tv,__SUBS);
+    mgr.enroll(h_evap,__SUBS);
 
 }
 
@@ -77,6 +80,21 @@ void Application:: correct_h()
     {
         h_evap[i] = h[i] + coef_evap * tv[i];
     }
+
+    // the pull/push
+    for(size_t i=n;i>0;--i)
+    {
+        if(h[i]>h_evap[i])
+        {
+            // push
+            h_corr[i] = h_evap[i] - coef_push * (h[i]-h_evap[i]);
+        }
+        else
+        {
+            // pull
+            h_corr[i] = h_evap[i] + coef_push * (h_evap[i]-h[i]);
+        }
+    }
 }
 
 #include "yocto/math/io/data-set.hpp"
@@ -89,7 +107,6 @@ void Application:: load( const string &filename )
         data_set<double> ds;
         ds.use(1, A);
         ds.use(2, h);
-        //ds.use(3, t);
         ios::icstream fp(filename);
         ds.load(fp);
     }
@@ -98,7 +115,10 @@ void Application:: load( const string &filename )
     // precomputing
     const size_t n = h.size();
     mgr.make_all(__SUBS,n);
+
     build_tv();
+
+    correct_h();
 
     for(size_t i=1;i<=n;++i)
     {

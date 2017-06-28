@@ -18,12 +18,15 @@ public:
     Vector A;      //! original recording
     Vector tv;     //! rebuilt time
     Vector h_evap; //! with evaporation
+    Vector h_corr; //! corrected with push/pull
     Vector zeta;
     Vector alpha;
     Vector theta;
 
     double coef_evap;
-
+    double coef_push;
+    double coef_pull;
+    
     void load(const string &filename);
 
     void build_tv();

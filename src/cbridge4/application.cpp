@@ -7,7 +7,7 @@ Application:: Application( Lua::State &L ) :
 Bridge(L), threading::par_server(false),
 h(),
 A(),
-t(),
+tv(),
 h_evap(),
 zeta(),
 alpha(),
@@ -23,7 +23,7 @@ coef_evap(0)
 
     mgr.enroll(h,__CORE);
     mgr.enroll(A,__CORE);
-    mgr.enroll(t,__CORE);
+    mgr.enroll(tv,__CORE);
     mgr.enroll(h_evap,__CORE);
 
     mgr.enroll(zeta,__SUBS);
@@ -39,7 +39,7 @@ Application:: ~Application() throw()
 
 static const double h_scaling = 1e9;
 
-void Application:: build_time()
+void Application:: build_tv()
 {
     const size_t n = h.size();
     std::cerr << "#data=" << n << std::endl;
@@ -48,23 +48,23 @@ void Application:: build_time()
     {
         ih[i] = floor( h[i] * h_scaling + 0.5 );
     }
-    t[1] = 0;
+    tv[1] = 0;
     for(size_t i=2;i<=n;++i)
     {
         const unit_t h_prev = ih[i-1];
         const unit_t h_curr = ih[i];
         if(h_curr<h_prev)
         {
-            t[i] = t[i-1] + (h_prev-h_curr);
+            tv[i] = tv[i-1] + (h_prev-h_curr);
         }
         else
         {
-            t[i] = t[i-1] + (h_curr-h_prev);
+            tv[i] = tv[i-1] + (h_curr-h_prev);
         }
     }
     for(size_t i=1;i<=n;++i)
     {
-        t[i] /= h_scaling;
+        tv[i] /= h_scaling;
     }
 
 }
@@ -75,7 +75,7 @@ void Application:: correct_h()
     const size_t n = h.size();
     for(size_t i=n;i>0;--i)
     {
-        h_evap[i] = h[i] + coef_evap * t[i];
+        h_evap[i] = h[i] + coef_evap * tv[i];
     }
 }
 
@@ -94,7 +94,7 @@ void Application:: load( const string &filename )
         ds.load(fp);
     }
 
-    build_time();
+    build_tv();
 
     // precomputing
     const size_t n = h.size();

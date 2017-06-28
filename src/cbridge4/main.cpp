@@ -42,7 +42,7 @@ YOCTO_PROGRAM_START()
         fp("#h A alpha theta t\n");
         for(size_t i=1;i<=app.h.size();++i)
         {
-            fp("%g %g %g %g %g\n", app.h[i], app.A[i], Rad2Deg(app.alpha[i]), Rad2Deg(app.theta[i]), app.t[i]);
+            fp("%g %g %g %g %g\n", app.h[i], app.A[i], Rad2Deg(app.alpha[i]), Rad2Deg(app.theta[i]), app.tv[i]);
         }
     }
 

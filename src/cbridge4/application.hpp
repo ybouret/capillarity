@@ -14,9 +14,9 @@ public:
     virtual ~Application() throw();
     explicit Application( Lua::State &L );
 
-    Vector h;      // original recording
-    Vector A;      // original recording
-    Vector t;      // rebuilt time
+    Vector h;      //! original recording
+    Vector A;      //! original recording
+    Vector tv;     //! rebuilt time
     Vector h_evap; //! with evaporation
     Vector zeta;
     Vector alpha;
@@ -26,7 +26,7 @@ public:
 
     void load(const string &filename);
 
-    void build_time();
+    void build_tv();
 
     void correct_h();
 

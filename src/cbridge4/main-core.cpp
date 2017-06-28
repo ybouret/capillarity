@@ -9,6 +9,11 @@ L.DoString("shift_control=0.001;");
 L.DoString("R0=80;");
 L.DoString("lambda=2.72;");
 L.DoString("resolution=1e-4");
+L.DoString("coef_evap=0");
+L.DoString("coef_push=0");
+L.DoString("coef_pull=0");
+
+
 
 // modified
 for(int i=1;i<argc;++i)

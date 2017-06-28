@@ -39,10 +39,10 @@ YOCTO_PROGRAM_START()
 
         ios::wcstream fp(output);
 
-        fp("#h A alpha theta t\n");
+        fp("#h A alpha theta h_corr\n");
         for(size_t i=1;i<=app.h.size();++i)
         {
-            fp("%g %g %g %g %g\n", app.h[i], app.A[i], Rad2Deg(app.alpha[i]), Rad2Deg(app.theta[i]), app.tv[i]);
+            fp("%g %g %g %g %g\n", app.h[i], app.A[i], Rad2Deg(app.alpha[i]), Rad2Deg(app.theta[i]), app.h_corr[i]);
         }
     }
 

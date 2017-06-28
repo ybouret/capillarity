@@ -14,9 +14,10 @@ zeta(),
 alpha(),
 theta(),
 
-coef_evap(0),
-coef_push(0),
-coef_pull(0)
+coef_evap(L.Get<lua_Number>("coef_evap")),
+coef_push(L.Get<lua_Number>("coef_push")),
+coef_pull(L.Get<lua_Number>("coef_pull"))
+
 {
     threading::executor &self = *this;
     for(size_t i=0;i<self.num_threads();++i)
@@ -24,14 +25,15 @@ coef_pull(0)
         self[i].build<Bridge,Lua::State&>(L);
     }
 
-    mgr.enroll(h,__CORE);
-    mgr.enroll(A,__CORE);
+    mgr.enroll(h, __CORE);
+    mgr.enroll(A, __CORE);
 
-    mgr.enroll(zeta,__SUBS);
-    mgr.enroll(alpha,__SUBS);
-    mgr.enroll(theta,__SUBS);
-    mgr.enroll(tv,__SUBS);
-    mgr.enroll(h_evap,__SUBS);
+    mgr.enroll(zeta,   __SUBS);
+    mgr.enroll(alpha,  __SUBS);
+    mgr.enroll(theta,  __SUBS);
+    mgr.enroll(tv,     __SUBS);
+    mgr.enroll(h_evap, __SUBS);
+    mgr.enroll(h_corr, __SUBS);
 
 }
 
@@ -122,7 +124,7 @@ void Application:: load( const string &filename )
 
     for(size_t i=1;i<=n;++i)
     {
-        zeta[i] = h[i]/R0;
+        zeta[i] = h_corr[i]/R0;
         const double aa = A[i] / A0;
         if(aa<=0||aa>1)
             throw exception("Invalid Area=%g",aa);

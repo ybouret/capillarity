@@ -23,12 +23,12 @@ coef_evap(0)
 
     mgr.enroll(h,__CORE);
     mgr.enroll(A,__CORE);
-    mgr.enroll(tv,__CORE);
     mgr.enroll(h_evap,__CORE);
 
     mgr.enroll(zeta,__SUBS);
     mgr.enroll(alpha,__SUBS);
     mgr.enroll(theta,__SUBS);
+    mgr.enroll(tv,__SUBS);
 
 }
 
@@ -94,11 +94,12 @@ void Application:: load( const string &filename )
         ds.load(fp);
     }
 
-    build_tv();
 
     // precomputing
     const size_t n = h.size();
     mgr.make_all(__SUBS,n);
+    build_tv();
+
     for(size_t i=1;i<=n;++i)
     {
         zeta[i] = h[i]/R0;

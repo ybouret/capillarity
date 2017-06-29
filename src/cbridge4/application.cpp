@@ -81,22 +81,25 @@ void Application:: correct_h()
     for(size_t i=n;i>0;--i)
     {
         h_evap[i] = h[i] + coef_evap * tv[i];
+        h_corr[i] = h_evap[i];
     }
 
-    // the pull/push
     for(size_t i=n;i>0;--i)
     {
-        if(h[i]>h_evap[i])
+        if(h_evap[i]>0)
         {
-            // push
-            h_corr[i] = h_evap[i] - coef_push * (h[i]-h_evap[i]);
+            // pull !
+            h_corr[i] = h_evap[i] + coef_pull * h_evap[i];
         }
         else
         {
-            // pull
-            h_corr[i] = h_evap[i] + coef_push * (h_evap[i]-h[i]);
+            // push
+            h_corr[i] = h_evap[i] + coef_push * h_evap[i];
         }
     }
+
+
+
 }
 
 #include "yocto/math/io/data-set.hpp"

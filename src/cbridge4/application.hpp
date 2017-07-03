@@ -23,6 +23,7 @@ public:
     Vector alpha;
     Vector theta;
 
+    double main_rate; //!< main rate in m/s
     double coef_evap;
     double coef_push;
     double coef_pull;
@@ -30,6 +31,9 @@ public:
     void load(const string &filename);
 
     void build_tv();
+
+    void build_time();
+
 
     void correct_h();
 

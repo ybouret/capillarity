@@ -81,15 +81,77 @@ void Application:: build_tv()
 
 static const double time_resolution = 1000;
 
-static inline bool is_bad_dt( const double dt )
+static inline double get_xtime(const double tmx)
 {
-    return dt<=0;
+    return Floor( tmx * time_resolution + 0.5 );
 }
 
 void Application:: build_time()
 {
     const size_t   n = h.size();
 
+    vector<long>   dt(n-1);
+    vector<double> v(n-1);
+    vector<long>   bins;
+    vector<size_t> hist;
+
+    // getting the dt histogram
+    for(size_t i=1;i<n;++i)
+    {
+        //dt[i] = long(Floor( (Fabs(h[i+1]-h[i])/main_rate) * time_resolution + 0.5) );
+        dt[i] = long( get_xtime( Fabs(h[i+1]-h[i])/main_rate ) );
+    }
+
+    i_histogram(bins,hist,dt);
+    const long dt_mode = histogram_mode(bins,hist);
+    std::cerr << "dt_mode=" << dt_mode << std::endl;
+
+    // building the rates
+    for(size_t i=1;i<n;++i)
+    {
+        const double dh = Fabs(h[i+1]-h[i]);
+        if(dh<=0)
+        {
+            dt[i] = dt_mode;
+            v[i]  = main_rate;
+        }
+        else
+        {
+            dt[i] = dt_mode;
+            double       local_rate = (dh/dt_mode) * time_resolution;
+            const double n_sgn      = local_rate/main_rate;
+            if(n_sgn<1)
+            {
+                const double d = 1.0/n_sgn;
+                const long   nd = long( RInt(d) );
+                if(nd>1)
+                {
+                    std::cerr << "div by " << d << " => " << nd << std::endl;
+                }
+            }
+            else
+            {
+                const double m = n_sgn;
+                const long   nm = long( RInt(m) );
+                if(nm>1)
+                {
+                    std::cerr << "mul by " << m << " => " << nm << std::endl;
+                }
+            }
+            v[i]  = local_rate;
+        }
+    }
+
+    {
+        ios::wcstream fp("v.dat");
+        for(size_t i=1;i<n;++i)
+        {
+            fp("%g %g\n", double(i), double(v[i]) );
+        }
+    }
+
+
+#if 0
     vector<long>   dt(n-1);
     vector<long>   dtt(n-1);
     vector<long>   bins;
@@ -126,7 +188,7 @@ void Application:: build_time()
     std::cerr << "dt_mode=" << dt_mode << std::endl;
 
     // so that't the effective dt, will compute v
-    
+#endif
 
 
     exit(0);

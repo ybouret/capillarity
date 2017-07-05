@@ -7,7 +7,8 @@ Application:: Application( Lua::State &L ) :
 Bridge(L), threading::par_server(false),
 h(),
 A(),
-tv(),
+t(),
+v(),
 h_evap(),
 h_corr(),
 zeta(),
@@ -31,10 +32,10 @@ coef_pull(L.Get<lua_Number>("coef_pull"))
     mgr.enroll(zeta,   __SUBS);
     mgr.enroll(alpha,  __SUBS);
     mgr.enroll(theta,  __SUBS);
-    mgr.enroll(tv,     __SUBS);
+    mgr.enroll(t,      __SUBS);
     mgr.enroll(h_evap, __SUBS);
     mgr.enroll(h_corr, __SUBS);
-
+    mgr.enroll(v,      __SUBS);
 }
 
 Application:: ~Application() throw()
@@ -42,40 +43,10 @@ Application:: ~Application() throw()
 }
 
 
-static const double h_scaling = 1e9;
-
-void Application:: build_tv()
-{
-    const size_t n = h.size();
-    std::cerr << "#data=" << n << std::endl;
-    vector<unit_t> ih(n);
-    for(size_t i=1;i<=n;++i)
-    {
-        ih[i] = floor( h[i] * h_scaling + 0.5 );
-    }
-    tv[1] = 0;
-    for(size_t i=2;i<=n;++i)
-    {
-        const unit_t h_prev = ih[i-1];
-        const unit_t h_curr = ih[i];
-        if(h_curr<h_prev)
-        {
-            tv[i] = tv[i-1] + (h_prev-h_curr);
-        }
-        else
-        {
-            tv[i] = tv[i-1] + (h_curr-h_prev);
-        }
-    }
-    for(size_t i=1;i<=n;++i)
-    {
-        tv[i] /= h_scaling;
-    }
-
-}
 
 #include "yocto/math/stat/int-hist.hpp"
 #include "yocto/math/stat/descr.hpp"
+#include "yocto/math/stat/dist.hpp"
 
 #include "yocto/sort/remove-if.hpp"
 
@@ -91,104 +62,126 @@ void Application:: build_time()
     const size_t   n = h.size();
 
     vector<long>   dt(n-1);
-    vector<double> v(n-1);
     vector<long>   bins;
     vector<size_t> hist;
 
+    //__________________________________________________________________________
+    //
     // getting the dt histogram
+    //__________________________________________________________________________
     for(size_t i=1;i<n;++i)
     {
-        //dt[i] = long(Floor( (Fabs(h[i+1]-h[i])/main_rate) * time_resolution + 0.5) );
         dt[i] = long( get_xtime( Fabs(h[i+1]-h[i])/main_rate ) );
     }
 
     i_histogram(bins,hist,dt);
+
+    //__________________________________________________________________________
+    //
+    // taking the mode
+    //__________________________________________________________________________
     const long dt_mode = histogram_mode(bins,hist);
     std::cerr << "dt_mode=" << dt_mode << std::endl;
 
-    // building the rates
+    //__________________________________________________________________________
+    //
+    // checking for a lower speed, taking significative decreases
+    //__________________________________________________________________________
+    double lower_rate_factor = 1;
+    {
+        vector<double> dcoef(n-1,as_capacity);
+        for(size_t i=1;i<n;++i)
+        {
+            const double dh = Fabs(h[i+1]-h[i]);
+            if(dh>0)
+            {
+                double       local_rate = (dh/dt_mode) * time_resolution;
+                if(local_rate<main_rate)
+                {
+                    const double d = main_rate/local_rate;
+                    if(RInt(d)>1)
+                    {
+                        dcoef.push_back(d);
+                    }
+                }
+            }
+        }
+        if(dcoef.size()>0)
+        {
+            std::cerr << "dcoef=" << dcoef << std::endl;
+            double dmu=0,dsig=0;
+            compute_average_and_stddev(dmu,dsig,dcoef);
+            std::cerr << "dmu=" << dmu << ", dsig=" << dsig << std::endl;
+            const double dlo = Floor(dmu);
+            const double dup = Ceil(dmu);
+            const double plo = gaussian<double>::pdf(dlo, dmu, dsig);
+            const double pup = gaussian<double>::pdf(dup, dmu, dsig);
+            std::cerr << "dlo=" << dlo << "@" << plo << std::endl;
+            std::cerr << "dup=" << dup << "@" << pup << std::endl;
+            if(plo>=pup)
+            {
+                lower_rate_factor = dlo;
+            }
+            else
+            {
+                lower_rate_factor = dup;
+            }
+        }
+    }
+
+    std::cerr << "lower_rate_factor=" << lower_rate_factor << std::endl;
+    const double lower_rate = main_rate / lower_rate_factor;
+
+
+    //__________________________________________________________________________
+    //
+    // reconstructing time and speed
+    //__________________________________________________________________________
     for(size_t i=1;i<n;++i)
     {
         const double dh = Fabs(h[i+1]-h[i]);
-        if(dh<=0)
+        v[i]  = main_rate;
+        dt[i] = dt_mode;
+        if(dh>0)
         {
-            dt[i] = dt_mode;
-            v[i]  = main_rate;
-        }
-        else
-        {
-            dt[i] = dt_mode;
-            double       local_rate = (dh/dt_mode) * time_resolution;
-            const double n_sgn      = local_rate/main_rate;
-            if(n_sgn<1)
+            double local_rate = (dh/dt_mode) * time_resolution;
+            if(local_rate<main_rate)
             {
-                const double d = 1.0/n_sgn;
-                const long   nd = long( RInt(d) );
-                if(nd>1)
+                if( RInt(main_rate/local_rate) > 1 )
                 {
-                    std::cerr << "div by " << d << " => " << nd << std::endl;
+                    v[i] = lower_rate;
                 }
             }
             else
             {
-                const double m = n_sgn;
-                const long   nm = long( RInt(m) );
-                if(nm>1)
+                const double m  = local_rate/main_rate;
+                const long   im = long(RInt(m));
+                if(im>1)
                 {
-                    std::cerr << "mul by " << m << " => " << nm << std::endl;
+                    // increase time
+                    dt[i] = im * dt_mode;
                 }
             }
-            v[i]  = local_rate;
         }
     }
 
+    t[1] = 0;
+    for(size_t i=2;i<=n;++i)
     {
-        ios::wcstream fp("v.dat");
-        for(size_t i=1;i<n;++i)
-        {
-            fp("%g %g\n", double(i), double(v[i]) );
-        }
+        t[i] = t[i-1] + dt[i-1];
     }
+    v[n] = v[n-1];
 
-
-#if 0
-    vector<long>   dt(n-1);
-    vector<long>   dtt(n-1);
-    vector<long>   bins;
-    vector<size_t> H;
-
-    {
-        for(size_t i=1;i<n;++i)
-        {
-            dtt[i] = dt[i] = long(Floor( (Fabs(h[i+1]-h[i])/main_rate) * time_resolution + 0.5));
-        }
-    }
 
 
     {
-
-        remove_if(dtt,is_bad_dt);
-        ios::wcstream fp("dt.dat");
-        for(size_t i=1;i<=dtt.size();++i)
+        ios::wcstream fp("thv.dat");
+        for(size_t i=1;i<=n;++i)
         {
-            fp("%g %ld\n", double(i), dtt[i]);
+            fp("%g %g %g\n", double(t[i]), double(h[i]), double(v[i]) );
         }
     }
 
-
-    i_histogram(bins, H, dtt);
-    {
-        ios::wcstream fp("hist.dat");
-        for(size_t i=1;i<=bins.size();++i)
-        {
-            fp("%g %g\n", double(bins[i]), double(H[i]));
-        }
-    }
-    const long dt_mode = histogram_mode(bins,H);
-    std::cerr << "dt_mode=" << dt_mode << std::endl;
-
-    // so that't the effective dt, will compute v
-#endif
 
 
     exit(0);
@@ -196,11 +189,12 @@ void Application:: build_time()
 
 void Application:: correct_h()
 {
+
     // evaporation
     const size_t n = h.size();
     for(size_t i=n;i>0;--i)
     {
-        h_evap[i] = h[i] + coef_evap * tv[i];
+        h_evap[i] = h[i] + coef_evap * t[i];
         h_corr[i] = h_evap[i];
     }
 

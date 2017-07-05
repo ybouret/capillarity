@@ -75,27 +75,46 @@ void Application:: build_tv()
 }
 
 #include "yocto/math/stat/int-hist.hpp"
+#include "yocto/math/stat/descr.hpp"
 
-static const double time_resolution = 1e3;
+#include "yocto/sort/remove-if.hpp"
+
+static const double time_resolution = 1000;
+
+static inline bool is_bad_dt( const double dt )
+{
+    return dt<=0;
+}
 
 void Application:: build_time()
 {
     const size_t   n = h.size();
 
-    vector<long> dt(n-1);
-    vector<long> bins;
+    vector<long>   dt(n-1);
+    vector<long>   dtt(n-1);
+    vector<long>   bins;
     vector<size_t> H;
 
     {
-        ios::wcstream fp("dt.dat");
         for(size_t i=1;i<n;++i)
         {
-            dt[i] = long(Floor( (Fabs(h[i+1]-h[i])/main_rate) * time_resolution + 0.5));
-            fp("%g %ld %g\n", double(i), dt[i], h[i]);
+            dtt[i] = dt[i] = long(Floor( (Fabs(h[i+1]-h[i])/main_rate) * time_resolution + 0.5));
         }
     }
 
-    i_histogram(bins, H, dt);
+
+    {
+
+        remove_if(dtt,is_bad_dt);
+        ios::wcstream fp("dt.dat");
+        for(size_t i=1;i<=dtt.size();++i)
+        {
+            fp("%g %ld\n", double(i), dtt[i]);
+        }
+    }
+
+
+    i_histogram(bins, H, dtt);
     {
         ios::wcstream fp("hist.dat");
         for(size_t i=1;i<=bins.size();++i)
@@ -103,6 +122,13 @@ void Application:: build_time()
             fp("%g %g\n", double(bins[i]), double(H[i]));
         }
     }
+    const long dt_mode = histogram_mode(bins,H);
+    std::cerr << "dt_mode=" << dt_mode << std::endl;
+
+    // so that't the effective dt, will compute v
+    
+
+
     exit(0);
 }
 

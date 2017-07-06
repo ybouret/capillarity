@@ -135,7 +135,7 @@ void Application:: build_time()
 
     //__________________________________________________________________________
     //
-    // reconstructing time and speed
+    // reconstructing dt and speed
     //__________________________________________________________________________
     for(size_t i=1;i<n;++i)
     {
@@ -165,10 +165,21 @@ void Application:: build_time()
         }
     }
 
-    t[1] = 0;
+
+    //__________________________________________________________________________
+    //
+    // reconstructing time
+    //__________________________________________________________________________
+    const double h0  = h[1];
+    const double dh0 = h[2] - h[1];
+    const double v0  = (dh0 >= 0) ? v[1] : -v[1];
+    std::cerr << "h0=" << h0 << std::endl;
+    std::cerr << "v0=" << v0 << std::endl;
+
+    t[1] = h0/v0;
     for(size_t i=2;i<=n;++i)
     {
-        t[i] = t[i-1] + dt[i-1];
+        t[i] = t[i-1] + dt[i-1]/time_resolution;
     }
     v[n] = v[n-1];
 
@@ -176,6 +187,8 @@ void Application:: build_time()
 
     {
         ios::wcstream fp("thv.dat");
+        fp << "#t h v\n";
+        fp("0 0 %g\n", double(v[1]));
         for(size_t i=1;i<=n;++i)
         {
             fp("%g %g %g\n", double(t[i]), double(h[i]), double(v[i]) );

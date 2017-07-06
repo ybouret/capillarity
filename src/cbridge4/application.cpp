@@ -224,7 +224,6 @@ void Application:: correct_h()
         h_corr[i] = h_evap[i];
     }
 
-    return;
 
     for(size_t i=n;i>0;--i)
     {

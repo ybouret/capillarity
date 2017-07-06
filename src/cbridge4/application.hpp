@@ -24,8 +24,8 @@ public:
     Vector alpha;
     Vector theta;
 
-    double main_rate; //!< main rate in m/s
-    double coef_evap;
+    double main_rate; //!< main rate in mm/s (around 5-e3)
+    double evap_rate; //!< evap rate in mm/s
     double coef_push;
     double coef_pull;
     

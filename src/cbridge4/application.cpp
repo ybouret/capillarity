@@ -15,7 +15,7 @@ zeta(),
 alpha(),
 theta(),
 main_rate(L.Get<lua_Number>("main_rate")),
-coef_evap(L.Get<lua_Number>("coef_evap")),
+evap_rate(L.Get<lua_Number>("evap_rate")),
 coef_push(L.Get<lua_Number>("coef_push")),
 coef_pull(L.Get<lua_Number>("coef_pull"))
 
@@ -108,7 +108,7 @@ void Application:: build_time()
         }
         if(dcoef.size()>0)
         {
-            std::cerr << "dcoef=" << dcoef << std::endl;
+            //std::cerr << "dcoef=" << dcoef << std::endl;
             double dmu=0,dsig=0;
             compute_average_and_stddev(dmu,dsig,dcoef);
             std::cerr << "dmu=" << dmu << ", dsig=" << dsig << std::endl;
@@ -184,7 +184,7 @@ void Application:: build_time()
     v[n] = v[n-1];
 
 
-
+#if 0
     {
         ios::wcstream fp("thv.dat");
         fp << "#t h v\n";
@@ -194,10 +194,9 @@ void Application:: build_time()
             fp("%g %g %g\n", double(t[i]), double(h[i]), double(v[i]) );
         }
     }
+#endif
 
 
-
-    exit(0);
 }
 
 void Application:: correct_h()
@@ -207,7 +206,7 @@ void Application:: correct_h()
     const size_t n = h.size();
     for(size_t i=n;i>0;--i)
     {
-        h_evap[i] = h[i] + coef_evap * t[i];
+        h_evap[i] = h[i];
         h_corr[i] = h_evap[i];
     }
 

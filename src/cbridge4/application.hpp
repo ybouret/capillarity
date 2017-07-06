@@ -16,8 +16,9 @@ public:
 
     Vector h;      //! original recording
     Vector A;      //! original recording
-    Vector t;      //! rebuilt time
+    Vector t;      //!< rebuilt time
     Vector v;      //!< rebuilt rate
+    Vector delta_t;     //!< rebuilt dt
     Vector h_evap; //! with evaporation
     Vector h_corr; //! corrected with push/pull
     Vector zeta;

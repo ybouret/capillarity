@@ -9,6 +9,7 @@ h(),
 A(),
 t(),
 v(),
+delta_t(),
 h_evap(),
 h_corr(),
 zeta(),
@@ -36,6 +37,7 @@ coef_pull(L.Get<lua_Number>("coef_pull"))
     mgr.enroll(h_evap, __SUBS);
     mgr.enroll(h_corr, __SUBS);
     mgr.enroll(v,      __SUBS);
+    //mgr.enroll(dt,     __SUBS);
 }
 
 Application:: ~Application() throw()
@@ -61,7 +63,7 @@ void Application:: build_time()
 {
     const size_t   n = h.size();
 
-    vector<long>   dt(n-1);
+    vector<long>   idt(n-1);
     vector<long>   bins;
     vector<size_t> hist;
 
@@ -71,10 +73,10 @@ void Application:: build_time()
     //__________________________________________________________________________
     for(size_t i=1;i<n;++i)
     {
-        dt[i] = long( get_xtime( Fabs(h[i+1]-h[i])/main_rate ) );
+        idt[i] = long( get_xtime( Fabs(h[i+1]-h[i])/main_rate ) );
     }
 
-    i_histogram(bins,hist,dt);
+    i_histogram(bins,hist,idt);
 
     //__________________________________________________________________________
     //
@@ -141,7 +143,7 @@ void Application:: build_time()
     {
         const double dh = Fabs(h[i+1]-h[i]);
         v[i]  = main_rate;
-        dt[i] = dt_mode;
+        idt[i] = dt_mode;
         if(dh>0)
         {
             double local_rate = (dh/dt_mode) * time_resolution;
@@ -159,7 +161,7 @@ void Application:: build_time()
                 if(im>1)
                 {
                     // increase time
-                    dt[i] = im * dt_mode;
+                    idt[i] = im * dt_mode;
                 }
             }
         }
@@ -179,10 +181,15 @@ void Application:: build_time()
     t[1] = h0/v0;
     for(size_t i=2;i<=n;++i)
     {
-        t[i] = t[i-1] + dt[i-1]/time_resolution;
+        t[i] = t[i-1] + idt[i-1]/time_resolution;
     }
     v[n] = v[n-1];
 
+    delta_t.make(n-1);
+    for(size_t i=1;i<n;++i)
+    {
+        delta_t[i] = idt[i]/time_resolution;
+    }
 
 #if 0
     {
@@ -204,11 +211,20 @@ void Application:: correct_h()
 
     // evaporation
     const size_t n = h.size();
+
+
+    // initial evap
+    for(size_t i=1;i<=n;++i)
+    {
+        h_evap[i] = h[i] + evap_rate * t[i];
+    }
+
     for(size_t i=n;i>0;--i)
     {
-        h_evap[i] = h[i];
         h_corr[i] = h_evap[i];
     }
+
+    return;
 
     for(size_t i=n;i>0;--i)
     {
@@ -248,10 +264,7 @@ void Application:: load( const string &filename )
     mgr.make_all(__SUBS,n);
 
     build_time();
-
-    //build_tv();
-
-    //correct_h();
+    correct_h();
 
     for(size_t i=1;i<=n;++i)
     {

@@ -23,7 +23,9 @@ YOCTO_PROGRAM_START()
                 const string ext = ep->extension;
                 if( "txt" == ext )
                 {
-                    std::cerr << "\t[" << ep->path << "]" << std::endl;
+                    string id = ep->base_name;
+                    id.trim(10);
+                    std::cerr << "\t[" << ep->path << "] -> " << id << std::endl;
                 }
             }
         }

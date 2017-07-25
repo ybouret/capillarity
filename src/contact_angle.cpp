@@ -5,8 +5,7 @@
 #include "yocto/gfx/ops/stencil.hpp"
 #include "yocto/gfx/ops/edges.hpp"
 #include "yocto/gfx/ops/filter.hpp"
-#include "yocto/gfx/draw/line.hpp"
-#include "yocto/gfx/draw/circle.hpp"
+#include "yocto/gfx/draw/stencil.hpp"
 #include "yocto/container/matrix.hpp"
 #include "yocto/ios/ocstream.hpp"
 #include "yocto/math/alg/shapes2d.hpp"
@@ -275,7 +274,7 @@ double process_file( const string &filename, const string &side )
         //std::cerr << "#points=" << pa.size << std::endl;
     }
     const string img_final = db_name + root_name + "-final.png";
-    IMG.save(img_final, tgt, 0);
+    //IMG.save(img_final, tgt, 0);
 
 
     //______________________________________________________________________
@@ -295,7 +294,7 @@ double process_file( const string &filename, const string &side )
 
     draw_patch(tgt,box_left,  named_color::fetch( YGFX_GREEN ), 127 );
     draw_patch(tgt,box_right, named_color::fetch( YGFX_RED   ), 127 );
-    IMG.save(img_final, tgt, 0);
+    //IMG.save(img_final, tgt, 0);
 
 
     particle    &pR = *edges[2];
@@ -324,7 +323,7 @@ double process_file( const string &filename, const string &side )
     pR.mask(tgt,  named_color::fetch(YGFX_YELLOW), 255);
     pL.mask(tgt, named_color::fetch(YGFX_MAGENTA), 255);
 
-    IMG.save(img_final, tgt, 0);
+    //IMG.save(img_final, tgt, 0);
 
 
     //______________________________________________________________________
@@ -350,7 +349,7 @@ double process_file( const string &filename, const string &side )
     }
 
     draw_line(tgt,p1->vtx,p2->vtx, named_color::fetch(YGFX_CYAN), 0xff);
-    IMG.save(img_final, tgt, 0);
+    //IMG.save(img_final, tgt, 0);
 
     //______________________________________________________________________
     //
@@ -401,7 +400,7 @@ double process_file( const string &filename, const string &side )
         R.push_back( Hypotenuse(dx,dy) );
     }
 
-
+    if(false)
     {
         const string shape_name = db_name + root_name + "-shape.dat";
         ios::wcstream fp(shape_name);
@@ -451,6 +450,7 @@ double process_file( const string &filename, const string &side )
         throw exception("Unable to fit polynomial");
     }
 
+    if(false)
     {
         const string shape_fit_name = db_name + root_name + "-shape.dat";
         ios::wcstream fp(shape_fit_name);
@@ -524,7 +524,7 @@ double process_file( const string &filename, const string &side )
             }
         }
     }
-    IMG.save(img_final, tgt, 0);
+    //IMG.save(img_final, tgt, 0);
     std::cerr << "#vtx=" << va.size() << "/" << na << std::endl;
 
     const size_t ns = va.size();
@@ -587,6 +587,7 @@ double process_file( const string &filename, const string &side )
     }
 
     GLS<double>::display(std::cerr, ridgeA, ridgeE);
+    if(false)
     {
         const string scanfit_name = db_name + root_name + "-scanfit1.dat";
         ios::wcstream fp(scanfit_name);
@@ -607,7 +608,10 @@ double process_file( const string &filename, const string &side )
         throw exception("couldn't fit level-2");
     }
 
+
     GLS<double>::display(std::cerr, ridgeA, ridgeE);
+
+    if(false)
     {
         const string scanfit_name = db_name + root_name + "-scanfit2.dat";
         ios::wcstream fp(scanfit_name);
@@ -649,14 +653,59 @@ double process_file( const string &filename, const string &side )
     std::cerr << "theta=" << Rad2Deg(theta) << std::endl;
 
 
+    // final drawing
     tgt.copy(origin);
-    draw_disk(tgt, Q.x, Q.y, 2, named_color::fetch(YGFX_MAGENTA), 127 );
-    const double length = radius/5.0;
-    draw_line(tgt,
-              Q.x,Q.y,
-              unit_t(Q.x+length*cos(beta)),unit_t(Q.y+length*sin(beta)),
-              named_color::fetch(YGFX_FIREBRICK), 0xff
-              );
+    vector<vertex> sten;
+
+
+    const unit_t thick = 2;
+
+    // horiontal
+    sten.free();
+    collect_disk(sten, Q.x, Q.y, thick);
+    extrude_stencil(sten, vertex(p2->vtx.x-Q.x,0) );
+
+    draw_stencil(sten, tgt, vertex(0,0), named_color::fetch(YGFX_BLUE_LIGHT), 0xff);
+
+    // profile
+    sten.free();
+    {
+        double aa = alpha_min;
+        while(aa<Aend)
+        {
+            const vertex pos = Geom.Coord(aa);
+            sten.push_back(pos);
+            aa += da;
+        }
+        clean_stencil(sten);
+        extrude_stencil(sten, vertex(-2,0) );
+        draw_stencil(sten, tgt, vertex(0,0), named_color::fetch(YGFX_YELLOW), 0xff);
+    }
+
+
+
+    //tangent
+    sten.free();
+    collect_disk(sten, Q.x, Q.y, thick);
+    clean_stencil(sten);
+    const double length = radius/2.0;
+    extrude_stencil(sten, vertex(length*cos(beta),length*sin(beta) ) );
+    draw_stencil(sten, tgt, vertex(0,0), named_color::fetch(YGFX_RED), 200);
+
+    //intersection
+    //draw_disk(tgt, Q.x, Q.y, 6, named_color::fetch(YGFX_MAGENTA), 127 );
+
+#if 0
+    if(false)
+    {
+        const double length = radius/5.0;
+        draw_line(tgt,
+                  Q.x,Q.y,
+                  unit_t(Q.x+length*cos(beta)),unit_t(Q.y+length*sin(beta)),
+                  named_color::fetch(YGFX_FIREBRICK), 0xff
+                  );
+    }
+#endif
 
     const string img_angle = db_name+root_name+"-angle.png";
     IMG.save(img_angle, tgt, 0);
@@ -683,16 +732,16 @@ YOCTO_PROGRAM_START()
     std::cerr << "-- Reading Parameters" << std::endl;
     Lua::State L;
     L.DoFile("angle.lua");
-    
+
     DeltaPixel = max_of<double>(0,L.Get<double>("DeltaPixel" ));
     SweepAngle = clamp<double>(5,L.Get<double>("SweepAngle" ),90);
     GaussSigma = max_of<float>(0,L.Get<double>("GaussSigma") );
-    
+
     __SHOW(DeltaPixel);
     __SHOW(SweepAngle);
     __SHOW(GaussSigma);
-    
-    
+
+
     if(argc<=2)
     {
         throw exception("usage: %s folder [left|right]", program);
@@ -718,6 +767,6 @@ YOCTO_PROGRAM_START()
             std::cerr << "theta=" << theta << std::endl;
         }
     }
-
+    
 }
 YOCTO_PROGRAM_END()

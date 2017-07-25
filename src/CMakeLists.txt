@@ -19,15 +19,15 @@ SET(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/..)
 ADD_EXECUTABLE(contact_angle contact_angle.cpp)
 TARGET_LINK_YOCTO(contact_angle gfx tiff png lingua lua++)
 
-ADD_EXECUTABLE(build_time build_time.cpp)
-TARGET_LINK_LIBRARIES(build_time)
-TARGET_LINK_YOCTO(build_time mk)
+#ADD_EXECUTABLE(build_time build_time.cpp)
+#TARGET_LINK_LIBRARIES(build_time)
+#TARGET_LINK_YOCTO(build_time mk)
 
-INSTALL(TARGETS contact_angle build_time RUNTIME DESTINATION bin )
+ADD_EXECUTABLE(gather_angles gather_angles.cpp)
+TARGET_LINK_YOCTO(gather_angles)
 
-#ADD_SUBDIRECTORY(cbridge)
-#ADD_SUBDIRECTORY(cbridge_v2)
-#ADD_SUBDIRECTORY(cbridge_v3)
+INSTALL(TARGETS contact_angle gather_angles RUNTIME DESTINATION bin )
+
 ADD_SUBDIRECTORY(cbridge4)
 
 

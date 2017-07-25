@@ -26,6 +26,11 @@ YOCTO_PROGRAM_START()
             //std::cerr << '\t' << '<' << ep->attr << '>' << ep->base_name << " [" << ep->path << "]" << std::endl;
             if( ep->is_regular() )
             {
+                const string fn  = ep->base_name;
+                if(fn=="theta.txt")
+                {
+                    continue;
+                }
                 const string ext = ep->extension;
                 if( "txt" == ext )
                 {
@@ -41,6 +46,7 @@ YOCTO_PROGRAM_START()
                     std::cerr << "\t\t" << line << std::endl;
                     line += ' ';
                     line += id;
+
                     lines.push_back(line);
                 }
             }
@@ -54,7 +60,7 @@ YOCTO_PROGRAM_START()
             ios::wcstream fp(output);
             for(size_t i=1;i<=lines.size();++i)
             {
-                fp << lines[i] << '\n';
+                fp << lines[i] << "\r\n";
             }
         }
 

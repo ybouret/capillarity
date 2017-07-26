@@ -6,7 +6,7 @@ Lua::State L;
 L.DoString("ftol=1e-6;");
 L.DoString("angle_control=0.5;");
 L.DoString("shift_control=0.001;");
-L.DoString("R0=80;");
+L.DoString("R0=82;");
 L.DoString("lambda=2.72;");
 L.DoString("resolution=1e-4");
 L.DoString("coef_evap=0");

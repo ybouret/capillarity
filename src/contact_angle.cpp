@@ -659,7 +659,11 @@ double process_file( const string &filename, const string &side )
     // then we compute the derivative of the extrapolation
     //______________________________________________________________________
     vector<double> drvs( aorg.size() );
+    vector<double> derr( aorg.size() );
+
     _GLS::Polynomial<double>::ComputeDrvs(drvs,aorg);
+    _GLS::Polynomial<double>::ComputeDrvs(derr,aerr);
+
     std::cerr << "polynomial=" << aorg << std::endl;
     std::cerr << "derivative=" << drvs << std::endl;
 
@@ -686,7 +690,34 @@ double process_file( const string &filename, const string &side )
                                         radius+ _GLS::Polynomial<double>::EvalMax(ahi,aorg,aerr));
 
     std::cerr << "rrMin=" << rrMin << " / rr0=" << rr0 << " / rrMax=" << rrMax << std::endl;
-    exit(0);
+    const double rpMin = min_of<double>( _GLS::Polynomial<double>::EvalMin(alo,drvs,derr),_GLS::Polynomial<double>::EvalMin(ahi,drvs,derr));
+    const double rpMax = max_of<double>( _GLS::Polynomial<double>::EvalMax(alo,drvs,derr),_GLS::Polynomial<double>::EvalMax(ahi,drvs,derr));
+    std::cerr << "rpMin=" << rpMin << " / rp0=" << rp0 << " / rpMax=" << rpMax << std::endl;
+
+    const double cmin = min_of( cos(alo), cos(ahi) );
+    const double cmax = max_of( cos(alo), cos(ahi) );
+
+    const double smin = min_of( sin(alo), sin(ahi) );
+    const double smax = max_of( sin(alo), sin(ahi) );
+
+    std::cerr << "cmin=" << cmin << ", cmax=" << cmax << std::endl;
+    std::cerr << "smin=" << smin << ", smax=" << smax << std::endl;
+
+    const double num_min = rrMin * smin - rpMax * cmax;
+    const double den_max = rrMax * cmax + rpMax * smax;
+
+    const double num_max = rrMax * smax - rpMin * cmin;
+    const double den_min = rrMin * cmin + rpMin * smin;
+
+    std::cerr << "num_min=" << num_min << "/ num=" << num << " / num_max=" << num_max << std::endl;
+    std::cerr << "den_min=" << den_min << "/ den=" << den << " / den_max=" << den_max << std::endl;
+
+    const double beta_min = atan(num_min/den_max);
+    const double beta_max = atan(num_max/den_min);
+    const double delta_angle = (beta_max - beta_min)/2;
+    std::cerr << "delta_angle=" << Rad2Deg(delta_angle) << std::endl;
+
+
 
 
     // final drawing
@@ -750,7 +781,7 @@ double process_file( const string &filename, const string &side )
     const string info_name = db_name+root_name+"-theta.txt";
     {
         ios::wcstream fp(info_name);
-        fp("%.3f\n",Rad2Deg(theta));
+        fp("%.3f %.3f\n",Rad2Deg(theta),Rad2Deg(delta_angle));
     }
 
     return Rad2Deg(theta);

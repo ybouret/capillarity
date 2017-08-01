@@ -586,6 +586,7 @@ double process_file( const string &filename, const string &side )
         throw exception("couldn't fit level-1");
     }
 
+    std::cerr << "RIDGE 1/2: " << std::endl;
     GLS<double>::display(std::cerr, ridgeA, ridgeE);
     if(false)
     {
@@ -608,7 +609,7 @@ double process_file( const string &filename, const string &side )
         throw exception("couldn't fit level-2");
     }
 
-
+    std::cerr << "RIDGE 2/2: " << std::endl;
     GLS<double>::display(std::cerr, ridgeA, ridgeE);
 
     if(false)

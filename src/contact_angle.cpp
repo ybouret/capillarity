@@ -450,6 +450,23 @@ double process_file( const string &filename, const string &side )
         throw exception("Unable to fit polynomial");
     }
 
+    vector<bool>   ause( aorg.size(), true);
+    vector<double> aerr( aorg.size() );
+    samples.prepare(aorg.size());
+    std::cerr << "Poly Predicted: " << std::endl;
+    GLS<double>::display(std::cerr, aorg, aerr);
+
+    {
+        GLS<double>::Function poly = _GLS::Create<double,_GLS::Polynomial>();
+        if( ! samples.fit_with(poly, aorg, ause, aerr) )
+        {
+            throw exception("Unable to fit polynomial Level 2");
+        }
+    }
+    std::cerr << "Poly Corrected: " << std::endl;
+    GLS<double>::display(std::cerr, aorg, aerr);
+
+
     if(false)
     {
         const string shape_fit_name = db_name + root_name + "-shape.dat";
@@ -628,6 +645,9 @@ double process_file( const string &filename, const string &side )
     //______________________________________________________________________
     const double alphaI = ridgeA[2];
 
+    std::cerr << "alpha0=" << Rad2Deg(alpha0) << std::endl;
+    std::cerr << "alphaI=" << Rad2Deg(alphaI) << std::endl;
+
     //______________________________________________________________________
     //
     // so we compute the intersection coordinate
@@ -643,15 +663,30 @@ double process_file( const string &filename, const string &side )
     std::cerr << "polynomial=" << aorg << std::endl;
     std::cerr << "derivative=" << drvs << std::endl;
 
-    const double rr0   = radius+_GLS::Polynomial<double>::Eval(alpha0,aorg);
-    const double rp0   = _GLS::Polynomial<double>::Eval(alpha0,drvs);
-    const double ca0   = cos(alpha0);
-    const double sa0   = sin(alpha0);
+    const double alphaInter = alphaI;
+    const double alphaDelta = ridgeE[2];
+
+    const double rr0   = radius+_GLS::Polynomial<double>::Eval(alphaInter,aorg);
+    const double rp0   = _GLS::Polynomial<double>::Eval(alphaInter,drvs);
+    const double ca0   = cos(alphaInter);
+    const double sa0   = sin(alphaInter);
     const double num   = rr0 * sa0 - rp0 * ca0;
     const double den   = rr0 * ca0 + rp0 * sa0;
     const double beta  = Atan(num/den);
     const double theta = numeric<double>::pi - beta;
     std::cerr << "theta=" << Rad2Deg(theta) << std::endl;
+
+    const double alo = alphaInter-alphaDelta;
+    const double ahi = alphaInter+alphaDelta;
+
+    const double rrMin = min_of<double>(radius+ _GLS::Polynomial<double>::EvalMin(alo,aorg,aerr),
+                                        radius+ _GLS::Polynomial<double>::EvalMin(ahi,aorg,aerr));
+
+    const double rrMax = max_of<double>(radius+ _GLS::Polynomial<double>::EvalMax(alo,aorg,aerr),
+                                        radius+ _GLS::Polynomial<double>::EvalMax(ahi,aorg,aerr));
+
+    std::cerr << "rrMin=" << rrMin << " / rr0=" << rr0 << " / rrMax=" << rrMax << std::endl;
+    exit(0);
 
 
     // final drawing

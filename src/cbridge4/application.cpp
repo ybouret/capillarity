@@ -21,6 +21,10 @@ coef_push(L.Get<lua_Number>("coef_push")),
 coef_pull(L.Get<lua_Number>("coef_pull"))
 
 {
+
+    if(main_rate<=0)
+        throw exception("invalid main_rate=%g",main_rate);
+    
     threading::executor &self = *this;
     for(size_t i=0;i<self.num_threads();++i)
     {

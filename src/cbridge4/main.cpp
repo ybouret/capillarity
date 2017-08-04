@@ -24,6 +24,7 @@ YOCTO_PROGRAM_START()
     }
 #endif
 
+
     Application  app(L);
     const string filename = L.Get<string>("file");
     app.load(filename);
@@ -34,9 +35,13 @@ YOCTO_PROGRAM_START()
     std::cerr << "Done in " << ell << " seconds" << std::endl;
 
     {
-        string output = vfs::get_base_name(filename);
-        output << ".cbridge.dat";
+        //string output = vfs::get_base_name(filename);
+        //output << ".cbridge.dat";
 
+        string output = filename;
+        vfs::change_extension(output, "cbridge.dat");
+        std::cerr << "Saving into " << output << std::endl;
+        
         ios::wcstream fp(output);
 
         fp("#h A alpha theta h_corr t\n");

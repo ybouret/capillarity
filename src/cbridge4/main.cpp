@@ -35,21 +35,34 @@ YOCTO_PROGRAM_START()
     std::cerr << "Done in " << ell << " seconds" << std::endl;
 
     {
-        //string output = vfs::get_base_name(filename);
-        //output << ".cbridge.dat";
+
 
         string output = filename;
         vfs::change_extension(output, "cbridge.dat");
         std::cerr << "Saving into " << output << std::endl;
-        
-        ios::wcstream fp(output);
 
-        fp("#h A alpha theta h_corr t\n");
-        for(size_t i=1;i<=app.h.size();++i)
+
         {
-            fp("%g %g %g %g %g %g\n", app.h[i], app.A[i], Rad2Deg(app.alpha[i]), Rad2Deg(app.theta[i]), app.h_corr[i], app.t[i]);
+            ios::wcstream fp(output);
+
+            fp("#h A alpha theta h_corr t\n");
+            for(size_t i=1;i<=app.h.size();++i)
+            {
+                fp("%g %g %g %g %g %g\n", app.h[i], app.A[i], Rad2Deg(app.alpha[i]), Rad2Deg(app.theta[i]), app.h_corr[i], app.t[i]);
+            }
+        }
+
+        const string outdir = vfs::get_file_dir(filename);
+        const string outlog = outdir + "coeffs.txt";
+        std::cerr << "Saving into " << outlog << std::endl;
+        {
+            ios::wcstream fp(outlog);
+            fp("scan_rate_in_mm_per_second %g\r\n", app.main_rate);
+            fp("eval_rate_in_mm_per_second %g\r\n", app.evap_rate);
+            fp("coef_push                  %g\r\n", app.coef_push);
+            fp("coef_pull                  %g\r\n", app.coef_pull);
         }
     }
-
+    
 }
 YOCTO_PROGRAM_END()

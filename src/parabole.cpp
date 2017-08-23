@@ -9,7 +9,7 @@
 using namespace yocto;
 using namespace math;
 
-
+static const double rescale = 1e-3; // microns to millimeters
 
 YOCTO_PROGRAM_START()
 {
@@ -55,6 +55,8 @@ YOCTO_PROGRAM_START()
     for(size_t i=1;i<=N;++i)
     {
         height[i] -= H0;
+        height[i] *= rescale;
+        depth[i]  *= rescale;
         std::cerr << depth[i] << " " << height[i] << std::endl;
     }
 

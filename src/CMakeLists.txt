@@ -26,7 +26,10 @@ TARGET_LINK_YOCTO(contact_angle gfx tiff png lingua lua++)
 ADD_EXECUTABLE(gather_angles gather_angles.cpp)
 TARGET_LINK_YOCTO(gather_angles)
 
-INSTALL(TARGETS contact_angle gather_angles RUNTIME DESTINATION bin )
+ADD_EXECUTABLE(parabole parabole.cpp)
+TARGET_LINK_YOCTO(parabole mk)
+
+INSTALL(TARGETS contact_angle gather_angles parabole RUNTIME DESTINATION bin )
 
 ADD_SUBDIRECTORY(cbridge4)
 

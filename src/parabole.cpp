@@ -2,10 +2,14 @@
 #include "yocto/math/io/data-set.hpp"
 #include "yocto/sequence/vector.hpp"
 #include "yocto/ios/icstream.hpp"
+#include "yocto/ios/ocstream.hpp"
 #include "yocto/string/conv.hpp"
+#include "yocto/math/fit/glsf-spec.hpp"
 
 using namespace yocto;
 using namespace math;
+
+
 
 YOCTO_PROGRAM_START()
 {
@@ -50,8 +54,43 @@ YOCTO_PROGRAM_START()
     std::cerr << "N=" << N << std::endl;
     for(size_t i=1;i<=N;++i)
     {
+        height[i] -= H0;
         std::cerr << depth[i] << " " << height[i] << std::endl;
     }
+
+    vector<double> hfit(N);
+
+    GLS<double>::Samples samples(1);
+    GLS<double>::Sample &sample = samples.append(depth, height, hfit);
+
+    vector<double> aorg(3);
+    vector<double> aerr(aorg.size());
+    vector<bool>   used(aorg.size(),true);
+
+    if(!_GLS::Polynomial<double>::Start(sample,aorg))
+    {
+        throw exception("unable to initialize fit!!!!");
+    }
+
+    samples.prepare(aorg.size());
+
+    _GLS::Polynomial<double> poly;
+    GLS<double>::Function    fn(poly);
+    if( ! samples.fit_with(fn, aorg, used, aerr) )
+    {
+        throw exception("unable to fully fit...");
+    }
+    GLS<double>::display(std::cerr, aorg, aerr);
+
+    _GLS::Polynomial<double>::GnuPlot(std::cerr,aorg) << std::endl;
+    {
+        ios::wcstream fp("parabole.txt");
+        for(size_t i=1;i<=N;++i)
+        {
+            fp("%g %g %g\n", depth[i], height[i], hfit[i]);
+        }
+    }
+
 
 }
 YOCTO_PROGRAM_END()

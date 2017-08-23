@@ -14,13 +14,13 @@ public:
     virtual ~Application() throw();
     explicit Application( Lua::State &L );
 
-    Vector h;      //! original recording
-    Vector A;      //! original recording
-    Vector t;      //!< rebuilt time
-    Vector v;      //!< rebuilt rate
-    Vector delta_t;     //!< rebuilt dt
-    Vector h_evap; //! with evaporation
-    Vector h_corr; //! corrected with push/pull
+    Vector h;       //! original recording
+    Vector A;       //! original recording
+    Vector t;       //!< rebuilt time
+    Vector v;       //!< rebuilt rate
+    Vector delta_t; //!< rebuilt dt
+    Vector h_evap;  //!< with evaporation
+    Vector h_corr;  //!< corrected with push/pull
     Vector zeta;
     Vector alpha;
     Vector theta;

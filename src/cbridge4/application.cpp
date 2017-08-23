@@ -223,12 +223,13 @@ void Application:: correct_h()
         h_evap[i] = h[i] + evap_rate * t[i];
     }
 
+    // set corrected height to h_evap
     for(size_t i=n;i>0;--i)
     {
         h_corr[i] = h_evap[i];
     }
 
-
+    // and apply correction
     for(size_t i=n;i>0;--i)
     {
         if(h_evap[i]>0)

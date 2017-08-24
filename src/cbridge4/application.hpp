@@ -29,7 +29,13 @@ public:
     double evap_rate; //!< evap rate in mm/s
     double coef_push;
     double coef_pull;
-    
+
+    // during pull, corrected height w.r.t h_evap
+    inline double parabole( const double x )
+    {
+        return (-0.171752)+(-0.0185)*(x)+(0.0345238)*(x*x);
+    }
+
     void load(const string &filename);
 
 

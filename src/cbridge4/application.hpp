@@ -14,7 +14,7 @@ public:
     virtual ~Application() throw();
     explicit Application( Lua::State &L );
 
-    Vector h;       //! original recording
+    const Vector h;       //! original recording
     Vector A;       //! original recording
     Vector t;       //!< rebuilt time
     Vector v;       //!< rebuilt rate

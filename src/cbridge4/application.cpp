@@ -29,7 +29,7 @@ coef_push(L.Get<lua_Number>("coef_push")) //,coef_pull(L.Get<lua_Number>("coef_p
         self[i].build<Bridge,Lua::State&>(L);
     }
 
-    mgr.enroll(h, __CORE);
+    mgr.enroll((Vector&)h, __CORE);
     mgr.enroll(A, __CORE);
 
     mgr.enroll(zeta,   __SUBS);
@@ -259,7 +259,7 @@ void Application:: load( const string &filename )
     {
         data_set<double> ds;
         ds.use(1, A);
-        ds.use(2, h);
+        ds.use(2, (Vector&)h);
         ios::icstream fp(filename);
         ds.load(fp);
     }

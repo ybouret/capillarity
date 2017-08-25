@@ -60,7 +60,7 @@ YOCTO_PROGRAM_START()
             fp("scan_rate_in_mm_per_second %g\r\n", app.main_rate);
             fp("eval_rate_in_mm_per_second %g\r\n", app.evap_rate);
             fp("coef_push                  %g\r\n", app.coef_push);
-            fp("coef_pull                  %g\r\n", app.coef_pull);
+            //fp("coef_pull                  %g\r\n", app.coef_pull);
         }
     }
     

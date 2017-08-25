@@ -17,9 +17,7 @@ alpha(),
 theta(),
 main_rate(L.Get<lua_Number>("main_rate")),
 evap_rate(L.Get<lua_Number>("evap_rate")),
-coef_push(L.Get<lua_Number>("coef_push")),
-coef_pull(L.Get<lua_Number>("coef_pull"))
-
+coef_push(L.Get<lua_Number>("coef_push")) //,coef_pull(L.Get<lua_Number>("coef_pull"))
 {
 
     if(main_rate<=0)

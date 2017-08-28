@@ -237,7 +237,8 @@ void Application:: correct_h()
             h_corr[i] = h_evap[i] + coef_pull * h_evap[i];
 #endif
             const double hh = h_evap[i];
-            h_corr[i] = hh - parabole(hh);
+            //h_corr[i] = hh - parabole(hh);
+            h_corr[i] = parabole(hh);
         }
         else
         {

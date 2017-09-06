@@ -17,7 +17,8 @@ alpha(),
 theta(),
 main_rate(L.Get<lua_Number>("main_rate")),
 evap_rate(L.Get<lua_Number>("evap_rate")),
-coef_push(L.Get<lua_Number>("coef_push")) //,coef_pull(L.Get<lua_Number>("coef_pull"))
+coef_push(L.Get<lua_Number>("coef_push")), //,coef_pull(L.Get<lua_Number>("coef_pull"))
+mode_pull(L.Get<lua_Number>("mode_pull"))
 {
 
     if(main_rate<=0)
@@ -238,7 +239,16 @@ void Application:: correct_h()
 #endif
             const double hh = h_evap[i];
             //h_corr[i] = hh - parabole(hh);
-            h_corr[i] = parabole(hh);
+            switch(mode_pull)
+            {
+                case 1:
+                    h_corr[i] = parabole(hh);
+                    break;
+
+                default:
+                    // do nothing
+                    ;
+            }
         }
         else
         {

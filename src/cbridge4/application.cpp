@@ -17,7 +17,7 @@ alpha(),
 theta(),
 main_rate(L.Get<lua_Number>("main_rate")),
 evap_rate(L.Get<lua_Number>("evap_rate")),
-percent(L.Get<lua_Number>("percent"))
+percent( 0 /*L.Get<lua_Number>("percent")*/ )
 {
 
     if(main_rate<=0)
@@ -53,6 +53,7 @@ Application:: ~Application() throw()
 #include "yocto/math/stat/dist.hpp"
 
 #include "yocto/sort/remove-if.hpp"
+#include "yocto/lang/pattern/matching.hpp"
 
 static const double time_resolution = 1000;
 
@@ -238,9 +239,37 @@ void Application:: correct_h()
 }
 
 #include "yocto/math/io/data-set.hpp"
+#include "yocto/string/env.hpp"
 
 void Application:: load( const string &filename )
 {
+    bool         correct = false;
+    const string corrstr = "CORRECT";
+    if( environment::check(correct, corrstr ) && correct)
+    {
+        std::cerr << "CORRECTING" << std::endl;
+
+        Lang::Matching enfoncement = "enfoncement";
+        Lang::Matching plateau     = "plateau";
+        Lang::Matching tirage      = "tirage";
+
+        if( enfoncement.partly_matches(filename) )
+        {
+            percent = -5;
+        }
+
+        if( plateau.partly_matches(filename) )
+        {
+            percent = -17;
+        }
+
+        if( tirage.partly_matches(filename) )
+        {
+            percent = -9;
+        }
+
+    }
+
     mgr.release_all();
     // loading
     {

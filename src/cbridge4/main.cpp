@@ -35,10 +35,11 @@ YOCTO_PROGRAM_START()
     std::cerr << "Done in " << ell << " seconds" << std::endl;
 
     {
-
-
         string output = filename;
-        vfs::change_extension(output, "cbridge.dat");
+        string extension = "cbridge.dat";
+        // changing extension if necessary
+        extension = vformat("cbridge%g.dat",app.percent);
+        vfs::change_extension(output, extension);
         std::cerr << "Saving into " << output << std::endl;
 
 

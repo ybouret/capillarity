@@ -11,7 +11,7 @@ application.cpp
 
 ADD_EXECUTABLE(cbridge4 main.cpp)
 TARGET_LINK_LIBRARIES(cbridge4 bridge4)
-TARGET_LINK_YOCTO(cbridge4 mk lua++)
+TARGET_LINK_YOCTO(cbridge4 mk lua++ lang)
 
 ADD_EXECUTABLE(find-theta4 find-theta.cpp)
 TARGET_LINK_LIBRARIES(find-theta4 bridge4)

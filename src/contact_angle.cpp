@@ -826,7 +826,7 @@ YOCTO_PROGRAM_START()
     {
         //std::cerr << '<' << ep->attr << '>' << ep->base_name << " [" << ep->path << "]" << std::endl;
         const string bname = ep->base_name;
-        if(pm.partially(bname))
+        if(pm.partly_matches(bname))
         {
             std::cerr << "will process " << ep->path << std::endl;
             const string filename = ep->path;

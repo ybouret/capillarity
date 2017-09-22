@@ -27,7 +27,7 @@ public:
 
     double main_rate; //!< main rate in mm/s (around 5-e3)
     double evap_rate; //!< evap rate in mm/s
-    
+    double percent;   //!< percent correction
     
     // during pull, corrected height w.r.t h_evap
     inline double parabole( const double x )

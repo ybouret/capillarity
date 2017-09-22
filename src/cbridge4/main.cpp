@@ -52,6 +52,7 @@ YOCTO_PROGRAM_START()
             }
         }
 
+#if 0
         const string outdir = vfs::get_file_dir(filename);
         const string outlog = outdir + "coeffs.txt";
         std::cerr << "Saving into " << outlog << std::endl;
@@ -62,6 +63,7 @@ YOCTO_PROGRAM_START()
             fp("coef_push                  %g\r\n", app.coef_push);
             //fp("coef_pull                  %g\r\n", app.coef_pull);
         }
+#endif
     }
     
 }

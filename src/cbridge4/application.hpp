@@ -27,11 +27,7 @@ public:
 
     double main_rate; //!< main rate in mm/s (around 5-e3)
     double evap_rate; //!< evap rate in mm/s
-    double coef_push;
-    //int    mode_pull;
-    //double coef_pull;
-    double pull_a;
-    double pull_b;
+    
     
     // during pull, corrected height w.r.t h_evap
     inline double parabole( const double x )

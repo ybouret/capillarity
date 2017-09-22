@@ -17,7 +17,7 @@ alpha(),
 theta(),
 main_rate(L.Get<lua_Number>("main_rate")),
 evap_rate(L.Get<lua_Number>("evap_rate")),
-percent( 0 /*L.Get<lua_Number>("percent")*/ )
+percent( L.Get<lua_Number>("percent")  )
 {
 
     if(main_rate<=0)
@@ -243,6 +243,7 @@ void Application:: correct_h()
 
 void Application:: load( const string &filename )
 {
+#if 0
     bool         correct = false;
     const string corrstr = "CORRECT";
     if( environment::check(correct, corrstr ) && correct)
@@ -269,6 +270,7 @@ void Application:: load( const string &filename )
         }
 
     }
+#endif
 
     mgr.release_all();
     // loading

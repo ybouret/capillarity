@@ -12,8 +12,8 @@
 #include "yocto/math/fit/glsf-spec.hpp"
 #include "yocto/math/fcn/zfind.hpp"
 #include "yocto/fs/local-fs.hpp"
-#include "yocto/lingua/pattern/matcher.hpp"
-#include "yocto/lingua/pattern/regexp.hpp"
+#include "yocto/lang/pattern/matching.hpp"
+#include "yocto/lang/pattern/regexp.hpp"
 #include "yocto/lua/lua-state.hpp"
 
 using namespace yocto;
@@ -820,13 +820,13 @@ YOCTO_PROGRAM_START()
     vfs &fs = local_fs::instance();
 
     //-- extract files to process
-    lingua::matcher        pm("theta(A|R)");
+    Lang::Matching         pm("theta(A|R)");
     auto_ptr<vfs::scanner> scan( fs.new_scanner( folder )     );
     for( const vfs::entry *ep = scan->next(); ep ; ep = scan->next() )
     {
         //std::cerr << '<' << ep->attr << '>' << ep->base_name << " [" << ep->path << "]" << std::endl;
         const string bname = ep->base_name;
-        if(pm.partial_match(bname))
+        if(pm.partially(bname))
         {
             std::cerr << "will process " << ep->path << std::endl;
             const string filename = ep->path;

@@ -7,6 +7,7 @@ bridge-params.cpp
 bridge-alpha.cpp
 application.hpp
 application.cpp
+application_v2.cpp
 )
 
 ADD_EXECUTABLE(cbridge4 main.cpp)

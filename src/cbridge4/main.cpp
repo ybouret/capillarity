@@ -26,6 +26,11 @@ YOCTO_PROGRAM_START()
 
 
     Application  app(L);
+    const string dirName  = argv[1];
+
+    app.load_v2(dirName);
+
+#if 0
     const string filename = L.Get<string>("file");
     app.load(filename);
     wtime chrono;
@@ -66,6 +71,7 @@ YOCTO_PROGRAM_START()
         }
 #endif
     }
+#endif
     
 }
 YOCTO_PROGRAM_END()

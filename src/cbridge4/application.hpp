@@ -8,6 +8,9 @@
 typedef threading::context Context;
 typedef threading::kernel  Job;
 
+#define __CORE 0x01
+#define __SUBS 0x02
+
 class Application : public Bridge, public threading::par_server
 {
 public:
@@ -38,11 +41,16 @@ public:
 
     void load(const string &filename);
 
+    void load_v2(const string &dirname);
+
 
     void build_time();
 
 
     void correct_h();
+
+    void pre_process();
+
 
     void process()
     {

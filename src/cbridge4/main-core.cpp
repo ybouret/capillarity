@@ -16,7 +16,7 @@ L.DoString("coef_pull=0");
 
 
 // modified
-for(int i=1;i<argc;++i)
+for(int i=2;i<argc;++i)
 {
     L.DoString(argv[i]);
 }

@@ -1,7 +1,6 @@
 #include "application.hpp"
 
-#define __CORE 0x01
-#define __SUBS 0x02
+
 
 Application:: Application( Lua::State &L ) :
 Bridge(L), threading::par_server(false),
@@ -238,39 +237,27 @@ void Application:: correct_h()
 
 }
 
+void Application:: pre_process()
+{
+    const size_t n = h.size();
+    for(size_t i=1;i<=n;++i)
+    {
+        zeta[i] = h_corr[i]/R0;
+        const double aa = A[i] / A0;
+        if(aa<=0||aa>1)
+            throw exception("Invalid Area=%g",aa);
+        alpha[i] = asin( sqrt(aa) );
+        theta[i] = 0;
+    }
+}
+
+
 #include "yocto/math/io/data-set.hpp"
 #include "yocto/string/env.hpp"
 
 void Application:: load( const string &filename )
 {
-#if 0
-    bool         correct = false;
-    const string corrstr = "CORRECT";
-    if( environment::check(correct, corrstr ) && correct)
-    {
-        std::cerr << "CORRECTING" << std::endl;
 
-        Lang::Matching enfoncement = "enfoncement";
-        Lang::Matching plateau     = "plateau";
-        Lang::Matching tirage      = "tirage";
-
-        if( enfoncement.partly_matches(filename) )
-        {
-            percent = -5;
-        }
-
-        if( plateau.partly_matches(filename) )
-        {
-            percent = -17;
-        }
-
-        if( tirage.partly_matches(filename) )
-        {
-            percent = -9;
-        }
-
-    }
-#endif
 
     mgr.release_all();
     // loading
@@ -290,13 +277,6 @@ void Application:: load( const string &filename )
     build_time();
     correct_h();
 
-    for(size_t i=1;i<=n;++i)
-    {
-        zeta[i] = h_corr[i]/R0;
-        const double aa = A[i] / A0;
-        if(aa<=0||aa>1)
-            throw exception("Invalid Area=%g",aa);
-        alpha[i] = asin( sqrt(aa) );
-        theta[i] = 0;
-    }
+    pre_process();
+
 }

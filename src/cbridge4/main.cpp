@@ -29,7 +29,12 @@ YOCTO_PROGRAM_START()
     const string dirName  = argv[1];
 
     app.load_v2(dirName);
-
+    wtime chrono;
+    chrono.start();
+    app.process();
+    const double ell = chrono.query();
+    std::cerr << "Done in " << ell << " seconds" << std::endl;
+    
 #if 0
     const string filename = L.Get<string>("file");
     app.load(filename);

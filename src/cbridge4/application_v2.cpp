@@ -59,7 +59,48 @@ void Application:: load_v2(const string &dirName)
     const size_t n  = n1+n2+n3;
     mgr.make_all(__SUBS|__CORE,n);
 
+    const double shift = 0;
+    const double H0    = h1[1];
+    double b1    = 1.0;
+    double b2    = 1.0;
+    double b3    = 1.0;
 
+    size_t j=0;
+    for(size_t i=1;i<=n1;++i)
+    {
+        ++j;
+        h[j]      = h1[i];
+        h_corr[j] = shift + b1*(h1[i] - H0);
+        A[j]      = A1[i];
+    }
+
+    const double H1 = h[j];
+    for(size_t i=1;i<=n2;++i)
+    {
+        ++j;
+        h[j]      = h2[i];
+        h_corr[j] = H1 + b2*(h2[i]-H1);
+        A[j]      = A2[i];
+    }
+
+    const double H2 = h[j];
+    for(size_t i=1;i<=n3;++i)
+    {
+        ++j;
+        h[j]      = h3[i];
+        h_corr[j] = H2 + b3*(h3[i]-H2);
+        A[j]      = A3[i];
+    }
+
+    {
+        ios::wcstream fp("sample.dat");
+        for(size_t i=1;i<=n;++i)
+        {
+            fp("%g %g %g\n", h[i], h_corr[i], A[i]);
+        }
+    }
+
+    pre_process();
 
 
 

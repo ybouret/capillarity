@@ -52,6 +52,13 @@ void Application:: load_v2(const string &dirName)
     __load(plateau,A2,h2);
     __load(tirage,A3,h3);
 
+    const size_t n1 = h1.size();
+    const size_t n2 = h2.size();
+    const size_t n3 = h3.size();
+
+    const size_t n  = n1+n2+n3;
+    mgr.make_all(__SUBS|__CORE,n);
+
 
 
 

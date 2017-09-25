@@ -15,8 +15,7 @@ zeta(),
 alpha(),
 theta(),
 main_rate(L.Get<lua_Number>("main_rate")),
-evap_rate(L.Get<lua_Number>("evap_rate")),
-percent( L.Get<lua_Number>("percent")  )
+evap_rate(L.Get<lua_Number>("evap_rate"))//,percent( L.Get<lua_Number>("percent")  )
 {
 
     if(main_rate<=0)
@@ -230,7 +229,7 @@ void Application:: correct_h()
     // and apply correction
     for(size_t i=n;i>0;--i)
     {
-        h_corr[i] = h_evap[i] * (1.0+percent/100.0);
+        //h_corr[i] = h_evap[i] * (1.0+percent/100.0);
     }
 
 

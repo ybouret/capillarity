@@ -60,7 +60,7 @@ void Application:: load_v2(const string &dirName)
     mgr.make_all(__SUBS|__CORE,n);
 
     const double shift = 0;
-    const double H0    = h1[1];
+    const double __h0  = h1[1];
     double b1    = 1.0; b1 -= 5.0/100.0;
     double b2    = 1.0; b2 += 17.0/100.0;
     double b3    = 1.0; b3 -= 9.0/100.0;
@@ -70,25 +70,27 @@ void Application:: load_v2(const string &dirName)
     {
         ++j;
         h[j]      = h1[i];
-        h_corr[j] = shift + b1*(h1[i] - H0);
+        h_corr[j] = shift + b1*(h1[i] - __h0);
         A[j]      = A1[i];
     }
 
-    const double H1 = h[j];
+    const double   H1 = h_corr[j];
+    const double __h1 = h[j];
     for(size_t i=1;i<=n2;++i)
     {
         ++j;
         h[j]      = h2[i];
-        h_corr[j] = H1 + b2*(h2[i]-H1);
+        h_corr[j] = H1 + b2*(h2[i]-__h1);
         A[j]      = A2[i];
     }
 
-    const double H2 = h[j];
+    const double   H2 = h_corr[j];
+    const double __h2 = h[j];
     for(size_t i=1;i<=n3;++i)
     {
         ++j;
         h[j]      = h3[i];
-        h_corr[j] = H2 + b3*(h3[i]-H2);
+        h_corr[j] = H2 + b3*(h3[i]-__h2);
         A[j]      = A3[i];
     }
 

@@ -26,15 +26,29 @@ YOCTO_PROGRAM_START()
 
 
     Application  app(L);
-    const string dirName  = argv[1];
-
+    string dirName  = argv[1];
+    vfs::as_directory(dirName);
     app.load_v2(dirName);
     wtime chrono;
     chrono.start();
     app.process();
     const double ell = chrono.query();
     std::cerr << "Done in " << ell << " seconds" << std::endl;
-    
+
+    {
+        string output = dirName + "cbridge.dat";
+        std::cerr << "Saving into " << output << std::endl;
+        {
+            ios::wcstream fp(output);
+
+            fp("#h A alpha theta h_corr t\r\n");
+            for(size_t i=1;i<=app.h.size();++i)
+            {
+                fp("%g %g %g %g %g %g\r\n", app.h[i], app.A[i], Rad2Deg(app.alpha[i]), Rad2Deg(app.theta[i]), app.h_corr[i], app.t[i]);
+            }
+        }
+    }
+
 #if 0
     const string filename = L.Get<string>("file");
     app.load(filename);

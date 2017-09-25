@@ -15,12 +15,32 @@ zeta(),
 alpha(),
 theta(),
 main_rate(L.Get<lua_Number>("main_rate")),
-evap_rate(L.Get<lua_Number>("evap_rate"))//,percent( L.Get<lua_Number>("percent")  )
+evap_rate(L.Get<lua_Number>("evap_rate")),//,percent( L.Get<lua_Number>("percent")  )
+p1(0),
+p2(0),
+p3(0)
 {
 
     if(main_rate<=0)
         throw exception("invalid main_rate=%g",main_rate);
-    
+
+    if(L.Has("p1"))
+    {
+        p1 = L.To<lua_Number>(-1);
+    }
+
+    if(L.Has("p2"))
+    {
+        p2 = L.To<lua_Number>(-1);
+    }
+
+    if(L.Has("p3"))
+    {
+        p3 = L.To<lua_Number>(-1);
+    }
+
+    std::cerr << "\tpercent=" << p1 << "," << p2 << "," << p3 << std::endl;
+
     threading::executor &self = *this;
     for(size_t i=0;i<self.num_threads();++i)
     {

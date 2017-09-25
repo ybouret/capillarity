@@ -61,9 +61,9 @@ void Application:: load_v2(const string &dirName)
 
     const double shift = 0;
     const double __h0  = h1[1];
-    double b1    = 1.0; b1 -= 5.0/100.0;
-    double b2    = 1.0; b2 += 17.0/100.0;
-    double b3    = 1.0; b3 -= 9.0/100.0;
+    const double b1    = 1.0 + (p1/100.0);
+    const double b2    = 1.0 + (p2/100.0);
+    const double b3    = 1.0 + (p3/100.0);
 
     size_t j=0;
     for(size_t i=1;i<=n1;++i)

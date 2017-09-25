@@ -36,7 +36,7 @@ YOCTO_PROGRAM_START()
     std::cerr << "Done in " << ell << " seconds" << std::endl;
 
     {
-        string output = dirName + "cbridge.dat";
+        string output = dirName + vformat("cbridge%g,%g,%g.dat",app.p1,app.p2,app.p3);
         std::cerr << "Saving into " << output << std::endl;
         {
             ios::wcstream fp(output);

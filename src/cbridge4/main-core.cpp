@@ -12,6 +12,7 @@ L.DoString("resolution=1e-4");
 L.DoString("evap_rate=0");
 L.DoString("coef_push=0");
 L.DoString("coef_pull=0");
+L.DoString("main_rate=5e-3");
 
 
 

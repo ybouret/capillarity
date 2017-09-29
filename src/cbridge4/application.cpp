@@ -18,7 +18,10 @@ main_rate(L.Get<lua_Number>("main_rate")),
 evap_rate(L.Get<lua_Number>("evap_rate")),//,percent( L.Get<lua_Number>("percent")  )
 p1(0),
 p2(0),
-p3(0)
+p3(0),
+offset1(0),
+offset2(0),
+offset3(0)
 {
 
     if(main_rate<=0)

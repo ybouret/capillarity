@@ -56,6 +56,10 @@ void Application:: load_v2(const string &dirName)
     const size_t n2 = h2.size();
     const size_t n3 = h3.size();
 
+    offset1 = 0;
+    offset2 = offset1 + n1;
+    offset3 = offset2 + n2;
+
     const size_t n  = n1+n2+n3;
     mgr.make_all(__SUBS|__CORE,n);
 

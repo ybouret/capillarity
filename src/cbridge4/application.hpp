@@ -31,6 +31,7 @@ public:
     double main_rate; //!< main rate in mm/s (around 5-e3)
     double evap_rate; //!< evap rate in mm/s
     double p1,p2,p3;
+    size_t offset1,offset2,offset3;
 
     // during pull, corrected height w.r.t h_evap
     inline double parabole( const double x )

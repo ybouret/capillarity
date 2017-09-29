@@ -1,0 +1,250 @@
+\documentclass[aps,onecolumn]{revtex4}
+\usepackage{graphicx}
+\usepackage{amssymb,amsfonts,amsmath,amsthm}
+\usepackage{chemarr}
+\usepackage{bm}
+\usepackage{pslatex}
+\usepackage{mathptmx}
+\usepackage{xfrac}
+\usepackage{xcolor}
+
+\begin{document}
+
+\section{Curvature of a revolution surface}
+
+\begin{equation}
+	\vec{M}(u,v) = 
+	\begin{bmatrix}
+	r(u)\cos v\\
+	r(u)\sin v\\
+	z(u)
+	\end{bmatrix},
+	\;\;
+	\vec{M}_u = 
+	\begin{bmatrix}
+	\dot{r}\cos v\\
+	\dot{r}\sin v\\
+	\dot{z}
+	\end{bmatrix},
+	\;\;
+	\vec{M}_v = 
+	\begin{bmatrix}
+	-r \sin v\\
+	 r \cos v\\
+	 0
+	\end{bmatrix},
+	\;\;
+	\vec{M}_{uu} = 
+	\begin{bmatrix}
+	\ddot{r} \cos v\\
+	\ddot{r} \sin v\\
+	\ddot{z}
+	\end{bmatrix},
+	\;\;
+	\vec{M}_{vv} = 
+	\begin{bmatrix}
+	-r \cos v\\
+	-r \sin v\\
+	0
+	\end{bmatrix},
+	\;\;
+	\vec{M}_{uv} = 
+	\begin{bmatrix}
+	-\dot{r} \sin v\\
+	 \dot{r} \cos v\\
+	 0
+	\end{bmatrix}
+\end{equation}
+
+\begin{equation}
+	E = \vec{M}_u^2 = \dot{r}^2 + \dot{z}^2,\;\;
+	F = \vec{M}_u \cdot \vec{M}_v = 0,\;\;
+	G = \vec{M}_v^2 = r^2
+\end{equation}
+
+\begin{equation}
+	\vec{n} = \vec{M}_u \wedge \vec{M}_v = 
+	\begin{bmatrix}
+	-r\dot{z}\cos v\\
+	-r\dot{z}\sin v\\
+	r\dot{r}
+	\end{bmatrix},\;\;
+	\left\vert\vec{M}_u \wedge \vec{M}_v\right\vert = r\left(\dot{r}^2 + \dot{z}^2\right)^{1/2}
+\end{equation}
+
+\begin{equation}
+	L = \vec{n}\cdot\vec{M}_{uu} = r\left(\dot{r}\ddot{z}-\dot{z}\ddot{r}\right),\;\;
+	M = \vec{n}\cdot\vec{M}_{uv} = 0,
+	\;\;
+	N = \vec{n}\cdot\vec{M}_{vv} = r^2\dot{z}
+\end{equation}
+
+Then
+\begin{equation}
+	EN + GL - 2FM = r^2 \dot{z} \left(\dot{r}^2 + \dot{z}^2\right) + r^3\left(\dot{r}\ddot{z}-\dot{z}\ddot{r}\right)
+\end{equation}
+and
+\begin{equation}
+	EG - F^2 = r^2 \left(\dot{r}^2 + \dot{z}^2\right).
+\end{equation}
+Finally, 
+\begin{equation}
+	\mathcal{H} = \dfrac{1}{2\left\vert\vec{n}\right\vert} \dfrac{EN + GL - 2FM}{EG - F^2} =
+	\dfrac{\dot{z} \left(\dot{r}^2 + \dot{z}^2\right) + r\left(\dot{r}\ddot{z}-\dot{z}\ddot{r}\right)}
+	{2r\left(\dot{r}^2 + \dot{z}^2\right)^{3/2}}
+\end{equation}
+
+\section{Using a curvilinear profile}
+We now use an intrinsic representation of the $(r,z)$ profile using the
+angle $\phi$ and the variable $s$ so that
+\begin{equation}
+\left\lbrace
+	\begin{array}{rcl}
+	r' & = & \cos \phi\\
+	z' & = & \sin \phi\\
+	r'' & = & -\sin\phi \phi'\\
+	z'' & = & \cos\phi  \phi'\\
+	\end{array}
+\right.
+\end{equation}
+and we get
+\begin{equation}
+	\mathcal{H} = \frac{1}{m} \left(\phi'+\dfrac{\sin\phi}{r}\right), \;\;m\in[1,2]
+\end{equation}
+
+\section{Surface equation}
+\subsection{Real Units}
+Since the capillary pressure is supporting the liquid
+\begin{equation}
+	\gamma \mathcal{H} = \rho g z
+\end{equation}
+or using the capillary length
+\begin{equation}
+	\lambda = \sqrt{\dfrac{\gamma}{\rho g}}
+\end{equation}
+
+\begin{equation}
+	\mathcal{H} = \dfrac{z}{\lambda^2}
+\end{equation}
+leading to
+\begin{equation}
+	\partial_s \phi = \dfrac{m}{\lambda^2} z  - \dfrac{\sin\phi}{r}
+\end{equation}
+
+\subsection{Lens Equation}
+
+\subsubsection{Polar Equation}
+Let $R(\alpha)$ be a polar description of the lens, so that the bridge description in the $xy$ plane are
+\begin{equation}
+	\left\lbrace
+	\begin{array}{rcl}
+	x(\alpha) & = & R(\alpha)\sin\alpha\\
+	y(\alpha) & = & h + R_0 - R(\alpha)\cos\alpha\\
+	R(0)   & = & R_0\\
+	R'(0)  & = & 0\\
+	\end{array}
+	\right.
+\end{equation}
+
+\subsubsection{Contact Angle and Initial Profile Angle}
+The   tangent vector is
+\begin{equation}
+	\vec{\tau}_\alpha = 
+	\dfrac{1}{\sqrt{\rho^2+\rho'^2}}
+	\begin{pmatrix}
+		R'\sin\alpha+R\cos\alpha\\
+		R\sin\alpha - R'\cos\alpha\\
+	\end{pmatrix}
+ = 
+ 	\begin{pmatrix}
+	\cos\omega\\
+	\sin\omega
+	\end{pmatrix}
+\end{equation}
+so that
+\begin{equation}
+	\label{eq:omega}
+	\omega = \alpha - \arcsin\left(\dfrac{R'}{\sqrt{R^2+R'^2}}\right)
+\end{equation}
+Remark: the curvature is
+\begin{equation}
+	\gamma_\alpha = \dfrac{R^2 + 2R'^2 - RR''}{\left(R^2+R'^2\right)^{3/2}}
+\end{equation}
+
+
+
+\subsection{Initial conditions}
+
+\begin{center}
+\includegraphics{pull.pdf}
+\end{center}
+
+Variables (here in the pulling way)
+\begin{itemize}
+	\item $h$ is the user's imposed pull/push depth
+	\item $H$ is the real distance between the apex of the lens and the free surface
+	\item $\theta$ is the wetting angle
+	\item $\omega$ is the tangent angle
+\end{itemize}
+
+For a given $(\theta,\alpha)$, the initial coordinates are
+\begin{equation}
+\left\lbrace
+\begin{array}{rcl}
+	r_0    & = & R(\alpha) \sin(\alpha)\\
+	z_0    & = & (H + R_0) - R(\alpha) \cos(\alpha)\\
+	\phi_0 & = & \left(\omega + \theta\right) - \pi\\
+\end{array}
+\right. 
+\end{equation}
+where $\omega$ is $\alpha$ for a sphere.\\
+
+\subsection{Reduced units}
+We rescale w.r.t the apex radius $R_0$ using
+\begin{equation}
+	\left\lbrace
+	\begin{array}{rcl}
+		\tau  & = & s/R_0 \\
+		 u    & = & r/R_0 \\
+		 v    & = & z/R_0 \\
+	\end{array}
+	\right.
+\end{equation}
+to get
+\begin{equation}
+	\left\lbrace
+	\begin{array}{rcl}
+	\partial_\tau u  & = & \cos\phi\\
+	\partial_\tau v  & = & \sin\phi\\
+	\partial_\tau \phi & = &  \mu^2 v - \dfrac{\sin\phi}{u}\\
+	\\
+	\xi            & = & \dfrac{H}{R_0}\\
+	%\zeta          & = & \dfrac{h}{R_0}\\
+	\\
+	\mu^2                & = & m\dfrac{R_0^2}{\lambda^2}\\
+	\end{array}
+	\right.
+\end{equation}
+
+We hence get the reduced initial conditions
+\begin{equation}
+\left\lbrace
+\begin{array}{rcl}
+	u_0    & = & \sin\alpha\\
+	v_0    & = & \xi + \left(1-\dfrac{R(\alpha)}{R_0}\cos\alpha\right)\\
+	\phi_0 & = & \omega+\theta-\pi\\
+\end{array}
+\right.
+\end{equation}
+
+\subsection{Volume Conservation}
+Let us assume that $h$ is imposed (in the pulling case) and that $\alpha$ is mesured.
+We note that
+\begin{equation}
+	\alpha = \arcsin\sqrt{\dfrac{\mathrm{Area}}{\pi R_0^2}}.
+\end{equation}
+Accordingly, there is a family of curves $\mathcal{C}_\theta$ which solves the free surface equation,
+and that defines $H_\theta$.
+
+
+\end{document}

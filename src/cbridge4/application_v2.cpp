@@ -83,8 +83,24 @@ void Application:: load_v2(const string &dirName)
             h[j] = h3[i];
             A[j] = A3[i];
         }
+
+        assert(1+n==j);
+
+        for(size_t i=1;i<=n;++i)
+        {
+            h_corr[i] = h[i];
+        }
     }
 
+
+
+    // now change water level
+    for(size_t i=1;i<=n1;++i)
+    {
+        h_corr[i] = h[i] + (shift+(p1/100.0)*h[i]);
+    }
+
+    const double H1 = h_corr[1];
 
 
 #if 0

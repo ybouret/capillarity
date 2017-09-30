@@ -36,8 +36,8 @@ YOCTO_PROGRAM_START()
     std::cerr << "Done in " << ell << " seconds" << std::endl;
 
     {
-        const double raw = ( (Square(app.p1)+Square(app.p2)+Square(app.p3))<=0 );
-        string output = dirName + ( raw ? "cbridge-raw.dat" : "cbridge-cor.dat" );
+        const double raw    = ( (Square(app.shift)+Square(app.p1)+Square(app.p2)+Square(app.p3))<=0 );
+        string       output = dirName + ( raw ? "cbridge-raw.dat" : "cbridge-cor.dat" );
         std::cerr << "Saving into " << output << std::endl;
         {
             ios::wcstream fp(output);

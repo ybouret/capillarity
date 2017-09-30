@@ -19,6 +19,7 @@ evap_rate(L.Get<lua_Number>("evap_rate")),//,percent( L.Get<lua_Number>("percent
 p1(0),
 p2(0),
 p3(0),
+shift(0),
 offset1(0),
 offset2(0),
 offset3(0)
@@ -40,6 +41,11 @@ offset3(0)
     if(L.Has("p3"))
     {
         p3 = L.To<lua_Number>(-1);
+    }
+
+    if(L.Has("shift"))
+    {
+        shift = L.To<lua_Number>(-1);
     }
 
     std::cerr << "\tpercent=" << p1 << "," << p2 << "," << p3 << std::endl;

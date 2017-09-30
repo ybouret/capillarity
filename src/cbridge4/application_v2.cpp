@@ -63,6 +63,31 @@ void Application:: load_v2(const string &dirName)
     const size_t n  = n1+n2+n3;
     mgr.make_all(__SUBS|__CORE,n);
 
+    // be sure to get data
+    {
+        size_t j=1;
+        for(size_t i=1;i<=n1;++i,++j)
+        {
+            h[j] = h1[i];
+            A[j] = A1[i];
+        }
+
+        for(size_t i=1;i<=n2;++i,++j)
+        {
+            h[j] = h2[i];
+            A[j] = A2[i];
+        }
+
+        for(size_t i=1;i<=n3;++i,++j)
+        {
+            h[j] = h3[i];
+            A[j] = A3[i];
+        }
+    }
+
+
+
+#if 0
     const double shift = 0;
     //const double __h0  = h1[1];
     const double b1    = 1.0 + (p1/100.0);
@@ -106,6 +131,7 @@ void Application:: load_v2(const string &dirName)
             fp("%g %g %g\n", h[i], h_corr[i], A[i]);
         }
     }
+#endif
 
     pre_process();
 

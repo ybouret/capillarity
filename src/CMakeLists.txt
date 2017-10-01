@@ -29,7 +29,10 @@ TARGET_LINK_YOCTO(gather_angles)
 ADD_EXECUTABLE(parabole parabole.cpp)
 TARGET_LINK_YOCTO(parabole mk)
 
-INSTALL(TARGETS contact_angle gather_angles parabole RUNTIME DESTINATION bin )
+ADD_EXECUTABLE(water water.cpp)
+TARGET_LINK_YOCTO(water mk)
+
+INSTALL(TARGETS contact_angle gather_angles parabole water RUNTIME DESTINATION bin )
 
 ADD_SUBDIRECTORY(cbridge4)
 

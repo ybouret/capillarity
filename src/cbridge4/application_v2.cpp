@@ -100,7 +100,8 @@ void Application:: load_v2(const string &dirName)
         h_corr[i] = h[i] + (shift+(p1/100.0)*h[i]);
     }
 
-    const double H1 = h_corr[1];
+    //const double H1 = h_corr[1];
+
 
 
 #if 0

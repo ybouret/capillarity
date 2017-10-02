@@ -2,6 +2,7 @@
 #include "yocto/fs/local-fs.hpp"
 #include "yocto/math/io/data-set.hpp"
 #include "yocto/lang/pattern/matching.hpp"
+#include "yocto/math/fit/glsf-spec.hpp"
 
 static inline void __load(const string &filename,
                           Vector &A,
@@ -100,8 +101,68 @@ void Application:: load_v2(const string &dirName)
         h_corr[i] = h[i] + (shift+(p1/100.0)*h[i]);
     }
 
-    //const double H1 = h_corr[1];
+    //__________________________________________________________________________
+    //
+    //
+    //
+    //__________________________________________________________________________
 
+    const double Y1 = h_corr[n1] - h[n1]; // water height
+    const double X1 = h[n1];
+
+    const double Xm =  510e-3;
+    const double Ym = -180e-3;
+
+    const double X3 = 2994e-3;
+    const double Y3 = 28e-3;
+
+    matrix<double> M(6);
+    vector<double> A(6);
+
+    // points
+    {
+        array<double> &row = M[1];
+        for(size_t i=1;i<=6;++i) row[i] = ipower(X1,i-1);
+        A[1] = Y1;
+    }
+
+    {
+        array<double> &row = M[2];
+        for(size_t i=1;i<=6;++i) row[i] = ipower(Xm,i-1);
+        A[2] = Ym;
+    }
+
+    {
+        array<double> &row = M[3];
+        for(size_t i=1;i<=6;++i) row[i] = ipower(X3,i-1);
+        A[3] = Y3;
+    }
+
+    //derivatives
+    {
+        array<double> &row = M[4];
+        row[1]=0;
+        for(size_t i=2;i<=6;++i) row[i] = (i-1)*ipower(X1,i-2);
+        A[4] = p2;
+    }
+
+    {
+        array<double> &row = M[5];
+        row[1]=0;
+        for(size_t i=2;i<=6;++i) row[i] = (i-1)*ipower(Xm,i-2);
+        A[5] = 0;
+    }
+
+    {
+        array<double> &row = M[6];
+        row[1]=0;
+        for(size_t i=2;i<=6;++i) row[i] = (i-1)*ipower(X3,i-2);
+        A[5] = p3;
+    }
+
+
+    std::cerr << "M=" << M << std::endl;
+    std::cerr << "A=" << A << std::endl;
 
 
 #if 0

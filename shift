@@ -1,2 +1,2 @@
 shift=-25e-3 p1=-6
-
+plot 'water_levels/manip_a_N11_18_07_2017.txt' u (($1+220)/1000.0):(($2+782)/1000.0) w lp

@@ -184,7 +184,8 @@ void Application:: load_v2(const string &dirName)
     // now change water level
     for(size_t i=1;i<=n1;++i)
     {
-        h_corr[i] = h[i] + (shift+(p1/100.0)*h[i]);
+        const double hw = (shift+(p1/100.0)*h[i]);
+        h_corr[i] = h[i] - hw;
     }
 
     //__________________________________________________________________________
@@ -194,7 +195,7 @@ void Application:: load_v2(const string &dirName)
     //__________________________________________________________________________
     DoublePoly DP;
     DP.Xlo = h[n1];
-    DP.Ylo = (h_corr[n1] - h[n1]); // water height in mm
+    DP.Ylo = (h[n1] - h_corr[n1]); // water height in mm
     DP.Slo = p2/100.0;
 
     DP.Xm  = 0.417;

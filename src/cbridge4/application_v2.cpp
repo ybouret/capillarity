@@ -16,6 +16,92 @@ static inline void __load(const string &filename,
     ds.load(fp);
 }
 
+class DoublePoly
+{
+public:
+    vector<double> Alo;
+    vector<double> Aup;
+
+    double         Xlo;
+    double         Ylo;
+    double         Slo;
+    double         Xm;
+    double         Ym;
+    double         Xup;
+    double         Yup;
+    double         Sup;
+
+    explicit DoublePoly() :
+    Alo(4),
+    Aup(4)
+    {
+    }
+
+    double eval(double x)
+    {
+        if(x<=Xm)
+        {
+            return _GLS::Polynomial<double>::Eval(x,Alo);
+        }
+        else
+        {
+            return _GLS::Polynomial<double>::Eval(x,Aup);
+        }
+    }
+
+    void compute()
+    {
+        matrix<double> Mlo(4);
+        matrix<double> Mup(4);
+
+        {
+            {
+                for(size_t i=1;i<=4;++i)
+                {
+                    Mup[1][i] = Mlo[1][i] = ipower(Xm,i-1);
+                    Mlo[2][i] = ipower(Xlo,i-1);
+                    Mup[2][i] = ipower(Xup,i-1);
+                }
+                Alo[1] = Ym;
+                Alo[2] = Ylo;
+                Aup[1] = Ym;
+                Aup[2] = Yup;
+            }
+
+            {
+                Mup[3][1] = Mlo[3][1] = 0;
+                Mup[4][1] = Mlo[4][1] = 0;
+                for(size_t i=2;i<=4;++i)
+                {
+                    Mup[3][i] = Mlo[3][i] = (i-1)*ipower(Xm,i-2);
+                    Mlo[4][i] = (i-1)*ipower(Xlo,i-2);
+                    Mup[4][i] = (i-1)*ipower(Xup,i-2);
+                }
+                Alo[3] = 0;
+                Aup[3] = 0;
+                Alo[4] = Slo;
+                Aup[4] = Sup;
+            }
+        }
+
+        if(! LU<double>::build(Mlo) ) throw exception("Singular Cubic@Lower");
+        if(! LU<double>::build(Mup) ) throw exception("Singular Cubic@Upper");
+
+        LU<double>::solve(Mlo,Alo);
+        LU<double>::solve(Mup,Aup);
+
+
+
+    }
+
+    virtual ~DoublePoly() throw()
+    {
+    }
+
+private:
+    YOCTO_DISABLE_COPY_AND_ASSIGN(DoublePoly);
+};
+
 void Application:: load_v2(const string &dirName)
 {
     local_fs &fs = local_fs::instance();
@@ -106,7 +192,31 @@ void Application:: load_v2(const string &dirName)
     //
     //
     //__________________________________________________________________________
+    DoublePoly DP;
+    DP.Xlo = h[n1];
+    DP.Ylo = (h_corr[n1] - h[n1]); // water height in mm
+    DP.Slo = p2/100.0;
 
+    DP.Xm  = 0.417;
+    DP.Ym  = -0.18; // water height in mm
+
+    DP.Xup = 2994e-3;
+    DP.Yup = 28e-3;
+    DP.Sup = p3/100.0;
+
+    DP.compute();
+
+    {
+        ios::wcstream fp("para.dat");
+
+        for(double hh=DP.Xlo;hh<=DP.Xup;hh += 0.01)
+        {
+            fp("%g %g\n", hh, DP.eval(hh));
+        }
+
+    }
+
+#if 0
     const double Y1 = (h_corr[n1] - h[n1]); // water height
     const double X1 = h[n1];
 
@@ -189,6 +299,7 @@ void Application:: load_v2(const string &dirName)
         }
 
     }
+#endif
 
 #if 0
     const double shift = 0;

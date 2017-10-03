@@ -16,6 +16,54 @@ static inline void __load(const string &filename,
     ds.load(fp);
 }
 
+class Rise
+{
+public:
+    double shift;
+    double slope;
+    double Xlo;
+    double Ylo;
+    vector<double> A;
+
+    explicit Rise() :
+    shift(0),
+    slope(0),
+    Xlo(0),
+    Ylo(0),
+    A(4)
+    {
+
+    }
+
+    double eval(const double X)
+    {
+        return _GLS::Polynomial<double>::Eval(X,A);
+    }
+
+    void compute()
+    {
+        matrix<double> M(2);
+        vector<double> U(2);
+        M[1][1] = Xlo*Xlo; M[1][2] = Xlo*Xlo*Xlo;
+        M[2][1] = 2*Xlo;   M[2][2] = 3*Xlo*Xlo;
+        U[1] = Ylo-shift;
+        U[2] = slope;
+        if( !LU<double>::build(M) ) throw exception("Singular Rise Matrix");
+        LU<double>::solve(M,U);
+        A[1] = shift;
+        A[2] = 0;
+        A[3] = U[1];
+        A[4] = U[2];
+    }
+
+    virtual ~Rise() throw()
+    {
+    }
+
+private:
+    YOCTO_DISABLE_COPY_AND_ASSIGN(Rise);
+};
+
 class DoublePoly
 {
 public:
@@ -180,6 +228,12 @@ void Application:: load_v2(const string &dirName)
     }
 
 
+    Rise rise;
+    rise.shift = shift;
+    rise.slope = p1/100.0;
+    rise.Xlo   = h[n1];
+    rise.Ylo   = rise.shift + rise.slope * rise.Xlo;
+    rise.compute();
 
     // now change water level
     for(size_t i=1;i<=n1;++i)
@@ -212,6 +266,10 @@ void Application:: load_v2(const string &dirName)
 
     {
         ios::wcstream fp("para.dat");
+        for(double hh=0;hh>=rise.Xlo;hh -= 0.01)
+        {
+            fp("%g %g\n",hh,rise.eval(hh));
+        }
 
         for(double hh=DP.Xlo;hh<=DP.Xup;hh += 0.01)
         {

@@ -231,16 +231,21 @@ void Application:: load_v2(const string &dirName)
     Rise rise;
     rise.shift = shift;
     rise.slope = p1/100.0;
-    rise.Xlo   = h[n1];
+//    rise.Xlo   = h[n1];
+    rise.Xlo   = -1.57;
     rise.Ylo   = rise.shift + rise.slope * rise.Xlo;
     rise.compute();
 
     // now change water level
-    for(size_t i=1;i<=n1;++i)
+    if( Square(p1) > 0 )
     {
-        const double hw = (shift+(p1/100.0)*h[i]);
-        h_corr[i] = h[i] - hw;
+        for(size_t i=1;i<=n1;++i)
+        {
+            const double hw = rise.eval(h[i]);
+            h_corr[i] = h[i] - hw;
+        }
     }
+
 
     //__________________________________________________________________________
     //
@@ -266,11 +271,17 @@ void Application:: load_v2(const string &dirName)
 
     {
         ios::wcstream fp("para.dat");
+#if 1
         for(double hh=0;hh>=rise.Xlo;hh -= 0.01)
         {
             fp("%g %g\n",hh,rise.eval(hh));
         }
-
+#else
+        for(size_t i=1;i<=n1;++i)
+        {
+            fp("%g %g\n",h1[i],rise.eval(h1[i]));
+        }
+#endif
         for(double hh=DP.Xlo;hh<=DP.Xup;hh += 0.01)
         {
             fp("%g %g\n", hh, DP.eval(hh));

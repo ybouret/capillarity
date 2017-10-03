@@ -234,7 +234,7 @@ void Application:: load_v2(const string &dirName)
 //    rise.Xlo   = h[n1];
     rise.Xlo   = -1.57;
     rise.Ylo   = rise.shift + rise.slope * rise.Xlo;
-    rise.compute();
+    rise.compute(); 
 
     // now change water level
     if( Square(p1) > 0 )

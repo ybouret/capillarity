@@ -204,7 +204,10 @@ void Application:: load_v2(const string &dirName)
     DP.Yup = 28e-3;
     DP.Sup = p3/100.0;
 
-    DP.compute();
+    if(Square(p2)>0&&Square(p3)>0)
+    {
+        DP.compute();
+    }
 
     {
         ios::wcstream fp("para.dat");
@@ -213,93 +216,13 @@ void Application:: load_v2(const string &dirName)
         {
             fp("%g %g\n", hh, DP.eval(hh));
         }
-
     }
 
-#if 0
-    const double Y1 = (h_corr[n1] - h[n1]); // water height
-    const double X1 = h[n1];
-
-    const double Xm =  0.417;
-    const double Ym = -180e-3;
-
-    const double X3 = 2994e-3;
-    const double Y3 = 28e-3;
-
-    matrix<double> M(6);
-    vector<double> A(6);
-
-    std::cerr << "X1=" << X1 << std::endl;
-    std::cerr << "Y1=" << Y1 << std::endl;
-
-    std::cerr << "Xm=" << Xm << std::endl;
-    std::cerr << "Ym=" << Ym << std::endl;
-
-    std::cerr << "X3=" << X3 << std::endl;
-    std::cerr << "Y3=" << Y3 << std::endl;
-
-    // points
+    for(size_t i=offset2+1;i<=n;++i)
     {
-        array<double> &row = M[1];
-        for(size_t i=1;i<=6;++i) row[i] = ipower(X1,i-1);
-        A[1] = Y1;
+        h_corr[i] = h[i] - DP.eval(h[i]);
     }
 
-    {
-        array<double> &row = M[2];
-        for(size_t i=1;i<=6;++i) row[i] = ipower(Xm,i-1);
-        A[2] = Ym;
-    }
-
-    {
-        array<double> &row = M[3];
-        for(size_t i=1;i<=6;++i) row[i] = ipower(X3,i-1);
-        A[3] = Y3;
-    }
-
-    //derivatives
-    {
-        array<double> &row = M[4];
-        row[1]=0;
-        for(size_t i=2;i<=6;++i) row[i] = (i-1)*ipower(X1,i-2);
-        A[4] = p2/100.0;
-    }
-
-    {
-        array<double> &row = M[5];
-        row[1]=0;
-        for(size_t i=2;i<=6;++i) row[i] = (i-1)*ipower(Xm,i-2);
-        A[5] = 0;
-    }
-
-    {
-        array<double> &row = M[6];
-        row[1]=0;
-        for(size_t i=2;i<=6;++i) row[i] = (i-1)*ipower(X3,i-2);
-        A[6] = p3/100.0;
-    }
-
-
-    std::cerr << "M=" << M << std::endl;
-    std::cerr << "A=" << A << std::endl;
-
-    if( !LU<double>::build(M) )
-    {
-        throw exception("Singular Water Height Extrapolation!");
-    }
-
-    LU<double>::solve(M,A);
-    std::cerr << "A=" << A << std::endl;
-    {
-        ios::wcstream fp("para.dat");
-
-        for(double hh=X1;hh<=X3;hh += 0.01)
-        {
-            fp("%g %g\n", hh, _GLS::Polynomial<double>::Eval(hh,A) );
-        }
-
-    }
-#endif
 
 #if 0
     const double shift = 0;

@@ -227,7 +227,7 @@ void Application:: load_v2(const string &dirName)
         }
     }
 
-
+    // now modifying...
     Rise rise;
     rise.shift = shift;
     rise.slope = p1/100.0;
@@ -294,7 +294,7 @@ void Application:: load_v2(const string &dirName)
     }
 
 
-    
+
     pre_process();
 
 

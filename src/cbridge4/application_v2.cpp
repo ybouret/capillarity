@@ -294,52 +294,7 @@ void Application:: load_v2(const string &dirName)
     }
 
 
-#if 0
-    const double shift = 0;
-    //const double __h0  = h1[1];
-    const double b1    = 1.0 + (p1/100.0);
-    const double b2    = 1.0 + (p2/100.0);
-    const double b3    = 1.0 + (p3/100.0);
-
-    size_t j=0;
-    for(size_t i=1;i<=n1;++i)
-    {
-        ++j;
-        h[j]      = h1[i];
-        //h_corr[j] = shift + b1*(h1[i] - __h0);
-        h_corr[j] = shift + b1*(h1[i]);
-        A[j]      = A1[i];
-    }
-
-    const double   H1 = h_corr[j];
-    const double __h1 = h[j];
-    for(size_t i=1;i<=n2;++i)
-    {
-        ++j;
-        h[j]      = h2[i];
-        h_corr[j] = H1 + b2*(h2[i]-__h1);
-        A[j]      = A2[i];
-    }
-
-    const double   H2 = h_corr[j];
-    const double __h2 = h[j];
-    for(size_t i=1;i<=n3;++i)
-    {
-        ++j;
-        h[j]      = h3[i];
-        h_corr[j] = H2 + b3*(h3[i]-__h2);
-        A[j]      = A3[i];
-    }
-
-    {
-        ios::wcstream fp("sample.dat");
-        for(size_t i=1;i<=n;++i)
-        {
-            fp("%g %g %g\n", h[i], h_corr[i], A[i]);
-        }
-    }
-#endif
-
+    
     pre_process();
 
 

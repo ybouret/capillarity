@@ -236,13 +236,18 @@ void Application:: load_v2(const string &dirName)
     rise.Ylo   = rise.shift + rise.slope * rise.Xlo;
     rise.compute(); 
 
+#if 1
+#define SIGN_WATER 1
+#else
+#define SIGN_WATER -1
+#endif
     // now change water level
     if( Square(p1) > 0 )
     {
         for(size_t i=1;i<=n1;++i)
         {
             const double hw = rise.eval(h[i]);
-            h_corr[i] = h[i] - hw;
+            h_corr[i] = h[i] - SIGN_WATER * hw;
         }
     }
 
@@ -254,11 +259,12 @@ void Application:: load_v2(const string &dirName)
     //__________________________________________________________________________
     DoublePoly DP;
     DP.Xlo = h[n1];
-    DP.Ylo = (h[n1] - h_corr[n1]); // water height in mm
+    DP.Ylo = rise.eval(DP.Xlo); // water height in mm
     DP.Slo = p2/100.0;
 
     DP.Xm  = 0.417;
     DP.Ym  = -0.18; // water height in mm
+    //DP.Ym  = -0.10; // water height in mm
 
     DP.Xup = 2994e-3;
     DP.Yup = 28e-3;
@@ -290,7 +296,7 @@ void Application:: load_v2(const string &dirName)
 
     for(size_t i=offset2+1;i<=n;++i)
     {
-        h_corr[i] = h[i] - DP.eval(h[i]);
+        h_corr[i] = h[i] - SIGN_WATER * DP.eval(h[i]);
     }
 
 

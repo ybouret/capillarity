@@ -261,8 +261,6 @@ void Application:: correct_h()
         //h_corr[i] = h_evap[i] * (1.0+percent/100.0);
     }
 
-
-
 }
 
 void Application:: pre_process()
@@ -286,13 +284,25 @@ void Application:: pre_process()
 void Application:: load( const string &filename )
 {
 
+    bool         swap_value;
+    const string swap_name = "SWAP";
+    const bool   do_swap = environment::check(swap_value, swap_name );
+
 
     mgr.release_all();
     // loading
     {
         data_set<double> ds;
-        ds.use(1, A);
-        ds.use(2, (Vector&)h);
+        if(do_swap)
+        {
+            ds.use(2, A);
+            ds.use(1, h);
+        }
+        else
+        {
+            ds.use(1, A);
+            ds.use(2, h);
+        }
         ios::icstream fp(filename);
         ds.load(fp);
     }
@@ -302,7 +312,7 @@ void Application:: load( const string &filename )
     const size_t n = h.size();
     mgr.make_all(__SUBS,n);
 
-    build_time();
+    //build_time();
     correct_h();
 
     pre_process();

@@ -24,8 +24,9 @@ YOCTO_PROGRAM_START()
     }
 #endif
 
-
     Application  app(L);
+
+#if 0
     string dirName  = argv[1];
     vfs::as_directory(dirName);
     app.load_v2(dirName);
@@ -49,9 +50,10 @@ YOCTO_PROGRAM_START()
             }
         }
     }
+#endif
 
-#if 0
-    const string filename = L.Get<string>("file");
+#if 1
+    const string filename = argv[1];
     app.load(filename);
     wtime chrono;
     chrono.start();
@@ -63,7 +65,7 @@ YOCTO_PROGRAM_START()
         string output = filename;
         string extension = "cbridge.dat";
         // changing extension if necessary
-        extension = vformat("cbridge%g.dat",app.percent);
+        //extension = vformat("cbridge%g.dat",app.percent);
         vfs::change_extension(output, extension);
         std::cerr << "Saving into " << output << std::endl;
 

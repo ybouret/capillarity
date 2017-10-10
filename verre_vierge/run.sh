@@ -1,4 +1,4 @@
-Rvalue=60
+Rvalue=59
 PROG=../bin/cbridge4
 SWAP=true  $PROG vierge_tirage100mu_R81mm.txt*   R0=$Rvalue
 SWAP=true  $PROG vierge_tirage20mu_R81mm.txt*    R0=$Rvalue

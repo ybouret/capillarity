@@ -5,20 +5,20 @@
 YOCTO_PROGRAM_START()
 {
 #include "main-core.cpp"
-    const double hmin = L.Get<double>("hmin");
+    const double hmin      = L.Get<double>("hmin");
     const string filename  = "abacus4.dat";
 
     ios::ocstream::overwrite(filename);
 
     const double zeta_min = hmin/B.R0;
-    const size_t N        = 200;
+    const size_t N        = 50;
 
     Vector h;
     Vector A;
     double alphas[2];
     bool   isFlat = false;
     
-    for(double theta_deg=119; theta_deg <= 179; theta_deg += 3 )
+    for(double theta_deg=40; theta_deg <= 60; theta_deg += 5 )
     {
         h.free();
         A.free();

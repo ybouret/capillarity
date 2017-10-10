@@ -286,20 +286,23 @@ void Application:: load( const string &filename )
 
     bool         swap_value;
     const string swap_name = "SWAP";
-    const bool   do_swap = environment::check(swap_value, swap_name );
-
-
+    (void) environment::check(swap_value, swap_name );
+    
+    std::cerr << "Loading '" << filename << "'" << std::endl;
+    std::cerr << "Swap=" << swap_value << std::endl;
     mgr.release_all();
     // loading
     {
         data_set<double> ds;
-        if(do_swap)
+        if(swap_value)
         {
+            std::cerr << "Swapping Column Order" << std::endl;
             ds.use(2, A);
             ds.use(1, h);
         }
         else
         {
+            std::cerr << "Not Swapping Column Order" << std::endl;
             ds.use(1, A);
             ds.use(2, h);
         }

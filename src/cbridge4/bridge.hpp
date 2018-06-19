@@ -30,7 +30,7 @@ typedef ode::driverCK<double>::type  DEsolver;
 typedef vector<double>               Vector;
 typedef triplet<double>              Triplet;
 
-YOCTO_PAIR_DECL(YOCTO_TUPLE_STANDARD,range_t,double,vmin,double,vmax);
+YOCTO_PAIR_DECL(STANDARD,range_t,double,vmin,double,vmax);
 inline range_t() throw() : vmin(0), vmax(0) {}
 inline range_t & operator=( const range_t &r ) throw()
 {

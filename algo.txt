@@ -1,0 +1,24 @@
+We assume to have a spherical cap lens of radius R0, and a water profile described by the parametric curve (r(s),z(s)).
+Let us define the reduced set of variables:
+ u   = r/R0
+ v   = z/R0
+ tau = s/R0
+ 
+We carry out the integration of
+	du/dtau   = cos(phi)
+	dv/dtau   = sin(phi)
+	dphi/dtau = mu^2 * v - sin(phi)/u
+	mu = R0/lambda (lambda=capillary length)
+
+starting from
+	u0   = sin(alpha)
+	v0   = h/R0 + (1-cos(alpha))
+	phi0 = alpha+theta-pi 
+
+with the initial angle related to the measure area A according to
+	alpha = arcsin(sqrt(A/(pi*R0^2)))
+
+and a guess contact angle theta.
+For any theta, the integration is performed using the adaptive Dormand-Prince 
+method. We then look for the value which ensures a vanishing horizontal tangent (ie dv/dtau goes to zero) when the radius diverges (ie u goes to infinity).
+

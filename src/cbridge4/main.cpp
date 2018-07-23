@@ -63,7 +63,7 @@ YOCTO_PROGRAM_START()
 
     {
         string output = filename;
-        string extension = "cbridge.dat";
+        string extension = vformat("R%g.cbridge.dat",app.R0);
         // changing extension if necessary
         //extension = vformat("cbridge%g.dat",app.percent);
         vfs::change_extension(output, extension);

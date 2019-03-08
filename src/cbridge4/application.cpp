@@ -284,7 +284,7 @@ void Application:: pre_process()
 void Application:: load( const string &filename )
 {
 
-    bool         swap_value;
+    bool         swap_value=false;
     const string swap_name = "SWAP";
     (void) environment::check(swap_value, swap_name );
     
